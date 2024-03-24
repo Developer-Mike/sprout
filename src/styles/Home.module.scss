@@ -1,0 +1,50 @@
+#hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  #logo {
+    position: relative;
+    overflow: hidden;
+
+    mask-image: radial-gradient(circle, white 90%, transparent 100%);
+
+    & > img {
+      width: 50vh;
+      height: 50vh;
+    
+      margin: -7.5vh 0;
+    }
+
+    #logoMask {
+      position: absolute;
+
+      width: 25vh;
+      height: 25vh;
+      transform: translate(-50%, -50%);
+
+      mask-image: radial-gradient(circle, #ffffffaa 0%, #ffffff00 50%);
+      backdrop-filter: brightness(1.5);
+    }
+  }
+
+  #sprout {
+    margin-bottom: 25px;
+    font-size: 5em;
+  }
+
+  #slogan {
+    margin-top: 0;
+    margin-bottom: 75px;
+
+    color: var(--primary-dim);
+    font-size: 2rem;
+    font-weight: 700;
+  }
+
+  #cta > button {
+    font-size: 1.1em;
+    font-weight: bold;
+  }
+}

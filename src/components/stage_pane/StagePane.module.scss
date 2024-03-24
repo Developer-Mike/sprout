@@ -1,0 +1,12 @@
+#stage {
+  display: inline-block;
+  overflow: hidden;
+
+  #stageCanvas {
+    margin-right: -10000px; // Allow 100% width of parent ignore this element
+    background-color: white;
+  
+    border: var(--border-width) solid var(--primary-dim);
+    border-radius: 16px;
+  }
+}
