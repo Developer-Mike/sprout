@@ -1,0 +1,11 @@
+{
+    "project-name": "Sprout",
+    "builder": "Builder",
+    "file": "File",
+    "code": "Code",
+    "sprite": {
+        "zero": "Sprite",
+        "one": "Sprite",
+        "other": "Sprites"
+    }
+}

@@ -8,18 +8,20 @@ import SplitView from "@/components/split_view/SplitView"
 import StagePane from "@/components/stage_pane/StagePane"
 import TabView from "@/components/tab_view/TabView"
 import styles from "@/styles/Builder.module.scss"
+import useTranslation from "next-translate/useTranslation"
 import { useState } from "react"
 
 export default function Builder() {
+  const { t } = useTranslation("builder")
   const [documentationOpen, setDocumentationOpen] = useState(true)
   
   return (
     <>
-      <DefaultHead title="Builder" />
+      <DefaultHead title={t("common:builder")} />
       <header>
         <Navbar
           startItems={[
-            <span>File</span>
+            <span>{t("common:file")}</span>
           ]}
           endItems={[
             <div><Icon iconId="play_arrow" /></div>,
@@ -39,12 +41,12 @@ export default function Builder() {
             tabs={[
               {
                 id: "code",
-                label: "Code",
+                label: t("common:code"),
                 content: <CodeEditor />
               },
               {
                 id: "sprites",
-                label: "Sprites",
+                label: t("common:sprite", { count: 2 }),
                 content: <div>Sprites</div>
               }
             ]}

@@ -2,8 +2,11 @@ import DefaultHead from "@/components/DefaultHead"
 import Navbar from "@/components/navbar/Navbar"
 import styles from "@/styles/Home.module.scss"
 import { useEffect } from "react"
+import useTranslation from 'next-translate/useTranslation'
 
 export default function Home() {
+  const { t } = useTranslation("home")
+  
   useEffect(() => {
     const logo = document.getElementById(styles.logo)
     const logoMask = document.getElementById(styles.logoMask)
@@ -27,7 +30,7 @@ export default function Home() {
       <DefaultHead title="Create" />
       <header>
         <Navbar startItems={[
-          <a href="/builder">Builder</a>,
+          <a href="/builder">{t("common:builder")}</a>,
         ]} />
       </header>
       <main>
@@ -37,9 +40,9 @@ export default function Home() {
             <div id={styles.logoMask} />
           </div>
 
-          <h1 id={styles.sprout}>Sprout</h1>
-          <h2 id={styles.slogan}>The low-code platform for learning game development</h2>
-          <a id={styles.cta} href="/builder"><button className="primary">Start building</button></a>
+          <h1 id={styles.sprout}>{t("common:project-name")}</h1>
+          <h2 id={styles.slogan}>{t("slogan")}</h2>
+          <a id={styles.cta} href="/builder"><button className="primary">{t("start-building")}</button></a>
         </section>
       </main>
     </>
