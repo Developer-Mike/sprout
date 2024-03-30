@@ -2,6 +2,24 @@
   display: inline-block;
   overflow: hidden;
 
+  &.fullscreen {
+    width: 50vw;
+  }
+
+  #controlBar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+
+    input {
+      width: 100px;
+    }
+
+    #fullscreenToggle {
+      margin-left: auto;
+    }
+  }
+
   #stageCanvas {
     margin-right: -10000px; // Allow 100% width of parent ignore this element
     background-color: white;

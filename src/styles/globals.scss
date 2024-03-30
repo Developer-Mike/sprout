@@ -82,6 +82,38 @@ button, .button {
       border-color: var(--primary-dim);
     }
   }
+
+  &:has(> span.material-symbols-rounded) {
+    font-size: 0;
+  }
+}
+
+input, .input {
+  padding: 10px;
+
+  border: var(--border-width) solid var(--border-color);
+  border-radius: 8px;
+
+  color: var(--on-container);
+  background-color: var(--container-high);
+
+  transition: background-color 0.2s, border-color 0.2s;
+
+  &:hover {
+    background-color: var(--container-low);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+
+  &[type="number"] {
+    &::-webkit-inner-spin-button, &::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  }
 }
 
 code {
