@@ -65,7 +65,7 @@ export default function StagePane({ canvasRef }: {
     <div id={styles.stage} className={isFullscreen ? styles.fullscreen : ""}>
       <div id={styles.controlBar}>
         <input type="number" defaultValue={stageWidth} onKeyDown={(e) => { onInput(e, setStageWidth) }} disabled={!project.data.advanced} />
-        x
+        <span>x</span>
         <input type="number" defaultValue={stageHeight} onKeyDown={(e) => { onInput(e, setStageHeight) }} disabled={!project.data.advanced} />
 
         <button id={styles.fullscreenToggle} onClick={() => { setFullscreen(!isFullscreen) }}><Icon iconId={isFullscreen ? "fullscreen_exit" : "fullscreen"} /></button>
