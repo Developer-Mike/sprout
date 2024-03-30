@@ -29,13 +29,18 @@ npm run dev
 - [x] Create the project
 - [x] Decide the style and design of the project
 - [x] Implement the basic UI using Next.js and SCSS
-- [ ] Design the structure of the project data
-- [ ] Make it work with fixed data and JavaScript
+- [x] Design the basic structure of the project data
+- [x] Make it work with fixed data and JavaScript
+- [ ] Add support for sprites
+- [ ] Make the code editor work with JavaScript
+- [ ] Implement game objects pane
+- [ ] Load and save the project data
+- [ ] Add the implemented functions to the engine
 - [ ] Create the Lexer and the Parser for the programming language
 - [ ] Make it work with fixed data
-- [ ] Add multiple game objects support
 - [ ] Create tool for simple image editing of sprites
 - [ ] Add documentation for the programming language
+- [ ] Create some example games
 - [ ] (If time allows) Add syntax highlighting for the programming language
 - [ ] (If time allows) Add error messages and explanations
 - [ ] (If time allows) Add support for multiple "scenes"

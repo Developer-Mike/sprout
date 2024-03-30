@@ -1,3 +1,11 @@
+.running {
+  color: var(--green);
+}
+
+.stopped {
+  color: var(--red);
+}
+
 #mainSplit {
   width: 100%;
   height: 100%;
