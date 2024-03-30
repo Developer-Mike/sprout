@@ -53,7 +53,10 @@ export default function StagePane({ canvasRef }: {
     if (e.key !== "Enter") return
 
     const input = e.target as HTMLInputElement
-    setter(parseInt(input.value))
+    const value = Math.min(Math.max(parseInt(input.value), 1), 9999)
+
+    input.value = value.toString()
+    setter(value)
 
     input.blur()
   }
@@ -61,8 +64,9 @@ export default function StagePane({ canvasRef }: {
   return (
     <div id={styles.stage} className={isFullscreen ? styles.fullscreen : ""}>
       <div id={styles.controlBar}>
-        <input type="number" defaultValue={stageWidth} onKeyDown={(e) => { onInput(e, setStageWidth) }} />
-        <input type="number" defaultValue={stageHeight} onKeyDown={(e) => { onInput(e, setStageHeight) }} />
+        <input type="number" defaultValue={stageWidth} onKeyDown={(e) => { onInput(e, setStageWidth) }} disabled={!project.data.advanced} />
+        x
+        <input type="number" defaultValue={stageHeight} onKeyDown={(e) => { onInput(e, setStageHeight) }} disabled={!project.data.advanced} />
 
         <button id={styles.fullscreenToggle} onClick={() => { setFullscreen(!isFullscreen) }}><Icon iconId={isFullscreen ? "fullscreen_exit" : "fullscreen"} /></button>
       </div>

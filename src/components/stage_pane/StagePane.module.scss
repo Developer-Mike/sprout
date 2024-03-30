@@ -8,11 +8,14 @@
 
   #controlBar {
     display: flex;
+    align-items: center;
     gap: 10px;
+
     margin-bottom: 10px;
 
     input {
-      width: 100px;
+      width: 4em;
+      text-align: center;
     }
 
     #fullscreenToggle {

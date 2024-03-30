@@ -53,7 +53,8 @@ const project: ProjectData = {
         }
       `
     }
-  ]
+  ],
+  // advanced: true
 }
 
 export default project

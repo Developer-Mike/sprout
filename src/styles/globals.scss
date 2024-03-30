@@ -108,6 +108,11 @@ input, .input {
     border-color: var(--primary);
   }
 
+  &:disabled {
+    background-color: var(--container-low);
+    border-color: var(--container-high);
+  }
+
   &[type="number"] {
     &::-webkit-inner-spin-button, &::-webkit-outer-spin-button {
       -webkit-appearance: none;

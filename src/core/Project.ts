@@ -48,6 +48,8 @@ export interface ProjectData {
   workspace: WorkspaceData
   stage: StageData
   gameObjects: GameObjectData[]
+
+  advanced?: boolean
 }
 
 export interface WorkspaceData {
