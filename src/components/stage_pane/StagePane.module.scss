@@ -1,10 +1,10 @@
+.expanded {
+  flex: 1 !important;
+}
+
 #stage {
   display: inline-block;
   overflow: hidden;
-
-  &.fullscreen {
-    width: 50vw;
-  }
 
   #controlBar {
     display: flex;

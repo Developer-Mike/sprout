@@ -45,6 +45,7 @@
 
   #rightSplit {
     flex: 0.5;
+    transition: flex 0.2s;
 
     display: flex;
     flex-direction: column;

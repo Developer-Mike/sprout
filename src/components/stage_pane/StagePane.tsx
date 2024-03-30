@@ -42,6 +42,13 @@ export default function StagePane({ canvasRef }: {
     return () => { resizeObserver.disconnect() }
   } , [stageWidth, stageHeight])
 
+  useEffect(() => {
+    const stageContainer = document.getElementById(styles.stage)?.parentElement
+    if (!stageContainer) return
+
+    stageContainer.classList.toggle(styles.expanded, isFullscreen)
+  }, [isFullscreen])
+
   const onInput = (e: React.KeyboardEvent<HTMLInputElement>, setter: (value: number) => void) => {
     if (e.key !== "Enter") return
 
