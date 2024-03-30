@@ -65,9 +65,13 @@ export interface GameObjectData {
 
   x: number
   y: number
+  layer: number
   rotation: number
   width: number
   height: number
+
+  sprites: string[]
+  activeSprite: number
 
   code: string
 }

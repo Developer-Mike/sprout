@@ -31,7 +31,7 @@ npm run dev
 - [x] Implement the basic UI using Next.js and SCSS
 - [x] Design the basic structure of the project data
 - [x] Make it work with fixed data and JavaScript
-- [ ] Add support for sprites
+- [x] Add support for sprites
 - [ ] Make the code editor work with JavaScript
 - [ ] Implement game objects pane
 - [ ] Load and save the project data

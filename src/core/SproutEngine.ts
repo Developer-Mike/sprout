@@ -4,20 +4,27 @@ export default class SproutEngine {
   static generateRenderFunctionCode(): string {
     return `
       const render = (data, canvas) => {
-        const ctx = canvas.getContext("2d")
-        if (!ctx) return
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
 
-        ctx.resetTransform()
-        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.resetTransform();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        data.gameObjects.forEach(gameObject => {
+        const sortedGameObjects = data.gameObjects.sort((a, b) => a.layer - b.layer);
+        sortedGameObjects.forEach(gameObject => {
           // Set matrix
-          ctx.resetTransform()
-          ctx.scale(canvas.width / data.stage.width, canvas.height / data.stage.height)
-          ctx.translate(gameObject.x, gameObject.y)
-          ctx.rotate(gameObject.rotation * Math.PI / 180)
+          ctx.resetTransform();
+          ctx.scale(canvas.width / data.stage.width, canvas.height / data.stage.height);
+          ctx.translate(gameObject.x, gameObject.y);
+          ctx.rotate(gameObject.rotation * Math.PI / 180);
 
-          ctx.fillRect(-gameObject.width / 2, -gameObject.height / 2, gameObject.width, gameObject.height)
+          const x = -gameObject.width / 2;
+          const y = -gameObject.height / 2;
+
+          // Draw sprite
+          const sprite = new Image();
+          sprite.src = gameObject.sprites[gameObject.activeSprite];
+          ctx.drawImage(sprite, x, y, gameObject.width, gameObject.height);
         })
       }
     `
@@ -51,8 +58,9 @@ export default class SproutEngine {
       const tick = async () => {
         const start = performance.now();
         await sleep(0);
+        const end = performance.now();
 
-        return performance.now() - start;
+        return (end - start) / 1000;
       }
     `
 
