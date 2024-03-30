@@ -19,9 +19,10 @@ const project = {
       height: 250,
       code: `
         while (true) {
+          console.log(deltaTime);
           that.rotation += 1;
 
-          await tick();
+          deltaTime = await tick();
         }
       `
     },
@@ -36,7 +37,7 @@ const project = {
         while (true) {
           that.rotation -= 1;
 
-          await tick();
+          deltaTime = await tick();
         }
       `
     }

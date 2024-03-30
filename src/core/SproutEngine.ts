@@ -32,22 +32,27 @@ export default class SproutEngine {
         return this.isRunning ?? true;
       }
 
-      const tick = () => {
-        return new Promise(resolve => {
-          requestAnimationFrame(() => {
-            if (!getIsRunning()) return;
-            resolve();
-          });
+      const frame = () => {
+        return new Promise((resolve, reject) => {
+          requestAnimationFrame(() => (
+            getIsRunning() ? resolve() : reject("Game stopped")
+          ));
         });
       }
 
       const sleep = (ms) => {
-        return new Promise(resolve => {
-          setTimeout(() => {
-            if (!getIsRunning()) return;
-            resolve();
-          }, ms);
+        return new Promise((resolve, reject) => {
+          setTimeout(() => (
+            getIsRunning() ? resolve() : reject("Game stopped")
+          ), ms);
         });
+      }
+
+      const tick = async () => {
+        const start = performance.now();
+        await sleep(0);
+
+        return performance.now() - start;
       }
     `
 
@@ -66,6 +71,7 @@ export default class SproutEngine {
       code += `
         (async () => {
           const that = runningCache.gameObjects.find(gameObject => gameObject.id === "${gameObject.id}");
+          let deltaTime = 0;
 
           ${gameObject.code}
         })();
@@ -78,9 +84,9 @@ export default class SproutEngine {
     // Add main loop
     code += `
       (async () => {
-        while (getIsRunning()) {
+        while (true) {
           render(runningCache, canvas);
-          await tick();
+          await frame();
         }
       })();
     `
