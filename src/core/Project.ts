@@ -50,6 +50,9 @@ export default class Project {
 export interface ProjectData {
   title: string
   workspace: WorkspaceData
+
+  sprites: { [id: string]: string }
+
   stage: StageData
   gameObjects: GameObjectData[]
 
@@ -69,6 +72,7 @@ export interface StageData {
 export interface GameObjectData {
   id: string
 
+  visible: boolean
   x: number
   y: number
   layer: number

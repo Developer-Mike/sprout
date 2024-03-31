@@ -16,8 +16,11 @@ export default class SproutEngine {
         ctx.resetTransform();
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        const sortedGameObjects = data.gameObjects.sort((a, b) => a.layer - b.layer);
-        sortedGameObjects.forEach(gameObject => {
+        const gameObjects = data.gameObjects
+          .filter(gameObject => gameObject.visible)
+          .sort((a, b) => a.layer - b.layer);
+
+        gameObjects.forEach(gameObject => {
           // Set matrix
           ctx.resetTransform();
           ctx.scale(canvas.width / data.stage.width, canvas.height / data.stage.height);
@@ -29,7 +32,7 @@ export default class SproutEngine {
 
           // Draw sprite
           const sprite = new Image();
-          sprite.src = gameObject.sprites[gameObject.activeSprite];
+          sprite.src = data.sprites[gameObject.sprites[gameObject.activeSprite]];
           ctx.drawImage(sprite, x, y, gameObject.width, gameObject.height);
         })
       }
@@ -74,6 +77,7 @@ export default class SproutEngine {
     // Add game objects
     code += `
       const runningCache = {
+        sprites: ${JSON.stringify(data.sprites)},
         stage: ${JSON.stringify(data.stage)},
         gameObjects: ${JSON.stringify(data.gameObjects)}
       };
