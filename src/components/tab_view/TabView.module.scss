@@ -41,27 +41,14 @@
     }
   }
 
-  #leafs {
+  #leaf {
     flex: 1;
+    padding: 20px;
 
     color: var(--on-container);
     background-color: var(--container-low);
 
     border: var(--border-width) solid var(--primary-dim);
     border-radius: 16px;
-
-    .leaf {
-      display: flex;
-
-      width: 100%;
-      height: 100%;
-      
-      box-sizing: border-box;
-      padding: 20px;
-
-      &:not(.activeLeaf) {
-        display: none;
-      }
-    }
   }
 }

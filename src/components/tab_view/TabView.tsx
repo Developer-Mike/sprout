@@ -36,12 +36,8 @@ export default function TabView({ id, tabs, actionButtons }: {
         ))}
       </div>
 
-      <div id={styles.leafs}>
-        {tabs.map(tab => (
-          <div key={tab.id} className={`${styles.leaf} ${tab.id === activeTab ? styles.activeLeaf : ""}`}>
-            {tab.content}
-          </div>
-        ))}
+      <div id={styles.leaf}>
+        { tabs.find(tab => tab.id === activeTab)?.content }
       </div>
     </div>
   )
