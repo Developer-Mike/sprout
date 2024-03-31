@@ -32,12 +32,11 @@ npm run dev
 - [x] Design the basic structure of the project data
 - [x] Make it work with fixed data and JavaScript
 - [x] Add support for sprites
-- [ ] Make the code editor work with JavaScript
 - [ ] Implement game objects pane
+- [ ] Make the code editor work with JavaScript
 - [ ] Load and save the project data
-- [ ] Add the implemented functions to the engine
 - [ ] Create the Lexer and the Parser for the programming language
-- [ ] Make it work with fixed data
+- [ ] Add the implemented functions to the engine
 - [ ] Create tool for simple image editing of sprites
 - [ ] Add documentation for the programming language
 - [ ] Create some example games
