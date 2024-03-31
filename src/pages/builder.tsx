@@ -33,19 +33,30 @@ export default function Builder() {
         <DefaultHead title={t("common:builder")} />
         <header>
           <Navbar
-            startItems={[
-              <span>{t("common:file")}</span>
-            ]}
-            endItems={[
-              <div
-                onClick={() => { if (!isRunning && project && canvasRef.current) project.run(canvasRef.current) }}
-                className={isRunning ? styles.running : ""}
-              ><Icon iconId="play_arrow" /></div>,
-              
-              <div
-                onClick={() => { if (isRunning && project && canvasRef.current) project.stop(canvasRef.current) }}
-                className={isRunning ? "" : styles.stopped}
-              ><Icon iconId="stop" /></div>,
+            items={[
+              {
+                element: <span>{t("common:file")}</span>,
+                nested: [
+                  <span>{t("common:new")}</span>,
+                  <span>{t("common:open")}</span>,
+                  <span>{t("common:save")}</span>,
+                  <span>{t("export-as-html")}</span>
+                ]
+              },
+              {
+                element: <div
+                  onClick={() => { if (!isRunning && project && canvasRef.current) project.run(canvasRef.current) }}
+                  className={isRunning ? styles.running : ""}
+                ><Icon iconId="play_arrow" /></div>,
+                align: "end"
+              },
+              {
+                element: <div
+                  onClick={() => { if (isRunning && project && canvasRef.current) project.stop(canvasRef.current) }}
+                  className={isRunning ? "" : styles.stopped}
+                ><Icon iconId="stop" /></div>,
+                align: "end"
+              }
             ]}
           />
         </header>

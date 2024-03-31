@@ -21,18 +21,14 @@ export default class Project {
   }
 
   render(canvas: HTMLCanvasElement) {
-    let renderFunctionCode = SproutEngine.generateRenderFunctionCode()
-    renderFunctionCode += `render(this.data, canvas)`
-
-    eval(renderFunctionCode)
+    SproutEngine.render(this.data, canvas)
   }
 
   // TODO: Return errors
   async run(canvas: HTMLCanvasElement) {
     this.isRunning = true
     
-    const code = SproutEngine.generateRunnableCode(this.data)
-    eval(code)
+    SproutEngine.run(this.data, () => this.isRunning, canvas)
   }
 
   stop(canvas: HTMLCanvasElement) {
@@ -40,6 +36,14 @@ export default class Project {
 
     // Reset canvas
     this.render(canvas)
+  }
+
+  export() {
+    return JSON.stringify(this.data)
+  }
+
+  exportAsHTML() {
+    return SproutEngine.generateExportableHTMLCode(this.data)
   }
 }
 

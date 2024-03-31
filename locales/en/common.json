@@ -2,6 +2,9 @@
     "project-name": "Sprout",
     "builder": "Builder",
     "file": "File",
+    "new": "New",
+    "open": "Open",
+    "save": "Save",
     "code": "Code",
     "sprite": {
         "one": "Sprite",

@@ -1,7 +1,13 @@
 import { ProjectData } from "./Project";
 
 export default class SproutEngine {
-  static generateRenderFunctionCode(): string {
+  static render(data: ProjectData, canvas: HTMLCanvasElement) {
+    let code = this.generateRenderFunctionCode()
+    code += `render(data, canvas);`
+    eval(code)
+  }
+
+  private static generateRenderFunctionCode(): string {
     return `
       const render = (data, canvas) => {
         const ctx = canvas.getContext("2d");
@@ -30,15 +36,16 @@ export default class SproutEngine {
     `
   }
 
-  static generateRunnableCode(data: ProjectData): string {
+  static run(data: ProjectData, getIsRunning: () => boolean, canvas: HTMLCanvasElement) {
+    const code = this.generateRunnableCode(data)
+    eval(code)
+  }
+
+  private static generateRunnableCode(data: ProjectData): string {
     let code = ""
     
     // Add helper functions
     code += `
-      const getIsRunning = () => {
-        return this.isRunning ?? true;
-      }
-
       const frame = () => {
         return new Promise((resolve, reject) => {
           requestAnimationFrame(() => (
@@ -100,5 +107,63 @@ export default class SproutEngine {
     `
 
     return code
+  }
+
+  static generateExportableHTMLCode(data: ProjectData): string {
+    let code = this.generateRunnableCode(data)
+    code = `
+      const canvas = document.getElementById("canvas");
+      if (!canvas) throw new Error("Canvas not found");
+
+      const getIsRunning = () => { return true; }
+    ` + code
+
+    code += `
+      const onresize = () => {
+        const ratio = runningCache.stage.width / runningCache.stage.height;
+
+        if (window.innerWidth / window.innerHeight > ratio) {
+          canvas.style.width = window.innerHeight * ratio + "px";
+          canvas.style.height = window.innerHeight + "px";
+        } else {
+          canvas.style.width = window.innerWidth + "px";
+          canvas.style.height = window.innerWidth / ratio + "px";
+        }
+
+        // Rerender canvas
+        render(runningCache, canvas);
+      }
+
+      window.onresize = onresize;
+      onresize();
+    `
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${data.title}</title>
+
+          <style>
+            body {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              
+              margin: 0;
+              overflow: hidden;
+            }
+          </style>
+        </head>
+        <body>
+          <canvas id="canvas"></canvas>
+          <script>
+            ${code}
+          </script>
+        </body>
+      </html>
+    `
+
+    return html
   }
 }

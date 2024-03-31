@@ -1,6 +1,6 @@
 import { ProjectContext } from "@/ProjectContext"
 import styles from "@/components/stage_pane/StagePane.module.scss"
-import { useContext, useEffect, useMemo, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import Icon from "../Icon"
 import useProperty from "@/ReactiveProperty"
 
