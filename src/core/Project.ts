@@ -60,8 +60,8 @@ export interface ProjectData {
 }
 
 export interface WorkspaceData {
+  selectedGameObject: string
   documentationLeafVisible: boolean
-  // leafsFlex: number[]
 }
 
 export interface StageData {

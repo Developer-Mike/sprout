@@ -3,6 +3,7 @@ import { ProjectData } from "../Project"
 const project: ProjectData = {
   title: "Starter Project",
   workspace: {
+    selectedGameObject: "player",
     documentationLeafVisible: true
   },
   sprites: {

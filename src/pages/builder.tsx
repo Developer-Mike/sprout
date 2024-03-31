@@ -73,7 +73,18 @@ export default function Builder() {
                 {
                   id: "code",
                   label: t("common:code"),
-                  content: <CodeEditor />
+                  content: (
+                    <div id={styles.codeEditorContainer}>
+                      <CodeEditor />
+                      <img id={styles.gameObjectPreview} 
+                        src={project.data.sprites[
+                          project.data.gameObjects.find(gameObject => gameObject.id === project.data.workspace.selectedGameObject)!.sprites[
+                            project.data.gameObjects.find(gameObject => gameObject.id === project.data.workspace.selectedGameObject)!.activeSprite
+                          ]
+                        ]}
+                      />
+                    </div>
+                  )
                 },
                 {
                   id: "sprites",
