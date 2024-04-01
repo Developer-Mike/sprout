@@ -8,8 +8,16 @@ export default function StagePane({ canvasRef }: {
   canvasRef?: React.MutableRefObject<HTMLCanvasElement | null>
 }) {
   const project = useContext(ProjectContext)
-  const [stageWidth, setStageWidth] = useProperty(project.data.stage, "width")
-  const [stageHeight, setStageHeight] = useProperty(project.data.stage, "height")
+  const [stageWidth, setStageWidth] = useProperty(
+    project,
+    (project) => project?.data?.stage?.width,
+    (project, value) => { if (project) project.data.stage.width = value }
+  )
+  const [stageHeight, setStageHeight] = useProperty(
+    project,
+    (project) => project?.data?.stage?.height,
+    (project, value) => { if (project) project.data.stage.height = value }
+  )
 
   const [isFullscreen, setFullscreen] = useState(false)
 
@@ -64,9 +72,9 @@ export default function StagePane({ canvasRef }: {
   return (
     <div id={styles.stage} className={isFullscreen ? styles.fullscreen : ""}>
       <div id={styles.controlBar}>
-        <input type="number" defaultValue={stageWidth} onKeyDown={(e) => { onInput(e, setStageWidth) }} disabled={!project.data.advanced} />
+        <input type="number" defaultValue={stageWidth} onKeyDown={(e) => { onInput(e, setStageWidth) }} disabled={!project.data.workspace.advanced} />
         <span>x</span>
-        <input type="number" defaultValue={stageHeight} onKeyDown={(e) => { onInput(e, setStageHeight) }} disabled={!project.data.advanced} />
+        <input type="number" defaultValue={stageHeight} onKeyDown={(e) => { onInput(e, setStageHeight) }} disabled={!project.data.workspace.advanced} />
 
         <button id={styles.fullscreenToggle} onClick={() => { setFullscreen(!isFullscreen) }}><Icon iconId={isFullscreen ? "fullscreen_exit" : "fullscreen"} /></button>
       </div>

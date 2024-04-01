@@ -20,6 +20,11 @@ export default class Project {
     this.setRunningState = setIsRunningState
   }
 
+  getActiveGameObject() {
+    return this.data.gameObjects.find(gameObject => gameObject.id === this.data.workspace.selectedGameObject)
+      ?? this.data.gameObjects[0]
+  }
+
   render(canvas: HTMLCanvasElement) {
     SproutEngine.render(this.data, canvas)
   }
@@ -55,13 +60,13 @@ export interface ProjectData {
 
   stage: StageData
   gameObjects: GameObjectData[]
-
-  advanced?: boolean
 }
 
 export interface WorkspaceData {
   selectedGameObject: string
   documentationLeafVisible: boolean
+
+  advanced?: boolean
 }
 
 export interface StageData {

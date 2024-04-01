@@ -18,7 +18,16 @@ export default function Builder() {
   const { t } = useTranslation("builder")
   const [isRunning, setIsRunning] = useState(false)
   const [project, setProject] = useState<Project | null>(null)
-  const [documentationLeafVisible, setDocumentationLeafVisible] = useProperty(project?.data.workspace, "documentationLeafVisible")
+  const [selectedGameObject, setSelectedGameObject] = useProperty(
+    project, 
+    (project) => project?.data?.workspace?.selectedGameObject, 
+    (project, value) => { if (project) project.data.workspace.selectedGameObject = value }
+  )
+  const [documentationLeafVisible, setDocumentationLeafVisible] = useProperty(
+    project,
+    (project) => project?.data?.workspace?.documentationLeafVisible,
+    (project, value) => { if (project) project.data.workspace.documentationLeafVisible = value }
+  )
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   
@@ -75,11 +84,11 @@ export default function Builder() {
                   label: t("common:code"),
                   content: (
                     <div id={styles.codeEditorContainer}>
-                      <CodeEditor />
+                      <CodeEditor selectedGameObject={selectedGameObject} />
                       <img id={styles.gameObjectPreview} 
                         src={project.data.sprites[
-                          project.data.gameObjects.find(gameObject => gameObject.id === project.data.workspace.selectedGameObject)!.sprites[
-                            project.data.gameObjects.find(gameObject => gameObject.id === project.data.workspace.selectedGameObject)!.activeSprite
+                          project.getActiveGameObject().sprites[
+                            project.getActiveGameObject().activeSprite
                           ]
                         ]}
                       />
