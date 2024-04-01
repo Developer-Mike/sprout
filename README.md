@@ -33,7 +33,7 @@ npm run dev
 - [x] Make it work with fixed data and JavaScript
 - [x] Add support for sprites
 - [ ] Implement game objects pane
-- [ ] Make the code editor work with JavaScript
+- [x] Make the code editor work with JavaScript
 - [ ] Load and save the project data
 - [ ] Create the Lexer and the Parser for the programming language
 - [ ] Add the implemented functions to the engine
