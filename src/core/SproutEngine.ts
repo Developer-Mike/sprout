@@ -74,10 +74,15 @@ export default class SproutEngine {
       }
     `
 
+    const optimizedSprites = Object.fromEntries(
+      Object.entries(data.sprites)
+        .filter(([key, _value]) => data.gameObjects.some(gameObject => gameObject.sprites.includes(key)))
+    )
+
     // Add game objects
     code += `
       const runningCache = {
-        sprites: ${JSON.stringify(data.sprites)},
+        sprites: ${JSON.stringify(optimizedSprites)},
         stage: ${JSON.stringify(data.stage)},
         gameObjects: ${JSON.stringify(data.gameObjects)}
       };
