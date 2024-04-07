@@ -16,14 +16,22 @@
     color: var(--on-surface);
   }
 
-  #logoIcon {
+  #logoContainer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    
     height: 75%;
-    margin-right: 5px;
-  }
-
-  #logo {
     margin-right: 50px;
-    font-size: 2rem;
+
+    #logoIcon {
+      height: 100%;
+      margin-right: 5px;
+    }
+
+    #logo {
+      font-size: 2rem;
+    }
   }
 
   .navItemContainer {

@@ -52,8 +52,10 @@ export default function Navbar({ items }: {
   
   return (
     <div id={styles.navbar}>
-      <img id={styles.logoIcon} src="/sprout.svg" alt="Sprout logo" />
-      <h1 id={styles.logo}>{t("project-name")}</h1>
+      <a href="/" id={styles.logoContainer}>
+        <img id={styles.logoIcon} src="/sprout.svg" alt="Sprout logo" />
+        <h1 id={styles.logo}>{t("project-name")}</h1>
+      </a>
 
       { generateItems(items.filter((item) => item.align !== "end")) }
       <div className={styles.spacer} />
