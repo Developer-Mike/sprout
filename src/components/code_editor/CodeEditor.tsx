@@ -3,10 +3,8 @@ import styles from "@/components/code_editor/CodeEditor.module.scss"
 import { TAB_SIZE } from "@/constants"
 import { useContext, useEffect } from "react"
 
-export default function CodeEditor({ selectedGameObject }: {
-  selectedGameObject: string
-}) {
-  const project = useContext(ProjectContext)
+export default function CodeEditor() {
+  const { project } = useContext(ProjectContext)
 
   const onCodeChange = () => {
     const codeElement = document.getElementById(styles.codeEditor) as HTMLDivElement
@@ -45,7 +43,7 @@ export default function CodeEditor({ selectedGameObject }: {
 
     code.textContent = project.getActiveGameObject().code
     onCodeChange()
-  }, [selectedGameObject])
+  }, [project.data.workspace.selectedGameObject])
 
   return (
     <div id={styles.codeContainer}>

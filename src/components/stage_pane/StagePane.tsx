@@ -2,22 +2,11 @@ import { ProjectContext } from "@/ProjectContext"
 import styles from "@/components/stage_pane/StagePane.module.scss"
 import { useContext, useEffect, useState } from "react"
 import Icon from "../Icon"
-import useProperty from "@/ReactiveProperty"
 
 export default function StagePane({ canvasRef }: {
   canvasRef?: React.MutableRefObject<HTMLCanvasElement | null>
 }) {
-  const project = useContext(ProjectContext)
-  const [stageWidth, setStageWidth] = useProperty(
-    project,
-    (project) => project?.data?.stage?.width,
-    (project, value) => { if (project) project.data.stage.width = value }
-  )
-  const [stageHeight, setStageHeight] = useProperty(
-    project,
-    (project) => project?.data?.stage?.height,
-    (project, value) => { if (project) project.data.stage.height = value }
-  )
+  const { project, setProjectData } = useContext(ProjectContext)
 
   const [isFullscreen, setFullscreen] = useState(false)
 
@@ -32,7 +21,7 @@ export default function StagePane({ canvasRef }: {
     const paddingHorizontal = parseFloat(canvasComputedStyle.borderLeftWidth) + parseFloat(canvasComputedStyle.borderRightWidth)
 
     canvas.width = stage.clientWidth - paddingHorizontal
-    canvas.height = canvas.width / (stageWidth / stageHeight)
+    canvas.height = canvas.width / (project.data.stage.width / project.data.stage.height)
 
     // Request a redraw
     project.render(canvas)
@@ -48,7 +37,7 @@ export default function StagePane({ canvasRef }: {
     updateCanvas()
 
     return () => { resizeObserver.disconnect() }
-  } , [stageWidth, stageHeight])
+  } , [project.data.stage.width, project.data.stage.height])
 
   useEffect(() => {
     const stageContainer = document.getElementById(styles.stage)?.parentElement
@@ -72,9 +61,13 @@ export default function StagePane({ canvasRef }: {
   return (
     <div id={styles.stage} className={isFullscreen ? styles.fullscreen : ""}>
       <div id={styles.controlBar}>
-        <input type="number" defaultValue={stageWidth} onKeyDown={(e) => { onInput(e, setStageWidth) }} disabled={!project.data.workspace.advanced} />
+        <input type="number" defaultValue={project.data.stage.width} onKeyDown={(e) => { 
+          onInput(e, (value) => { setProjectData((data) => { data.stage.width = value }) })
+        }} disabled={!project.data.workspace.advanced} />
         <span>x</span>
-        <input type="number" defaultValue={stageHeight} onKeyDown={(e) => { onInput(e, setStageHeight) }} disabled={!project.data.workspace.advanced} />
+        <input type="number" defaultValue={project.data.stage.height} onKeyDown={(e) => {
+          onInput(e, (value) => { setProjectData((data) => { data.stage.height = value }) })
+        }} disabled={!project.data.workspace.advanced} />
 
         <button id={styles.fullscreenToggle} onClick={() => { setFullscreen(!isFullscreen) }}><Icon iconId={isFullscreen ? "fullscreen_exit" : "fullscreen"} /></button>
       </div>

@@ -20,9 +20,12 @@ export default class Project {
     this.setRunningState = setIsRunningState
   }
 
+  getGameObject(id: string) {
+    return this.data.gameObjects.find(gameObject => gameObject.id === id)
+  }
+
   getActiveGameObject() {
-    return this.data.gameObjects.find(gameObject => gameObject.id === this.data.workspace.selectedGameObject)
-      ?? this.data.gameObjects[0]
+    return this.getGameObject(this.data.workspace.selectedGameObject) ?? this.data.gameObjects[0]
   }
 
   render(canvas: HTMLCanvasElement) {

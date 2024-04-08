@@ -1,0 +1,53 @@
+#gameObjectProperties {
+  display: flex;
+}
+
+#gameObjectList {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+
+  .gameObject {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+
+    width: 75px;
+    height: 75px;
+    padding: 10px;
+
+    border: var(--border-color) solid var(--border-width);
+    border-radius: 16px;
+
+    color: var(--on-container);
+    background-color: var(--container-low);
+    transition: background-color 0.2s;
+
+    cursor: pointer;
+    user-select: none;
+    
+    &.selected {
+      transition: border-color 0.2s;
+      border-color: var(--primary-dim);
+    }
+
+    &:not(.selected):hover {
+      background-color: var(--container-high);
+    }
+
+    .gameObjectPreview {
+      height: 50px;
+      object-fit: contain;
+    }
+
+    .gameObjectId {
+      margin-top: 5px;
+
+      text-align: center;
+      text-wrap: nowrap;
+      overflow: hidden;
+    }
+  }
+}

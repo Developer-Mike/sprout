@@ -1,5 +1,4 @@
 import { ProjectContext } from "@/ProjectContext"
-import useProperty from "@/ReactiveProperty"
 import DefaultHead from "@/components/DefaultHead"
 import Icon from "@/components/Icon"
 import CodeEditor from "@/components/code_editor/CodeEditor"
@@ -9,7 +8,7 @@ import Navbar from "@/components/navbar/Navbar"
 import SplitView from "@/components/split_view/SplitView"
 import StagePane from "@/components/stage_pane/StagePane"
 import TabView from "@/components/tab_view/TabView"
-import Project, { STARTER_PROJECTS } from "@/core/Project"
+import Project, { ProjectData, STARTER_PROJECTS } from "@/core/Project"
 import styles from "@/styles/Builder.module.scss"
 import useTranslation from "next-translate/useTranslation"
 import { useEffect, useRef, useState } from "react"
@@ -18,16 +17,11 @@ export default function Builder() {
   const { t } = useTranslation("builder")
   const [isRunning, setIsRunning] = useState(false)
   const [project, setProject] = useState<Project | null>(null)
-  const [selectedGameObject, setSelectedGameObject] = useProperty(
-    project, 
-    (project) => project?.data?.workspace?.selectedGameObject, 
-    (project, value) => { if (project) project.data.workspace.selectedGameObject = value }
-  )
-  const [documentationLeafVisible, setDocumentationLeafVisible] = useProperty(
-    project,
-    (project) => project?.data?.workspace?.documentationLeafVisible,
-    (project, value) => { if (project) project.data.workspace.documentationLeafVisible = value }
-  )
+  const setProjectData = (transaction: (data: ProjectData) => void) => {
+    if (!project) return
+    transaction(project.data)
+    setProject(new Project(project.data, setIsRunning))
+  }
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   
@@ -38,7 +32,7 @@ export default function Builder() {
   
   return (
     <>
-     { project !== null && <ProjectContext.Provider value={project}>
+     { project !== null && <ProjectContext.Provider value={{ project, setProjectData }}>
         <DefaultHead title={t("common:builder")} />
         <header>
           <Navbar
@@ -71,7 +65,7 @@ export default function Builder() {
         </header>
         <main className="fullscreen no-scroll">
           <SplitView id={styles.mainSplit} horizontal>
-            <div id={styles.documentationContainer} className={documentationLeafVisible ? "" : styles.hidden}>
+            <div id={styles.documentationContainer} className={project.data.workspace.documentationLeafVisible ? "" : styles.hidden}>
               <div id={styles.documentationSpacer}>
                 <DocumentationView />
               </div>
@@ -84,7 +78,7 @@ export default function Builder() {
                   label: t("common:code"),
                   content: (
                     <div id={styles.codeEditorContainer}>
-                      <CodeEditor selectedGameObject={selectedGameObject} />
+                      <CodeEditor />
                       <img id={styles.gameObjectPreview} 
                         src={project.data.sprites[
                           project.getActiveGameObject().sprites[
@@ -104,7 +98,9 @@ export default function Builder() {
               actionButtons={[
                 {
                   icon: "developer_guide",
-                  onClick: () => setDocumentationLeafVisible(!documentationLeafVisible)
+                  onClick: () => setProjectData((data) => { 
+                    data.workspace.documentationLeafVisible = !data.workspace.documentationLeafVisible 
+                  })
                 }
               ]}
             />
