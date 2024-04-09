@@ -3,7 +3,7 @@ import styles from "@/components/game_objects_pane/GameObjectsPane.module.scss"
 import { useContext } from "react"
 
 export default function GameObjectsPane() {
-  const { project, setProjectData } = useContext(ProjectContext)
+  const { project } = useContext(ProjectContext)
 
   return (
     <>
@@ -15,7 +15,7 @@ export default function GameObjectsPane() {
         { project.data.gameObjects.map((gameObject, index) => (
           <div key={index} 
             className={`${styles.gameObject} ${gameObject.id === project.data.workspace.selectedGameObject ? styles.selected : ""}`}
-            onClick={() => { setProjectData((data) => { data.workspace.selectedGameObject = gameObject.id }) }}
+            onClick={() => { project.setData(data => { data.workspace.selectedGameObject = gameObject.id }) }}
           >
             <img className={styles.gameObjectPreview}
               alt={gameObject.id}

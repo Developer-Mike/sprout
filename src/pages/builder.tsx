@@ -8,31 +8,26 @@ import Navbar from "@/components/navbar/Navbar"
 import SplitView from "@/components/split_view/SplitView"
 import StagePane from "@/components/stage_pane/StagePane"
 import TabView from "@/components/tab_view/TabView"
-import Project, { ProjectData, STARTER_PROJECTS } from "@/core/Project"
+import Project, { STARTER_PROJECTS } from "@/core/Project"
 import styles from "@/styles/Builder.module.scss"
 import useTranslation from "next-translate/useTranslation"
 import { useEffect, useRef, useState } from "react"
 
 export default function Builder() {
   const { t } = useTranslation("builder")
-  const [isRunning, setIsRunning] = useState(false)
-  const [project, setProject] = useState<Project | null>(null)
-  const setProjectData = (transaction: (data: ProjectData) => void) => {
-    if (!project) return
-    transaction(project.data)
-    setProject(new Project(project.data, setIsRunning))
-  }
-
   const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  Project.createStates()
+  const [project, _setProject] = useState<Project | null>(null)
   
   useEffect(() => {
     // TODO: Load project data from local storage
-    setProject(new Project(STARTER_PROJECTS["debug"], setIsRunning))
+    _setProject(new Project(STARTER_PROJECTS["debug"]))
   }, [])
-  
+
   return (
     <>
-     { project !== null && <ProjectContext.Provider value={{ project, setProjectData }}>
+     { project !== null && <ProjectContext.Provider value={{ project }}>
         <DefaultHead title={t("common:builder")} />
         <header>
           <Navbar
@@ -48,15 +43,15 @@ export default function Builder() {
               },
               {
                 element: <div
-                  onClick={() => { if (!isRunning && project && canvasRef.current) project.run(canvasRef.current) }}
-                  className={isRunning ? styles.running : ""}
+                  onClick={() => { if (project && !project.data.workspace.isRunning && canvasRef.current) project.run(canvasRef.current) }}
+                  className={project.data.workspace.isRunning ? styles.running : ""}
                 ><Icon iconId="play_arrow" /></div>,
                 align: "end"
               },
               {
                 element: <div
-                  onClick={() => { if (isRunning && project && canvasRef.current) project.stop(canvasRef.current) }}
-                  className={isRunning ? "" : styles.stopped}
+                  onClick={() => { if (project.data.workspace.isRunning && project && canvasRef.current) project.stop(canvasRef.current) }}
+                  className={project.data.workspace.isRunning ? "" : styles.stopped}
                 ><Icon iconId="stop" /></div>,
                 align: "end"
               }
@@ -98,7 +93,7 @@ export default function Builder() {
               actionButtons={[
                 {
                   icon: "developer_guide",
-                  onClick: () => setProjectData((data) => { 
+                  onClick: () => project.setData(data => { 
                     data.workspace.documentationLeafVisible = !data.workspace.documentationLeafVisible 
                   })
                 }

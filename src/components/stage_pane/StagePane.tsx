@@ -6,7 +6,7 @@ import Icon from "../Icon"
 export default function StagePane({ canvasRef }: {
   canvasRef?: React.MutableRefObject<HTMLCanvasElement | null>
 }) {
-  const { project, setProjectData } = useContext(ProjectContext)
+  const { project } = useContext(ProjectContext)
 
   const [isFullscreen, setFullscreen] = useState(false)
 
@@ -62,11 +62,11 @@ export default function StagePane({ canvasRef }: {
     <div id={styles.stage} className={isFullscreen ? styles.fullscreen : ""}>
       <div id={styles.controlBar}>
         <input type="number" defaultValue={project.data.stage.width} onKeyDown={(e) => { 
-          onInput(e, (value) => { setProjectData((data) => { data.stage.width = value }) })
+          onInput(e, (value) => { project.setData(data => { data.stage.width = value }) })
         }} disabled={!project.data.workspace.advanced} />
         <span>x</span>
         <input type="number" defaultValue={project.data.stage.height} onKeyDown={(e) => {
-          onInput(e, (value) => { setProjectData((data) => { data.stage.height = value }) })
+          onInput(e, (value) => { project.setData(data => { data.stage.height = value }) })
         }} disabled={!project.data.workspace.advanced} />
 
         <button id={styles.fullscreenToggle} onClick={() => { setFullscreen(!isFullscreen) }}><Icon iconId={isFullscreen ? "fullscreen_exit" : "fullscreen"} /></button>

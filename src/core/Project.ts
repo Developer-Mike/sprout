@@ -1,3 +1,4 @@
+import { useState } from "react"
 import SproutEngine from "./SproutEngine"
 
 export const STARTER_PROJECTS = {
@@ -5,19 +6,26 @@ export const STARTER_PROJECTS = {
 }
 
 export default class Project {
-  data: ProjectData
-  
-  private setRunningState: (isRunning: boolean) => void
-  private _isRunning: boolean = false
-  get isRunning() { return this._isRunning }
-  set isRunning(value: boolean) {
-    this._isRunning = value
-    this.setRunningState(value)
+  static dataState: ProjectData
+  static setDataState: (data: ProjectData) => void
+  static createStates() {
+    const [dataState, setDataState] = useState<ProjectData>(null as any)
+    Project.dataState = dataState
+    Project.setDataState = setDataState
   }
 
-  constructor(data: ProjectData, setIsRunningState: (isRunning: boolean) => void) {
-    this.data = data
-    this.setRunningState = setIsRunningState
+  get data() { return Project.dataState }
+  setData: (transaction: (data: ProjectData) => void) => void
+
+  constructor(data: ProjectData) {
+    Project.setDataState(data)
+
+    this.setData = (transaction: (data: ProjectData) => void) => {
+      const newData = JSON.parse(JSON.stringify(this.data))
+      transaction(newData)
+
+      Project.setDataState(newData)
+    }
   }
 
   getGameObject(id: string) {
@@ -34,13 +42,14 @@ export default class Project {
 
   // TODO: Return errors
   async run(canvas: HTMLCanvasElement) {
-    this.isRunning = true
-    
-    SproutEngine.run(this.data, () => this.isRunning, canvas)
+    this.setData(data => { data.workspace.isRunning = true })
+
+    console.log(this.data.workspace.isRunning)
+    SproutEngine.run(this.data, () => this.data.workspace.isRunning, canvas)
   }
 
   stop(canvas: HTMLCanvasElement) {
-    this.isRunning = false
+    this.setData(data => { data.workspace.isRunning = false })
 
     // Reset canvas
     this.render(canvas)
@@ -66,6 +75,8 @@ export interface ProjectData {
 }
 
 export interface WorkspaceData {
+  isRunning: boolean
+
   selectedGameObject: string
   documentationLeafVisible: boolean
 
