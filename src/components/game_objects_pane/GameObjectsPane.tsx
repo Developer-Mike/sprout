@@ -1,6 +1,7 @@
 import { ProjectContext } from "@/ProjectContext"
 import styles from "@/components/game_objects_pane/GameObjectsPane.module.scss"
 import { useContext } from "react"
+import LabeledInput from "../labeled_input/LabeledInput"
 
 export default function GameObjectsPane() {
   const { project } = useContext(ProjectContext)
@@ -8,7 +9,10 @@ export default function GameObjectsPane() {
   return (
     <>
       <div id={styles.gameObjectProperties}>
-        <input type="text" value={project.getActiveGameObject().id} />
+        <LabeledInput label="id" value={project.getActiveGameObject().id} onChange={value => project.setData(data => {
+          data.workspace.selectedGameObject = value
+          data.gameObjects[project.getActiveGameObjectIndex()].id = value 
+        })} />
       </div>
       
       <div id={styles.gameObjectList}>

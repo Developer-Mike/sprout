@@ -28,12 +28,17 @@ export default class Project {
     }
   }
 
-  getGameObject(id: string) {
-    return this.data.gameObjects.find(gameObject => gameObject.id === id)
+  getGameObjectIndex(id: string) {
+    return this.data.gameObjects.findIndex(gameObject => gameObject.id === id)
+  }
+
+  getActiveGameObjectIndex() {
+    return this.getGameObjectIndex(this.data.workspace.selectedGameObject)
   }
 
   getActiveGameObject() {
-    return this.getGameObject(this.data.workspace.selectedGameObject) ?? this.data.gameObjects[0]
+    return this.data.gameObjects[this.getActiveGameObjectIndex()]
+      ?? this.data.gameObjects[0]
   }
 
   render(canvas: HTMLCanvasElement) {

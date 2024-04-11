@@ -1,0 +1,28 @@
+.container {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+
+  .label {
+    display: flex;
+    align-items: center;
+
+    padding: 0 10px;
+
+    border: var(--border-width) solid var(--border-color);
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+
+    user-select: none;
+
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+
+  .label:has(+ input:focus) {
+    border-color: var(--primary-dim);
+  }
+
+  .input {
+    border-radius: 0 8px 8px 0;
+  }
+}

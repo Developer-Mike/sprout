@@ -1,5 +1,5 @@
 import { createContext } from "react"
-import Project, { ProjectData } from "./core/Project"
+import Project from "./core/Project"
 
 export const ProjectContext = createContext<{
   project: Project
