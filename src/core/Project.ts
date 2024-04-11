@@ -44,7 +44,6 @@ export default class Project {
   async run(canvas: HTMLCanvasElement) {
     this.setData(data => { data.workspace.isRunning = true })
 
-    console.log(this.data.workspace.isRunning)
     SproutEngine.run(this.data, () => this.data.workspace.isRunning, canvas)
   }
 
