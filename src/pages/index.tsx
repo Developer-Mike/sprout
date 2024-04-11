@@ -27,7 +27,7 @@ export default function Home() {
 
   return (
     <>
-      <DefaultHead title="Create" />
+      <DefaultHead />
       <header>
         <Navbar items={[
           { element: <a href="/builder">{t("common:builder")}</a> }
