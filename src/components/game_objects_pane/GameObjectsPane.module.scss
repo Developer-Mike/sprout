@@ -8,6 +8,8 @@
   align-items: center;
   gap: 10px;
 
+  overflow: hidden auto;
+
   .gameObject {
     display: flex;
     flex-direction: column;
@@ -53,6 +55,25 @@
       --mask: linear-gradient(to left, transparent 0%, white 20%);
       -webkit-mask-image: var(--mask);
       mask-image: var(--mask);
+    }
+  }
+
+  #addGameObject {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border-style: dashed;
+    background: none;
+
+    transition: border-color 0.2s;
+
+    &:hover {
+      border-color: var(--primary-dim);
+    }
+
+    & > span {
+      font-size: 3rem;
     }
   }
 }

@@ -21,6 +21,10 @@ export default class SproutEngine {
           .sort((a, b) => a.layer - b.layer);
 
         gameObjects.forEach(gameObject => {
+          // Skip if no sprite or index out of bounds
+          if (gameObject.sprites.length === 0 || gameObject.activeSprite >= gameObject.sprites.length)
+            return;
+
           // Set matrix
           ctx.resetTransform();
           ctx.scale(canvas.width / data.stage.width, canvas.height / data.stage.height);

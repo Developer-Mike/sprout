@@ -22,6 +22,27 @@
   --font-family: "Signika", sans-serif;
 }
 
+* {
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--container-high);
+    border: var(--border-width) solid var(--border-color);
+    border-radius: 8px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--primary-dim);
+    border-radius: 8px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+  }
+}
+
 body {
   margin: 0;
   padding: 0;

@@ -45,7 +45,9 @@
 
   #leaf {
     flex: 1;
+
     padding: 20px;
+    overflow: hidden;
 
     color: var(--on-container);
     background-color: var(--container-low);

@@ -13,15 +13,16 @@ export interface Tab {
   content: React.ReactNode
 }
 
-export default function TabView({ id, tabs, actionButtons }: {
+export default function TabView({ id, className, tabs, actionButtons }: {
   id?: string
+  className?: string
   tabs: Tab[]
   actionButtons?: ActionButton[]
 }) {
   const [activeTab, setActiveTab] = useState(tabs[0].id)
 
   return (
-    <div id={id} className={styles.tabView}>
+    <div id={id} className={`${styles.tabView} ${className ?? ""}`}>
       <div id={styles.tabs}>
         {actionButtons && actionButtons.map((button, index) => (
           <div key={index} className={`${styles.actionButton} button`} onClick={button.onClick}>

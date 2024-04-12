@@ -9,5 +9,9 @@
     "sprite": {
         "one": "Sprite",
         "other": "Sprites"
+    },
+    "game-object": {
+        "one": "Game Object",
+        "other": "Game Objects"
     }
 }
