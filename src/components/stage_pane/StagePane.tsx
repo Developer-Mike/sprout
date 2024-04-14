@@ -37,7 +37,7 @@ export default function StagePane({ canvasRef }: {
     updateCanvas()
 
     return () => { resizeObserver.disconnect() }
-  } , [project.data.stage.width, project.data.stage.height])
+  } , [project.data])
 
   useEffect(() => {
     const stageContainer = document.getElementById(styles.stage)?.parentElement

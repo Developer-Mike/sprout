@@ -8,9 +8,12 @@
   align-items: center;
   gap: 10px;
 
+  padding-top: 10px;
   overflow: hidden auto;
 
   .gameObject {
+    position: relative;
+
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -55,6 +58,36 @@
       --mask: linear-gradient(to left, transparent 0%, white 20%);
       -webkit-mask-image: var(--mask);
       mask-image: var(--mask);
+    }
+
+    &:not(.selected) .deleteGameObject {
+      display: none;
+    }
+
+    .deleteGameObject {
+      position: absolute;
+      top: 0;
+      right: 0;
+
+      transform: translate(25%, -25%);
+      padding: 5px;
+
+      color: var(--on-container);
+      background-color: var(--container-high);
+
+      border: var(--primary-dim) solid var(--border-width);
+      border-radius: 8px;
+
+      font-size: 0;
+
+      &:hover {
+        transition: border-color 0.2s;
+        border-color: var(--red);
+      }
+
+      & > * {
+        font-size: 1.25rem;
+      }
     }
   }
 

@@ -33,13 +33,30 @@ export default function GameObjectsPane() {
                 ]
               ] ?? BLANK_IMAGE} />
             <span className={styles.gameObjectId}>{gameObject.id}</span>
+
+            <div className={styles.deleteGameObject}
+              onClick={(e) => {
+                e.stopPropagation()
+
+                project.setData(data => {
+                  data.gameObjects = data.gameObjects.filter((_, i) => i !== index)
+
+                  data.workspace.selectedGameObject = data.gameObjects[index]?.id 
+                    ?? data.gameObjects[index - 1]?.id 
+                    ?? data.gameObjects[0]?.id
+                })
+              }}
+            >
+              <Icon iconId="delete" />
+            </div>
           </div>
         )) }
 
         <div id={styles.addGameObject} className={styles.gameObject}
           onClick={() => project.setData(data => {
+            const newId = `${t("game-object", { count: 1 })} ${data.gameObjects.length + 1}`
             data.gameObjects.push({
-              id: `${t("game-object", { count: 1 })} ${data.gameObjects.length + 1}`,
+              id: newId,
               visible: true,
               x: 0,
               y: 0,
@@ -51,6 +68,8 @@ export default function GameObjectsPane() {
               activeSprite: 0,
               code: ""
             })
+
+            data.workspace.selectedGameObject = newId
           })}
         >
           <Icon iconId="add" />
