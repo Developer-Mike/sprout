@@ -5,6 +5,7 @@ const project: ProjectData = {
   workspace: {
     selectedGameObject: "player",
     documentationLeafVisible: true,
+    isRunning: false,
 
     advanced: true
   },

@@ -5,7 +5,6 @@ import CodeEditor from "@/components/code_editor/CodeEditor"
 import DocumentationView from "@/components/documentation_view/DocumentationView"
 import GameObjectsPane from "@/components/game_objects_pane/GameObjectsPane"
 import Navbar from "@/components/navbar/Navbar"
-import SplitView from "@/components/split_view/SplitView"
 import StagePane from "@/components/stage_pane/StagePane"
 import TabView from "@/components/tab_view/TabView"
 import Project, { STARTER_PROJECTS } from "@/core/Project"
@@ -58,53 +57,51 @@ export default function Builder() {
             ]}
           />
         </header>
-        <main className="fullscreen no-scroll">
-          <SplitView id={styles.mainSplit} horizontal>
-            <div id={styles.documentationContainer} className={project.data.workspace.documentationLeafVisible ? "" : styles.hidden}>
-              <div id={styles.documentationSpacer}>
-                <DocumentationView />
-              </div>
+        <main id={styles.mainSplit} className="fullscreen no-scroll">
+          <div id={styles.documentationContainer} className={project.data.workspace.documentationLeafVisible ? "" : styles.hidden}>
+            <div id={styles.documentationSpacer}>
+              <DocumentationView />
             </div>
-            
-            <TabView id={styles.editorsTabView}
-              tabs={[
-                {
-                  id: "code",
-                  label: t("common:code"),
-                  content: (
-                    <div id={styles.codeEditorContainer}>
-                      <CodeEditor />
-                      <img id={styles.gameObjectPreview} 
-                        src={project.data.sprites[
-                          project.getActiveGameObject().sprites[
-                            project.getActiveGameObject().activeSprite
-                          ]
-                        ]}
-                      />
-                    </div>
-                  )
-                },
-                {
-                  id: "sprites",
-                  label: t("common:sprite", { count: 0 }),
-                  content: <div>Sprites</div>
-                }
-              ]}
-              actionButtons={[
-                {
-                  icon: "developer_guide",
-                  onClick: () => project.setData(data => { 
-                    data.workspace.documentationLeafVisible = !data.workspace.documentationLeafVisible 
-                  })
-                }
-              ]}
-            />
+          </div>
+          
+          <TabView id={styles.editorsTabView}
+            tabs={[
+              {
+                id: "code",
+                label: t("common:code"),
+                content: (
+                  <div id={styles.codeEditorContainer}>
+                    <CodeEditor />
+                    <img id={styles.gameObjectPreview} 
+                      src={project.data.sprites[
+                        project.getActiveGameObject().sprites[
+                          project.getActiveGameObject().activeSprite
+                        ]
+                      ]}
+                    />
+                  </div>
+                )
+              },
+              {
+                id: "sprites",
+                label: t("common:sprite", { count: 0 }),
+                content: <div>Sprites</div>
+              }
+            ]}
+            actionButtons={[
+              {
+                icon: "developer_guide",
+                onClick: () => project.setData(data => { 
+                  data.workspace.documentationLeafVisible = !data.workspace.documentationLeafVisible 
+                })
+              }
+            ]}
+          />
 
-            <div id={styles.rightSplit}>
-              <StagePane canvasRef={canvasRef} />
-              <GameObjectsPane />
-            </div>
-          </SplitView>
+          <div id={styles.rightSplit}>
+            <StagePane canvasRef={canvasRef} />
+            <GameObjectsPane />
+          </div>
         </main>
       </ProjectContext.Provider> }
     </>

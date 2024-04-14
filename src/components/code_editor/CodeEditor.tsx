@@ -54,10 +54,10 @@ export default function CodeEditor() {
           contentEditable={true} spellCheck={false} 
           onInput={onCodeChange}
           onKeyDown={(e) => {
-            if (e.key === "Tab") {
-              e.preventDefault()
-              document.execCommand("insertText", false, " ".repeat(TAB_SIZE))
-            }
+            if (e.key !== "Tab") return
+
+            e.preventDefault()
+            document.execCommand("insertText", false, " ".repeat(TAB_SIZE))
           }}
         />
 

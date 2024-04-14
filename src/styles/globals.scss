@@ -25,6 +25,7 @@
 * {
   ::-webkit-scrollbar {
     width: 10px;
+    height: 10px;
   }
 
   ::-webkit-scrollbar-track {
@@ -40,6 +41,10 @@
 
   ::-webkit-scrollbar-thumb:hover {
     background: var(--primary);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
   }
 }
 
