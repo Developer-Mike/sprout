@@ -44,7 +44,7 @@ export default function GameObjectsPane() {
         })} />
 
         <LabeledNumberInput label={t("rotation")} value={project.getActiveGameObject().rotation} precision={2} onChange={value => project.setData(data => {
-          data.gameObjects[project.getActiveGameObjectIndex()].rotation = value
+          data.gameObjects[project.getActiveGameObjectIndex()].rotation = (value > 0 ? value : 360 + value) % 360
         })} />
 
         <LabeledNumberInput label={t("width")} value={project.getActiveGameObject().width} precision={2} onChange={newWidth => project.setData(data => {

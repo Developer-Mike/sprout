@@ -13,8 +13,13 @@ export default class SproutEngine {
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
+        // Set matrix
         ctx.resetTransform();
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.scale(canvas.width / data.stage.width, canvas.height / data.stage.height);
+        ctx.save();
+
+        // Clear canvas
+        ctx.clearRect(0, 0, data.stage.width, data.stage.height);
 
         const gameObjects = data.gameObjects
           .filter(gameObject => gameObject.visible)
@@ -25,19 +30,23 @@ export default class SproutEngine {
           if (gameObject.sprites.length === 0 || gameObject.activeSprite >= gameObject.sprites.length)
             return;
 
+          const x = -gameObject.width / 2;
+          const y = -gameObject.height / 2;
+
           // Set matrix
-          ctx.resetTransform();
-          ctx.scale(canvas.width / data.stage.width, canvas.height / data.stage.height);
           ctx.translate(gameObject.x, gameObject.y);
           ctx.rotate(gameObject.rotation * Math.PI / 180);
 
-          const x = -gameObject.width / 2;
-          const y = -gameObject.height / 2;
+          if (gameObject.width < 0) ctx.scale(-1, 1);
+          if (gameObject.height < 0) ctx.scale(1, -1);
 
           // Draw sprite
           const sprite = new Image();
           sprite.src = data.sprites[gameObject.sprites[gameObject.activeSprite]];
           ctx.drawImage(sprite, x, y, gameObject.width, gameObject.height);
+
+          // Reset matrix
+          ctx.restore();
         })
       }
     `
