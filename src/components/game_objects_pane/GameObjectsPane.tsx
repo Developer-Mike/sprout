@@ -12,8 +12,8 @@ export default function GameObjectsPane() {
   const { t } = useTranslation("common")
   const { project } = useContext(ProjectContext)
 
-  const [linkedScalingEnabled, setLinkedScalingEnabled] = useState<boolean>(true)
-  const [aspectRatioCache, setAspectRatioCache] = useState<number>(1)
+  const [linkedScalingEnabled, setLinkedScalingEnabled] = useState(true)
+  const [aspectRatioCache, setAspectRatioCache] = useState(1)
 
   useEffect(() => {
     setAspectRatioCache(project.getActiveGameObject().width / Math.max(1, project.getActiveGameObject().height))

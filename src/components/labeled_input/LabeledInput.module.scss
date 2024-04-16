@@ -20,6 +20,10 @@
     user-select: none;
 
     transition: background-color 0.2s, border-color 0.2s;
+
+    &.draggable {
+      cursor: ew-resize;
+    }
   }
 
   .label:has(+ input:focus), .label:has(+ .checkbox:active) {
