@@ -24,6 +24,11 @@ export default function Builder() {
     _setProject(new Project(STARTER_PROJECTS["debug"]))
   }, [])
 
+  useEffect(() => {
+    // Allow access to project from the browser console
+    (window as any).project = project
+  }, [project])
+
   return (
     <>
      { project !== null && <ProjectContext.Provider value={{ project }}>

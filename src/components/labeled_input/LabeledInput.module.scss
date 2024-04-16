@@ -7,7 +7,11 @@
     display: flex;
     align-items: center;
 
+    max-width: fit-content;
     padding: 0 10px;
+
+    color: var(--on-surface);
+    background-color: var(--surface);
 
     border: var(--border-width) solid var(--border-color);
     border-right: none;
@@ -18,11 +22,42 @@
     transition: background-color 0.2s, border-color 0.2s;
   }
 
-  .label:has(+ input:focus) {
+  .label:has(+ input:focus), .label:has(+ .checkbox:active) {
     border-color: var(--primary-dim);
   }
 
   .input {
+    width: 100%;
     border-radius: 0 8px 8px 0;
+  }
+
+  .checkbox {
+    display: flex;
+    align-items: center;
+
+    padding: 0 10px;
+
+    border: var(--border-width) solid var(--border-color);
+    border-radius: 0 8px 8px 0;
+
+    color: var(--on-container);
+    background-color: var(--container-high);
+
+    font-size: 0;
+    user-select: none;
+
+    transition: background-color 0.2s, border-color 0.2s;
+
+    &:hover {
+      background-color: var(--container-low);
+    }
+
+    &:active {
+      border-color: var(--primary);
+    }
+
+    & > * {
+      font-size: 16px;
+    }
   }
 }

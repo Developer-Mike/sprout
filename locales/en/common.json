@@ -13,5 +13,13 @@
     "game-object": {
         "one": "Game Object",
         "other": "Game Objects"
-    }
+    },
+    "id": "ID",
+    "layer": "Layer",
+    "visible": "Visible",
+    "x": "X",
+    "y": "Y",
+    "rotation": "Rotation",
+    "width": "Width",
+    "height": "Height"
 }

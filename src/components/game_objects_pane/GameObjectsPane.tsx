@@ -1,22 +1,104 @@
 import { ProjectContext } from "@/ProjectContext"
 import useTranslation from "next-translate/useTranslation"
 import styles from "@/components/game_objects_pane/GameObjectsPane.module.scss"
-import { useContext } from "react"
-import LabeledInput from "../labeled_input/LabeledInput"
+import { useContext, useEffect, useState } from "react"
+import LabeledTextInput from "../labeled_input/LabeledTextInput"
 import Icon from "../Icon"
 import { BLANK_IMAGE } from "@/constants"
+import LabeledBooleanInput from "../labeled_input/LabeledBooleanInput"
+import LabeledNumberInput from "../labeled_input/LabeledNumberInput"
 
 export default function GameObjectsPane() {
   const { t } = useTranslation("common")
   const { project } = useContext(ProjectContext)
 
+  const [linkedScalingEnabled, setLinkedScalingEnabled] = useState<boolean>(true)
+  const [aspectRatioCache, setAspectRatioCache] = useState<number>(1)
+
+  useEffect(() => {
+    setAspectRatioCache(project.getActiveGameObject().width / Math.max(1, project.getActiveGameObject().height))
+  }, [project.data.workspace.selectedGameObject])
+
   return (
     <>
       <div id={styles.gameObjectProperties}>
-        <LabeledInput label="id" value={project.getActiveGameObject().id} onChange={value => project.setData(data => {
+        <LabeledTextInput label={t("id")} value={project.getActiveGameObject().id} onChange={value => project.setData(data => {
           data.workspace.selectedGameObject = value
           data.gameObjects[project.getActiveGameObjectIndex()].id = value 
         })} />
+
+        <LabeledNumberInput label={t("layer")} value={project.getActiveGameObject().layer} precision={0} onChange={value => project.setData(data => {
+          data.gameObjects[project.getActiveGameObjectIndex()].layer = value
+        })} />
+
+        <LabeledBooleanInput label={t("visible")} value={project.getActiveGameObject().visible} onChange={value => project.setData(data => {
+          data.gameObjects[project.getActiveGameObjectIndex()].visible = value
+        })} />
+
+        <LabeledNumberInput label={t("x")} value={project.getActiveGameObject().x} precision={0} onChange={value => project.setData(data => {
+          data.gameObjects[project.getActiveGameObjectIndex()].x = value
+        })} />
+
+        <LabeledNumberInput label={t("y")} value={project.getActiveGameObject().y} precision={0} onChange={value => project.setData(data => {
+          data.gameObjects[project.getActiveGameObjectIndex()].y = value
+        })} />
+
+        <LabeledNumberInput label={t("rotation")} value={project.getActiveGameObject().rotation} precision={2} onChange={value => project.setData(data => {
+          data.gameObjects[project.getActiveGameObjectIndex()].rotation = value
+        })} />
+
+        <LabeledNumberInput label={t("width")} value={project.getActiveGameObject().width} precision={2} onChange={newWidth => project.setData(data => {
+          if (linkedScalingEnabled) {
+            const oldWidth = data.gameObjects[project.getActiveGameObjectIndex()].width
+            let newHeight = data.gameObjects[project.getActiveGameObjectIndex()].height
+
+            if (oldWidth == 0) newHeight = newWidth * (1 / aspectRatioCache)
+            else newHeight *= newWidth / oldWidth
+
+            data.gameObjects[project.getActiveGameObjectIndex()].height = parseFloat(newHeight.toFixed(2))
+          } else if (newWidth > 0) {
+            setAspectRatioCache(newWidth / data.gameObjects[project.getActiveGameObjectIndex()].height)
+          }
+
+          data.gameObjects[project.getActiveGameObjectIndex()].width = newWidth
+        })} />
+
+        <div id={styles.linkedScaling} onClick={() => setLinkedScalingEnabled(!linkedScalingEnabled)}>
+          <Icon iconId={linkedScalingEnabled ? "link" : "link_off"} />
+        </div>
+
+        <LabeledNumberInput label={t("height")} value={project.getActiveGameObject().height} precision={2} onChange={newHeight => project.setData(data => {
+          if (linkedScalingEnabled) {
+            const oldHeight = data.gameObjects[project.getActiveGameObjectIndex()].height
+            let newWidth = data.gameObjects[project.getActiveGameObjectIndex()].width
+
+            if (oldHeight == 0) newWidth = newHeight * aspectRatioCache
+            else newWidth *= newHeight / oldHeight
+
+            data.gameObjects[project.getActiveGameObjectIndex()].width = parseFloat(newWidth.toFixed(2))
+          } else if (newHeight > 0) {
+            setAspectRatioCache(data.gameObjects[project.getActiveGameObjectIndex()].width / newHeight)
+          }
+
+          data.gameObjects[project.getActiveGameObjectIndex()].height = newHeight
+        })} />
+
+        <div id={styles.resetScale} onClick={() => project.setData(data => {
+          const sprite = new Image()
+          sprite.src = data.sprites[data.gameObjects[project.getActiveGameObjectIndex()].sprites[0]]
+
+          const [width, height] = [
+            Math.max(sprite.naturalWidth, 32),
+            Math.max(sprite.naturalHeight, 32)
+          ]
+
+          data.gameObjects[project.getActiveGameObjectIndex()].width = width
+          data.gameObjects[project.getActiveGameObjectIndex()].height = height
+
+          setAspectRatioCache(width / height)
+        })}>
+          <Icon iconId="replay" />
+        </div>
       </div>
       
       <div id={styles.gameObjectList}>
