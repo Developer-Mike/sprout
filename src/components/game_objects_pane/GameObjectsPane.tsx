@@ -33,7 +33,6 @@ export default function GameObjectsPane() {
               project.data.gameObjects.find(gameObject => gameObject.id === value.trim()) === undefined
             )
           }
-
           onChange={value => project.setData(data => {
             data.workspace.selectedGameObject = value.trim()
             data.gameObjects[project.getActiveGameObjectIndex()].id = value.trim()

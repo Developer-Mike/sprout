@@ -37,12 +37,18 @@ export default function LabeledNumberInput({ label, value, precision, dragSensit
       <span className={`${style.label} ${style.draggable}`}
         onMouseDown={e => setIsBeingDragged(true)}
       >{label}</span>
-      <input ref={inputRef} className={style.input} type="text" onInput={e => {
-        const value = parseFloat(parseFloat(e.currentTarget.value).toFixed(precision ?? 20)) 
+      <input ref={inputRef} className={style.input} type="text" value={value}
+        onKeyDown={e => {
+          if (e.key !== "Enter") return
+          e.currentTarget.blur()
+        }}
+        onInput={e => {
+          const value = parseFloat(parseFloat(e.currentTarget.value).toFixed(precision ?? 20)) 
 
-        if (isNaN(value)) onChange?.(0)
-        else onChange?.(value)
-      }} value={value} />
+          if (isNaN(value)) onChange?.(0)
+          else onChange?.(value)
+        }}
+      />
     </label>
   )
 }

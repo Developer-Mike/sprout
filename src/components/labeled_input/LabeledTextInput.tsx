@@ -5,7 +5,7 @@ export default function LabeledTextInput({ label, value, isValidValue, onChange 
   label: string
   value?: any
   isValidValue?: (value: string) => boolean
-  onChange?: (value: string) => void
+  onChange?: (value: string) => void,
 }) {
   const [cachedValue, setCachedValue] = useState(value)
   const [isValid, setIsValid] = useState(true)
@@ -18,15 +18,21 @@ export default function LabeledTextInput({ label, value, isValidValue, onChange 
   return (
     <label className={`${style.container} ${!isValid ? style.invalid : ""}`}>
       <span className={style.label}>{label}</span>
-      <input className={style.input} type="text" value={cachedValue} onChange={e => {
-        const value = e.target.value
-        setCachedValue(value)
+      <input className={style.input} type="text" value={cachedValue}
+        onKeyDown={e => {
+          if (e.key !== "Enter") return
+          e.currentTarget.blur()
+        }}
+        onChange={e => {
+          const value = e.target.value
+          setCachedValue(value)
 
-        const isValid =  isValidValue ? isValidValue(value) : true
-        setIsValid(isValid)
+          const isValid =  isValidValue ? isValidValue(value) : true
+          setIsValid(isValid)
 
-        if (isValid) onChange?.(value)
-      }} />
+          if (isValid) onChange?.(value)
+        }}
+      />
     </label>
   )
 }
