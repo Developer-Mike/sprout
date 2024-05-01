@@ -33,10 +33,10 @@ npm run dev
 - [x] Make it work with fixed data and JavaScript
 - [x] Add support for sprites
 - [ ] Implement game objects pane
-  - [ ] Add game object settings
+  - [x] Add game object settings
   - [ ] Don't allow adding objects with the same id
   - [ ] Allow reordering of the objects
-  - [ ] Confirm deletion of objects
+  - [x] Confirm deletion of objects
 - [x] Make the code editor work with JavaScript
 - [ ] Load and save the project data
 - [ ] Create the Lexer and the Parser for the programming language

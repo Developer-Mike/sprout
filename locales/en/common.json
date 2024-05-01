@@ -21,5 +21,11 @@
     "y": "Y",
     "rotation": "Rotation",
     "width": "Width",
-    "height": "Height"
+    "height": "Height",
+    "delete-game-object-dialog": {
+        "title": "Delete Game Object",
+        "message": "Are you sure you want to delete \"{{id}}\"?"
+    },
+    "delete": "Delete",
+    "cancel": "Cancel"
 }

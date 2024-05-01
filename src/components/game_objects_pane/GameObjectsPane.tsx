@@ -7,9 +7,11 @@ import Icon from "../Icon"
 import { BLANK_IMAGE } from "@/constants"
 import LabeledBooleanInput from "../labeled_input/LabeledBooleanInput"
 import LabeledNumberInput from "../labeled_input/LabeledNumberInput"
+import { DialogContext } from "../dialog/Dialog"
 
 export default function GameObjectsPane() {
   const { t } = useTranslation("common")
+  const { showDialog } = useContext(DialogContext)
   const { project } = useContext(ProjectContext)
 
   const [linkedScalingEnabled, setLinkedScalingEnabled] = useState(true)
@@ -120,12 +122,30 @@ export default function GameObjectsPane() {
               onClick={(e) => {
                 e.stopPropagation()
 
-                project.setData(data => {
-                  data.gameObjects = data.gameObjects.filter((_, i) => i !== index)
-
-                  data.workspace.selectedGameObject = data.gameObjects[index]?.id 
-                    ?? data.gameObjects[index - 1]?.id 
-                    ?? data.gameObjects[0]?.id
+                showDialog({
+                  id: "delete-game-object",
+                  title: t("delete-game-object-dialog.title"),
+                  content: t("delete-game-object-dialog.message", { id: gameObject.id }),
+                  actions: [
+                    {
+                      default: true,
+                      element: <button>{t("cancel")}</button>,
+                      onClick: hide => hide()
+                    },
+                    {
+                      element: <button className="danger">{t("delete")}</button>,
+                      onClick: hide => {
+                        hide()
+                        
+                        project.setData(data => {
+                          data.gameObjects = data.gameObjects.filter((_, i) => i !== index)
+                          data.workspace.selectedGameObject = data.gameObjects[index]?.id 
+                            ?? data.gameObjects[index - 1]?.id 
+                            ?? data.gameObjects[0]?.id
+                        })
+                      }
+                    }
+                  ]
                 })
               }}
             >
