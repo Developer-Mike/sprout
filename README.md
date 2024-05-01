@@ -37,6 +37,7 @@ npm run dev
   - [x] Don't allow adding objects with the same id
   - [ ] Allow reordering of the objects
   - [x] Confirm deletion of objects
+- [ ] Add keyboard shortcuts
 - [x] Make the code editor work with JavaScript
 - [ ] Load and save the project data
 - [ ] Create the Lexer and the Parser for the programming language
