@@ -32,10 +32,10 @@ npm run dev
 - [x] Design the basic structure of the project data
 - [x] Make it work with fixed data and JavaScript
 - [x] Add support for sprites
-- [ ] Implement game objects pane
+- [x] Implement game objects pane
   - [x] Add game object settings
   - [x] Don't allow adding objects with the same id
-  - [ ] Allow reordering of the objects
+  - [x] Allow reordering of the objects
   - [x] Confirm deletion of objects
 - [ ] Add keyboard shortcuts
 - [x] Make the code editor work with JavaScript

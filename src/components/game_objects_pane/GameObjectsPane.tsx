@@ -1,13 +1,15 @@
 import { ProjectContext } from "@/ProjectContext"
 import useTranslation from "next-translate/useTranslation"
+import { Translate } from "next-translate"
 import styles from "@/components/game_objects_pane/GameObjectsPane.module.scss"
-import { useContext, useEffect, useState } from "react"
+import React, { useCallback, useContext, useEffect, useState } from "react"
 import LabeledTextInput from "../labeled_input/LabeledTextInput"
 import Icon from "../Icon"
 import { BLANK_IMAGE } from "@/constants"
 import LabeledBooleanInput from "../labeled_input/LabeledBooleanInput"
 import LabeledNumberInput from "../labeled_input/LabeledNumberInput"
 import { DialogContext } from "../dialog/Dialog"
+import Project from "@/core/Project"
 
 export default function GameObjectsPane() {
   const { t } = useTranslation("common")
@@ -25,16 +27,16 @@ export default function GameObjectsPane() {
     <>
       <div id={styles.gameObjectProperties}>
         <LabeledTextInput label={t("id")} value={project.getActiveGameObject().id}
-          isValidValue={value => 
-            value.trim() !== "" && (
-              project.getActiveGameObject().id === value || 
-              project.data.gameObjects.find(gameObject => gameObject.id === value) === undefined
+          isValidValue={value =>
+            value.trim().length > 0 && (
+              project.getActiveGameObject().id === value.trim() || 
+              project.data.gameObjects.find(gameObject => gameObject.id === value.trim()) === undefined
             )
           }
 
           onChange={value => project.setData(data => {
-            data.workspace.selectedGameObject = value
-            data.gameObjects[project.getActiveGameObjectIndex()].id = value
+            data.workspace.selectedGameObject = value.trim()
+            data.gameObjects[project.getActiveGameObjectIndex()].id = value.trim()
           })}
         />
 
@@ -112,80 +114,171 @@ export default function GameObjectsPane() {
         </div>
       </div>
       
-      <div id={styles.gameObjectList}>
+      <DraggableGridView id={styles.gameObjectList}>
         { project.data.gameObjects.map((gameObject, index) => (
-          <div key={index} 
-            className={`${styles.gameObject} ${gameObject.id === project.data.workspace.selectedGameObject ? styles.selected : ""}`}
-            onClick={() => { project.setData(data => { data.workspace.selectedGameObject = gameObject.id }) }}
-          >
-            <img className={styles.gameObjectPreview}
-              alt={gameObject.id}
-              src={project.data.sprites[
-                gameObject.sprites[
-                  gameObject.activeSprite
-                ]
-              ] ?? BLANK_IMAGE} />
-            <span className={styles.gameObjectId}>{gameObject.id}</span>
-
-            <div className={styles.deleteGameObject}
-              onClick={(e) => {
-                e.stopPropagation()
-
-                showDialog({
-                  id: "delete-game-object",
-                  title: t("delete-game-object-dialog.title"),
-                  content: t("delete-game-object-dialog.message", { id: gameObject.id }),
-                  actions: [
-                    {
-                      default: true,
-                      element: <button>{t("cancel")}</button>,
-                      onClick: hide => hide()
-                    },
-                    {
-                      element: <button className="danger">{t("delete")}</button>,
-                      onClick: hide => {
-                        hide()
-                        
-                        project.setData(data => {
-                          data.gameObjects = data.gameObjects.filter((_, i) => i !== index)
-                          data.workspace.selectedGameObject = data.gameObjects[index]?.id 
-                            ?? data.gameObjects[index - 1]?.id 
-                            ?? data.gameObjects[0]?.id
-                        })
-                      }
-                    }
-                  ]
-                })
-              }}
+          <DraggableObject key={gameObject.id} onDragged={targetIndex => project.setData(data => {
+            const temp = data.gameObjects.splice(index, 1)[0]
+            data.gameObjects.splice(targetIndex, 0, temp)
+          })}>
+            <div className={`${styles.gameObject} ${gameObject.id === project.data.workspace.selectedGameObject ? styles.selected : ""}`}
+              onClick={() => { project.setData(data => { data.workspace.selectedGameObject = gameObject.id }) }}
             >
-              <Icon iconId="delete" />
+              <img className={styles.gameObjectPreview}
+                alt={gameObject.id}
+                src={project.data.sprites[
+                  gameObject.sprites[
+                    gameObject.activeSprite
+                  ]
+                ] ?? BLANK_IMAGE} />
+              <span className={styles.gameObjectId}>{gameObject.id}</span>
+
+              <div className={styles.deleteGameObject}
+                onClick={(e) => {
+                  e.stopPropagation()
+
+                  showDialog({
+                    id: "delete-game-object",
+                    title: t("delete-game-object-dialog.title"),
+                    content: t("delete-game-object-dialog.message", { id: gameObject.id }),
+                    actions: [
+                      {
+                        default: true,
+                        element: <button>{t("cancel")}</button>,
+                        onClick: hide => hide()
+                      },
+                      {
+                        element: <button className="danger">{t("delete")}</button>,
+                        onClick: hide => {
+                          hide()
+                          
+                          project.setData(data => {
+                            data.gameObjects.splice(index, 1)
+                            data.workspace.selectedGameObject = data.gameObjects[index]?.id 
+                              ?? data.gameObjects[index - 1]?.id 
+                              ?? data.gameObjects[0]?.id
+                          })
+                        }
+                      }
+                    ]
+                  })
+                }}
+              >
+                <Icon iconId="delete" />
+              </div>
             </div>
-          </div>
+          </DraggableObject>
         )) }
 
-        <div id={styles.addGameObject} className={styles.gameObject}
-          onClick={() => project.setData(data => {
-            const newId = `${t("game-object", { count: 1 })} ${data.gameObjects.length + 1}`
-            data.gameObjects.push({
-              id: newId,
-              visible: true,
-              x: 0,
-              y: 0,
-              layer: 0,
-              rotation: 0,
-              width: 32,
-              height: 32,
-              sprites: [],
-              activeSprite: 0,
-              code: ""
-            })
-
-            data.workspace.selectedGameObject = newId
-          })}
-        >
-          <Icon iconId="add" />
-        </div>
-      </div>
+        <CreateGameObjectButton t={t} project={project} />
+      </DraggableGridView>
     </>
+  )
+}
+
+function DraggableGridView ({ id, children }: {
+  id: string,
+  children: React.ReactNode
+}) {
+  return (
+    <div id={id}
+      onDragOver={e => {
+        e.preventDefault()
+        e.dataTransfer.dropEffect = "move"
+      }}
+    >
+      { children }
+    </div>
+  )
+}
+
+function DraggableObject({ onDragged, children }: {
+  onDragged: (index: number) => void
+  children: React.ReactNode
+}) {
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+
+  const getTargetIndex = useCallback((e: React.DragEvent) => {
+    const mousePos = { x: e.clientX, y: e.clientY }
+
+    const items = Array.from((e.currentTarget.parentElement as HTMLElement).children)
+      .filter(child => child.getAttribute("draggable") === "true")
+
+    let lastMiddle = -1
+    let lastBottom = -1
+    for (let i = 0; i < items.length; i++) {
+      const rect = items[i].getBoundingClientRect()
+      const middleX = rect.left + rect.width / 2
+
+      if (mousePos.y < rect.bottom) { // If on the correct row
+        if (middleX < lastMiddle) { // If new row
+          if (mousePos.x < middleX) return i // If mouse is more to the left
+          else if (mousePos.y < lastBottom) return Math.max(0, i - 1) // If mouse was more to the right
+        } else {
+          if (mousePos.x > lastMiddle && mousePos.x < rect.left) return Math.max(0, i - 1) // If mouse was over the middle of the last item but not over the current item
+          else if (mousePos.x < middleX) return i // If mouse is more left to the middle of the current item
+        }
+      }
+
+      lastMiddle = middleX
+      lastBottom = rect.bottom
+    }
+
+    return items.length - 1
+  }, [dragOffset])
+
+  return React.cloneElement(children as React.ReactElement, { 
+    draggable: true,
+    className: `${(children as React.ReactElement).props.className} ${isDragging ? styles.dragging : ""}`,
+    onDragStart: (e: React.DragEvent) => {
+      setIsDragging(true)
+      setDragOffset({
+        x: e.clientX - e.currentTarget.getBoundingClientRect().left,
+        y: e.clientY - e.currentTarget.getBoundingClientRect().top
+      })
+    },
+    onDragEnd: (e: React.DragEvent) => {
+      setIsDragging(false)
+      onDragged(getTargetIndex(e))
+    }
+  })
+}
+
+function CreateGameObjectButton({ t, project }: {
+  t: Translate,
+  project: Project
+}) {
+  return (
+    <div id={styles.addGameObject} className={styles.gameObject}
+      onClick={() => project.setData(data => {
+        const baseId = t("game-object", { count: 1 })
+        let newId = baseId
+
+        // Make sure that the new ID is unique
+        let i = 1
+        while (data.gameObjects.find(gameObject => gameObject.id === newId) !== undefined) {
+          newId = `${baseId} ${i}`
+          i++
+        }
+
+        data.gameObjects.push({
+          id: newId,
+          visible: true,
+          x: 0,
+          y: 0,
+          layer: 0,
+          rotation: 0,
+          width: 32,
+          height: 32,
+          sprites: [],
+          activeSprite: 0,
+          code: ""
+        })
+
+        data.workspace.selectedGameObject = newId
+      })}
+    >
+      <Icon iconId="add" />
+    </div>
   )
 }
