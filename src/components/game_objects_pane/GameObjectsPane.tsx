@@ -24,10 +24,19 @@ export default function GameObjectsPane() {
   return (
     <>
       <div id={styles.gameObjectProperties}>
-        <LabeledTextInput label={t("id")} value={project.getActiveGameObject().id} onChange={value => project.setData(data => {
-          data.workspace.selectedGameObject = value
-          data.gameObjects[project.getActiveGameObjectIndex()].id = value 
-        })} />
+        <LabeledTextInput label={t("id")} value={project.getActiveGameObject().id}
+          isValidValue={value => 
+            value.trim() !== "" && (
+              project.getActiveGameObject().id === value || 
+              project.data.gameObjects.find(gameObject => gameObject.id === value) === undefined
+            )
+          }
+
+          onChange={value => project.setData(data => {
+            data.workspace.selectedGameObject = value
+            data.gameObjects[project.getActiveGameObjectIndex()].id = value
+          })}
+        />
 
         <LabeledNumberInput label={t("layer")} value={project.getActiveGameObject().layer} precision={0} onChange={value => project.setData(data => {
           data.gameObjects[project.getActiveGameObjectIndex()].layer = value

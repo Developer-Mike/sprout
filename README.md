@@ -34,7 +34,7 @@ npm run dev
 - [x] Add support for sprites
 - [ ] Implement game objects pane
   - [x] Add game object settings
-  - [ ] Don't allow adding objects with the same id
+  - [x] Don't allow adding objects with the same id
   - [ ] Allow reordering of the objects
   - [x] Confirm deletion of objects
 - [x] Make the code editor work with JavaScript
