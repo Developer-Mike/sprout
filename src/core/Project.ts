@@ -82,7 +82,6 @@ export interface WorkspaceData {
   isRunning: boolean
 
   selectedGameObject: string
-  documentationLeafVisible: boolean
 
   advanced?: boolean
 }

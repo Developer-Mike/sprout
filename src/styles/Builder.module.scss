@@ -12,29 +12,14 @@
   box-sizing: border-box;
   padding: 20px;
 
-  #documentationContainer {
+  #leftTabView {
     flex: 0.5;
-    margin-right: 20px;
+    margin-right: 10px;
 
-    background-color: var(--container-low);
-    border: var(--border-width) solid var(--border-color);
-    border-radius: 16px;
+    transition: flex 0.2s;
 
-    #documentationSpacer {
-      margin: 20px;
-    }
-
-    &:not(.hidden) {
-      animation: expandDocumentation 0.2s;
-    }
-
-    &.hidden {
-      display: none;
-      animation: collapseDocumentation 0.2s;
-
-      & * {
-        white-space: pre;
-      }
+    &[data-is-collapsed='true'] {
+      flex: 0;
     }
   }
 
@@ -71,29 +56,5 @@
     gap: 20px;
 
     margin-left: 20px;
-  }
-}
-
-@keyframes expandDocumentation {
-  from {
-    flex: 0;
-    overflow: hidden;
-    margin: 0;
-  }
-
-  to { 
-    display: block;
-  }
-}
-
-@keyframes collapseDocumentation {
-  from {
-    display: block;
-  }
-
-  to {
-    flex: 0;
-    overflow: hidden;
-    margin: 0;
   }
 }

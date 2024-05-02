@@ -3,7 +3,7 @@ import styles from "@/components/documentation_view/DocumentationView.module.scs
 export default function DocumentationView() {
   return (
     <>
-      <h1>Documentation View</h1>
+      <h1 style={{ marginTop: 0 }}>Documentation View</h1>
     </>
   )
 }

@@ -1,26 +1,57 @@
 .tabView {
   display: flex;
-  flex-direction: column;
+
+  &:not(.vertical) {
+    flex-direction: column;
+    
+    #tabs {
+      flex-direction: row;
+      padding: 0 20px;
+
+      .tab {
+        border-radius: 16px 16px 0 0;
+        border-bottom: none;
+
+        &.activeTab {
+          margin-bottom: calc(-1 * var(--border-width));
+        }
+      }
+    }
+
+    #leaf {
+      transform-origin: top center;
+    }
+  }
+
+  &.vertical {
+    flex-direction: row;
+
+    #tabs {
+      flex-direction: column;
+      gap: 10px;
+      padding-right: 10px;
+    }
+
+    #leaf {
+      transform-origin: center left;
+    }
+  }
 
   #tabs {
     display: flex;
-    flex-direction: row;
-
-    padding: 0 20px;
     user-select: none;
 
     .tab {
       display: flex;
       align-items: center;
 
-      padding: 10px 30px;
+      padding: 15px;
 
       font-size: 1.25em;
       cursor: pointer;
 
       border: var(--border-width) solid var(--border-color);
-      border-bottom: 0;
-      border-radius: 16px 16px 0 0;
+      border-radius: 16px;
 
       color: var(--on-container);
       background-color: var(--container-low);
@@ -32,14 +63,17 @@
 
       &.activeTab {
         z-index: 1;
-
         border-color: var(--primary-dim);
-        margin-bottom: calc(-1 * var(--border-width));
       }
-    }
 
-    .actionButton {
-      margin: 0 20px 10px 0;
+      &:has(.label) {
+        padding-left: 22.5px;
+        padding-right: 30px;
+      }
+
+      .label {
+        margin-left: 7.5px;
+      }
     }
   }
 
@@ -54,5 +88,44 @@
 
     border: var(--border-width) solid var(--primary-dim);
     border-radius: 16px;
+
+    transform: scaleX(1);
+
+    &.collapsible:not(.collapsed) {
+      animation: expand 0.2s;
+    }
+
+    &.collapsible.collapsed {
+      display: none;
+      animation: collapse 0.2s;
+
+      & > * {
+        opacity: 0;
+      }
+    }
+  }
+}
+
+@keyframes expand {
+  from {
+    width: 0;
+    padding: 0;
+  }
+
+  to { }
+}
+
+@keyframes collapse {
+  from {
+    display: block;
+  }
+
+  to {
+    flex: 0;
+
+    width: 0;
+    padding: 0;
+    
+    transform: scaleX(0);
   }
 }

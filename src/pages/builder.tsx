@@ -63,11 +63,22 @@ export default function Builder() {
           />
         </header>
         <main id={styles.mainSplit} className="fullscreen no-scroll">
-          <div id={styles.documentationContainer} className={project.data.workspace.documentationLeafVisible ? "" : styles.hidden}>
-            <div id={styles.documentationSpacer}>
-              <DocumentationView />
-            </div>
-          </div>
+          <TabView id={styles.leftTabView}
+            vertical={true}
+            collapsible={true}
+            tabs={[
+              {
+                id: "documentation",
+                icon: "developer_guide",
+                content: <DocumentationView />
+              },
+              {
+                id: "plugins",
+                icon: "extension",
+                content: <div>Plugins</div>
+              }
+            ]}
+          />
           
           <TabView id={styles.editorsTabView}
             tabs={[
@@ -91,14 +102,6 @@ export default function Builder() {
                 id: "sprites",
                 label: t("common:sprite", { count: 0 }),
                 content: <div>Sprites</div>
-              }
-            ]}
-            actionButtons={[
-              {
-                icon: "developer_guide",
-                onClick: () => project.setData(data => { 
-                  data.workspace.documentationLeafVisible = !data.workspace.documentationLeafVisible 
-                })
               }
             ]}
           />
