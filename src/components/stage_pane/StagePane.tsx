@@ -11,8 +11,8 @@ export default function StagePane({ canvasRef }: {
   const [isFullscreen, setFullscreen] = useState(false)
 
   const updateCanvas = () => {
-    if (project.data.workspace.isRunning) return
-    
+    if (project.isRunning) return
+
     const stage = document.getElementById(styles.stage) as HTMLDivElement
     if (!stage) return
 

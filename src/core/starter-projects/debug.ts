@@ -3,10 +3,8 @@ import { ProjectData } from "../Project"
 const project: ProjectData = {
   title: "Starter Project",
   workspace: {
+    runningInstanceId: null,
     selectedGameObject: "player",
-    documentationLeafVisible: true,
-    isRunning: false,
-
     advanced: true
   },
   sprites: {

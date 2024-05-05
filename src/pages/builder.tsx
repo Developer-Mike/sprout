@@ -16,7 +16,7 @@ export default function Builder() {
   const { t } = useTranslation("builder")
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  Project.createStates()
+  Project.registerHooks()
   const [project, _setProject] = useState<Project | null>(null)
   
   useEffect(() => {
@@ -47,15 +47,20 @@ export default function Builder() {
               },
               {
                 element: <div
-                  onClick={() => { if (project && !project.data.workspace.isRunning && canvasRef.current) project.run(canvasRef.current) }}
-                  className={project.data.workspace.isRunning ? styles.running : ""}
+                  onClick={() => { 
+                    if (!project || !canvasRef.current) return
+
+                    if (!project.isRunning) project.run(canvasRef.current)
+                    else project.restart(canvasRef.current)
+                  }}
+                  className={project.isRunning ? styles.running : ""}
                 ><Icon iconId="play_arrow" /></div>,
                 align: "end"
               },
               {
                 element: <div
-                  onClick={() => { if (project.data.workspace.isRunning && project && canvasRef.current) project.stop(canvasRef.current) }}
-                  className={project.data.workspace.isRunning ? "" : styles.stopped}
+                  onClick={() => { if (project.isRunning && project && canvasRef.current) project.stop(canvasRef.current) }}
+                  className={project.isRunning ? "" : styles.stopped}
                 ><Icon iconId="stop" /></div>,
                 align: "end"
               }
