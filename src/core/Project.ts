@@ -59,7 +59,10 @@ export default class Project {
   }
 
   // TODO: Return errors
-  async run(canvas: HTMLCanvasElement) {
+  async run(canvas?: HTMLCanvasElement | null) {
+    if (!canvas) return
+    if (this.isRunning) await this.stop(canvas)
+    
     const instanceId = Math.random().toString(36).substring(7)
 
     await new Promise(resolve =>
@@ -72,7 +75,9 @@ export default class Project {
     SproutEngine.run(this.data, () => this.data.workspace.runningInstanceId === instanceId, canvas)
   }
 
-  async stop(canvas: HTMLCanvasElement) {
+  async stop(canvas?: HTMLCanvasElement | null) {
+    if (!canvas || !this.isRunning) return
+
     await new Promise(resolve => 
       this.setData(
         data => { data.workspace.runningInstanceId = null },
@@ -82,11 +87,6 @@ export default class Project {
 
     // Reset canvas
     this.render(canvas)
-  }
-
-  async restart(canvas: HTMLCanvasElement) {
-    await this.stop(canvas)
-    await this.run(canvas)
   }
 
   export() {

@@ -1,6 +1,7 @@
 import { ProjectContext } from "@/ProjectContext"
 import DefaultHead from "@/components/DefaultHead"
 import Icon from "@/components/Icon"
+import Shortcut from "@/components/Shortcut"
 import CodeEditor from "@/components/code_editor/CodeEditor"
 import DocumentationView from "@/components/documentation_view/DocumentationView"
 import GameObjectsPane from "@/components/game_objects_pane/GameObjectsPane"
@@ -32,6 +33,9 @@ export default function Builder() {
   return (
     <>
      { project !== null && <ProjectContext.Provider value={{ project }}>
+        <Shortcut keyName="F5" action={() => { project.run(canvasRef.current) }} />
+        <Shortcut shift keyName="F5" action={() => { project.stop(canvasRef.current) }} />
+
         <DefaultHead title={t("common:builder")} />
         <header>
           <Navbar
@@ -47,19 +51,14 @@ export default function Builder() {
               },
               {
                 element: <div
-                  onClick={() => { 
-                    if (!project || !canvasRef.current) return
-
-                    if (!project.isRunning) project.run(canvasRef.current)
-                    else project.restart(canvasRef.current)
-                  }}
+                  onClick={() => { project.run(canvasRef.current) }}
                   className={project.isRunning ? styles.running : ""}
                 ><Icon iconId="play_arrow" /></div>,
                 align: "end"
               },
               {
                 element: <div
-                  onClick={() => { if (project.isRunning && project && canvasRef.current) project.stop(canvasRef.current) }}
+                  onClick={() => { project.stop(canvasRef.current) }}
                   className={project.isRunning ? "" : styles.stopped}
                 ><Icon iconId="stop" /></div>,
                 align: "end"
