@@ -11,8 +11,6 @@ export default function StagePane({ canvasRef }: {
   const [isFullscreen, setFullscreen] = useState(false)
 
   const updateCanvas = () => {
-    if (project.isRunning) return
-
     const stage = document.getElementById(styles.stage) as HTMLDivElement
     if (!stage) return
 
@@ -26,7 +24,7 @@ export default function StagePane({ canvasRef }: {
     canvas.height = canvas.width / (project.data.stage.width / project.data.stage.height)
 
     // Request a redraw
-    project.render(canvas)
+    if (!project.isRunning) project.render(canvas)
   }
 
   useEffect(() => {
