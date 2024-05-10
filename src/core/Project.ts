@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import SproutEngine from "./SproutEngine"
 
 export const STARTER_PROJECTS = {
+  empty: require("./starter-projects/empty").default,
   debug: require("./starter-projects/debug").default
 }
 
@@ -28,6 +29,10 @@ export default class Project {
 
   get isRunning() {
     return this.data.workspace.runningInstanceId !== null
+  }
+
+  static fromTemplate(id: keyof typeof STARTER_PROJECTS) {
+    return new Project(STARTER_PROJECTS[id])
   }
 
   constructor(data: ProjectData) {

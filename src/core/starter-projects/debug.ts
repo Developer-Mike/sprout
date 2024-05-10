@@ -1,7 +1,7 @@
 import { ProjectData } from "../Project"
 
 const project: ProjectData = {
-  title: "Starter Project",
+  title: "Debug Project",
   workspace: {
     runningInstanceId: null,
     selectedGameObject: "player",

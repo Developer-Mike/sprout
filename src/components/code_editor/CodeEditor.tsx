@@ -43,7 +43,7 @@ export default function CodeEditor() {
 
     code.textContent = project.getActiveGameObject().code
     onCodeChange()
-  }, [project.data.workspace.selectedGameObject])
+  }, [project, project.data.workspace.selectedGameObject])
 
   return (
     <div id={styles.codeContainer}>

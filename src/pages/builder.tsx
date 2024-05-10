@@ -22,7 +22,7 @@ export default function Builder() {
   
   useEffect(() => {
     // TODO: Load project data from local storage
-    _setProject(new Project(STARTER_PROJECTS["debug"]))
+    _setProject(Project.fromTemplate("debug"))
   }, [])
 
   useEffect(() => {
@@ -32,18 +32,18 @@ export default function Builder() {
 
   return (
     <>
-     { project !== null && <ProjectContext.Provider value={{ project }}>
-        <Shortcut keyName="F5" action={() => { project.run(canvasRef.current) }} />
-        <Shortcut shift keyName="F5" action={() => { project.stop(canvasRef.current) }} />
+      <DefaultHead title={t("common:builder")} />
 
-        <DefaultHead title={t("common:builder")} />
+      { project?.data && <ProjectContext.Provider value={{ project }}>
+        <Shortcut keyName="F6" action={() => { project.run(canvasRef.current) }} />
+        <Shortcut shift keyName="F6" action={() => { project.stop(canvasRef.current) }} />
         <header>
           <Navbar
             items={[
               {
                 element: <span>{t("common:file")}</span>,
                 nested: [
-                  <span>{t("common:new")}</span>,
+                  <span onClick={() => _setProject(Project.fromTemplate("empty"))}>{t("common:new")}</span>,
                   <span>{t("common:open")}</span>,
                   <span>{t("common:save")}</span>,
                   <span>{t("export-as-html")}</span>
