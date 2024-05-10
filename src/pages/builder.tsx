@@ -41,6 +41,11 @@ export default function Builder() {
           <Navbar
             items={[
               {
+                element: <input id={styles.projectTitle} value={project.data.title}
+                  onChange={(e) => project.setData(data => { data.title = e.target.value })} />,
+                customStyling: true
+              },
+              {
                 element: <span>{t("common:file")}</span>,
                 nested: [
                   <span onClick={() => _setProject(Project.fromTemplate("empty"))}>{t("common:new")}</span>,

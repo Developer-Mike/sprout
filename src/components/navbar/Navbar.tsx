@@ -6,6 +6,7 @@ export interface NavbarItem {
   element: ReactElement
   nested?: ReactElement[]
   align?: "start" | "end"
+  customStyling?: boolean
 }
 
 export default function Navbar({ items }: {
@@ -24,7 +25,7 @@ export default function Navbar({ items }: {
         onClick={() => { setSelectedItem(item) }}
       >
         { React.cloneElement(item.element, { 
-          className: `${item.element.props.className} ${styles.navItem}`, 
+          className: `${item.element.props.className} ${item.customStyling ? "" : styles.navItem}`, 
         }) }
 
         { item.nested && item.nested.length > 0 && (
