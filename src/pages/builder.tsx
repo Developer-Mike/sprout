@@ -22,7 +22,7 @@ export default function Builder() {
   
   useEffect(() => {
     // TODO: Load project data from local storage
-    _setProject(Project.fromTemplate("debug"))
+    _setProject(Project.loadFromTemplate("debug"))
   }, [])
 
   useEffect(() => {
@@ -35,8 +35,10 @@ export default function Builder() {
       <DefaultHead title={t("common:builder")} />
 
       { project?.data && <ProjectContext.Provider value={{ project }}>
+        <Shortcut ctrl keyName="s" action={() => { project.saveToFS() }} />
         <Shortcut keyName="F6" action={() => { project.run(canvasRef.current) }} />
         <Shortcut shift keyName="F6" action={() => { project.stop(canvasRef.current) }} />
+        
         <header>
           <Navbar
             items={[
@@ -48,10 +50,10 @@ export default function Builder() {
               {
                 element: <span>{t("common:file")}</span>,
                 nested: [
-                  <span onClick={() => _setProject(Project.fromTemplate("empty"))}>{t("common:new")}</span>,
-                  <span>{t("common:open")}</span>,
-                  <span>{t("common:save")}</span>,
-                  <span>{t("export-as-html")}</span>
+                  <span onClick={() => _setProject(Project.loadFromTemplate("empty"))}>{t("common:new")}</span>,
+                  <span onClick={async () => _setProject(await Project.loadFromFS(window) || project)}>{t("common:open")}</span>,
+                  <span onClick={() => project.saveToFS()}>{t("common:save")}</span>,
+                  <span onClick={() => project.exportAsHTML()}>{t("export-as-html")}</span>
                 ]
               },
               {

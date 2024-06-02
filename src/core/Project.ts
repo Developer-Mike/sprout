@@ -24,6 +24,8 @@ export default class Project {
     }
   }
 
+  fileHandler: FileSystemFileHandle | null = null
+
   get data() { return Project.dataState }
   setData: (transaction: (data: ProjectData) => void, callback?: (data: ProjectData) => void) => void
 
@@ -31,11 +33,8 @@ export default class Project {
     return this.data.workspace.runningInstanceId !== null
   }
 
-  static fromTemplate(id: keyof typeof STARTER_PROJECTS) {
-    return new Project(STARTER_PROJECTS[id])
-  }
-
-  constructor(data: ProjectData) {
+  constructor(data: ProjectData, fileHandler: FileSystemFileHandle | null = null) {
+    this.fileHandler = fileHandler
     Project.setDataState(data)
 
     this.setData = (transaction: (data: ProjectData) => void, callback?: (data: ProjectData) => void) => {
@@ -94,12 +93,47 @@ export default class Project {
     this.render(canvas)
   }
 
-  export() {
-    return JSON.stringify(this.data)
+  static loadFromTemplate(id: keyof typeof STARTER_PROJECTS) {
+    return new Project(STARTER_PROJECTS[id])
+  }
+
+  static async selectFSLocation(window: Window, open: Boolean = true): Promise<FileSystemFileHandle | null> {
+    const fileOptions = { types: [{ description: "Sprout project", accept: { "application/sprout": [".sprout"] } }] }
+
+    try {
+      const fileHandle = await (open ? (window as any).showOpenFilePicker(fileOptions) : (window as any).showSaveFilePicker(fileOptions))
+      return open ? fileHandle[0] : fileHandle
+    } catch { return null }
+  }
+
+  static async loadFromFS(window: Window): Promise<Project | null> {
+    const fileHandle = await this.selectFSLocation(window)
+    if (!fileHandle) return null // User cancelled
+
+    const file = await fileHandle.getFile()
+    const data = JSON.parse(await file.text())
+
+    return new Project(data, fileHandle)
+  }
+
+  async saveToFS() {
+    if (!this.fileHandler) this.fileHandler = await Project.selectFSLocation(window, false)
+    if (!this.fileHandler) return // User cancelled
+
+    const writable = await this.fileHandler.createWritable()
+    await writable.write(JSON.stringify(this.data))
+    await writable.close()
   }
 
   exportAsHTML() {
-    return SproutEngine.generateExportableHTMLCode(this.data)
+    const html = SproutEngine.generateExportableHTMLCode(this.data)
+    const blob = new Blob([html], { type: "text/html" })
+    const url = URL.createObjectURL(blob)
+
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `${this.data.title}.html`
+    a.click()
   }
 }
 

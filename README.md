@@ -40,6 +40,8 @@ npm run dev
 - [x] Add keyboard shortcuts
 - [x] Make the code editor work with JavaScript
 - [ ] Load and save the project data
+  - [ ] Automatically save the project data
+  - [ ] Detect changed data
 - [ ] Create the Lexer and the Parser for the programming language
 - [ ] Add the implemented functions to the engine
 - [ ] Create tool for simple image editing of sprites
