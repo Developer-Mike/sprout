@@ -39,15 +39,20 @@ npm run dev
   - [x] Confirm deletion of objects
 - [x] Add keyboard shortcuts
 - [x] Make the code editor work with JavaScript
-- [ ] Load and save the project data
-  - [ ] Detect unsaved project and prevent closing the tab if the data is not saved
+- [x] Load and save the project data
+  - [x] Detect unsaved project and prevent closing the tab if the data is not saved
   - [x] Automatically save the project data
     - [x] Add save history
     - [ ] Make the history less detailed
-  - [ ] Add snackbar notification for loading and saving
   - [ ] Add loading progress bar
-  - [ ] Add projects overview
+- [ ] Add projects overview (list of projects)
 - [ ] Add snackbar
+  - [ ] Add snackbar notification for loading and saving
+- [ ] Add tooltips?
+  - [ ] Unsaved changes
+  - [ ] Game object properties
+  - [ ] Add game object button
+  - [ ] Vertical tab buttons
 - [ ] Create the Lexer and the Parser for the programming language
 - [ ] Add the implemented functions to the engine
 - [ ] Create tool for simple image editing of sprites
