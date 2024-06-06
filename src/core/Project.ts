@@ -150,7 +150,7 @@ export default class Project {
   fileHandler: FileSystemFileHandle | null = null
 
   async saveToFS(force: boolean = true) {
-    if (!this.fileHandler && force) this.fileHandler = await Project.selectFSLocation(window, false)
+    if (!this.fileHandler && force) this.fileHandler = await Project.selectFSLocation(window, false, this.data.title)
     if (!this.fileHandler) return // User cancelled
 
     const writable = await this.fileHandler.createWritable()
@@ -169,13 +169,20 @@ export default class Project {
     a.click()
   }
 
-  static async selectFSLocation(window: Window, open: Boolean = true): Promise<FileSystemFileHandle | null> {
-    const fileOptions = { types: [{ description: "Sprout project", accept: { "application/sprout": [".sprout"] } }] }
+  static async selectFSLocation(window: Window, open: Boolean = true, projectName?: string): Promise<FileSystemFileHandle | null> {
+    const fileOptions = { 
+      excludeAcceptAllOption: true, 
+      suggestedName: projectName ? `${projectName}.sprout` : undefined,
+      types: [{ description: "Sprout project", accept: { "application/sprout": [".sprout"] } }] 
+    }
 
     try {
       const fileHandle = await (open ? (window as any).showOpenFilePicker(fileOptions) : (window as any).showSaveFilePicker(fileOptions))
       return open ? fileHandle[0] : fileHandle
-    } catch { return null }
+    } catch (e: any) {
+      if (e.name != "AbortError") console.error(e)
+      return null
+    }
   }
   //#endregion
 }
