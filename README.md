@@ -40,8 +40,13 @@ npm run dev
 - [x] Add keyboard shortcuts
 - [x] Make the code editor work with JavaScript
 - [ ] Load and save the project data
+  - [ ] Detect changed data and prevent closing the tab if the data is not saved
   - [ ] Automatically save the project data
-  - [ ] Detect changed data
+    - [ ] Add save history
+  - [ ] Add snackbar notification for loading and saving
+  - [ ] Add loading progress bar
+  - [ ] Add projects overview
+- [ ] Add snackbar
 - [ ] Create the Lexer and the Parser for the programming language
 - [ ] Add the implemented functions to the engine
 - [ ] Create tool for simple image editing of sprites
