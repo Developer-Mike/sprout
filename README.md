@@ -40,9 +40,10 @@ npm run dev
 - [x] Add keyboard shortcuts
 - [x] Make the code editor work with JavaScript
 - [ ] Load and save the project data
-  - [ ] Detect changed data and prevent closing the tab if the data is not saved
-  - [ ] Automatically save the project data
-    - [ ] Add save history
+  - [ ] Detect unsaved project and prevent closing the tab if the data is not saved
+  - [x] Automatically save the project data
+    - [x] Add save history
+    - [ ] Make the history less detailed
   - [ ] Add snackbar notification for loading and saving
   - [ ] Add loading progress bar
   - [ ] Add projects overview
