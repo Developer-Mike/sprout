@@ -30,6 +30,16 @@ export default function Builder() {
     (window as any).project = project
   }, [project])
 
+  // Warn user about unsaved changes (except in development mode)
+  useEffect(() => {
+    window.onbeforeunload = () => {
+      if (!project?.unsavedChanges) return
+      if (process.env.NODE_ENV === "development") return
+
+      return t("unsaved-changes-warning")
+    }
+  }, [project, project?.unsavedChanges])
+
   return (
     <>
       <DefaultHead title={t("common:builder")} />
@@ -45,7 +55,7 @@ export default function Builder() {
           <Navbar
             items={[
               {
-                element: <input id={styles.projectTitle} value={project.data.title}
+                element: <input id={styles.projectTitle} className={project.unsavedChanges ? styles.unsavedChanges : ""} value={project.data.title}
                   onChange={(e) => project.updateData(data => { data.title = e.target.value })} />,
                 customStyling: true
               },

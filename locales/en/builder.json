@@ -1,3 +1,4 @@
 {
-    "export-as-html": "Export as HTML"
+    "export-as-html": "Export as HTML",
+    "unsaved-changes-warning": "You have unsaved changes. Are you sure you want to leave this page?"
 }

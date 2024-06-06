@@ -9,30 +9,40 @@ export const STARTER_PROJECTS = {
 
 export default class Project {
   //#region Static React States
+  static unsavedChanges: boolean
+  static setUnsavedChanges: (value: boolean) => void
+
   static data: ProjectData
-  static setData: (data: ProjectData) => void
+  static setData: (data: ProjectData) => Promise<ProjectData>
   static updateData: (transaction: (data: ProjectData) => void) => Promise<ProjectData>
 
   static runningInstanceId: string | null
   static setRunningInstanceId: (id: string | null) => Promise<string | null>
   
   static registerHooks() {
-    [Project.data, Project.setData] = useState<ProjectData>(null as any)
+    // Unsaved changes state
+    [this.unsavedChanges, this.setUnsavedChanges] = useState(false)
+
+    // Data state
+    const [dataState, setDataState] = useState<ProjectData>(null as any)
     const projectDataCallbackRef = useRef<(data: ProjectData) => void>()
 
     useEffect(() => {
       if (!projectDataCallbackRef.current) return
-      projectDataCallbackRef.current(Project.data)
-    }, [Project.data])
+      projectDataCallbackRef.current(dataState)
+    }, [dataState])
 
-    Project.updateData = async (transaction: (data: ProjectData) => void) => new Promise(resolve => {
+    this.data = dataState
+    this.setData = (data: ProjectData) => new Promise(resolve => {
       projectDataCallbackRef.current = resolve
-
+      setDataState(data)
+    })
+    this.updateData = async (transaction: (data: ProjectData) => void) => {
       const newData = JSON.parse(JSON.stringify(this.data))
       transaction(newData)
 
-      Project.setData(newData)
-    })
+      return Project.setData(newData)
+    }
 
     // Running instance
     const [runningInstanceIdState, setRunningInstanceIdState] = useState<string | null>(null)
@@ -52,6 +62,9 @@ export default class Project {
   //#endregion
 
   //#region Easy access to static states
+  get unsavedChanges() { return Project.unsavedChanges }
+  setUnsavedChanges = Project.setUnsavedChanges
+
   get data() { return Project.data }
   updateData = async (transaction: (data: ProjectData) => void, saveHistory: boolean = true) => {
     await Project.updateData(transaction)
@@ -90,6 +103,10 @@ export default class Project {
     // Create link to fs file and copy data
     this.fileHandler = fileHandler
     Project.setData(data)
+      .then(() => this.history = [JSON.parse(JSON.stringify(data))])
+
+    // Only possible to save if fileHandler is provided
+    this.setUnsavedChanges(!this.fileHandler)
   }
 
   //#region History methods
@@ -107,8 +124,6 @@ export default class Project {
 
     // Autosave
     await this.saveToFS(false)
-
-    console.log(this.history)
   }
 
   undo() {
@@ -152,6 +167,9 @@ export default class Project {
   async saveToFS(force: boolean = true) {
     if (!this.fileHandler && force) this.fileHandler = await Project.selectFSLocation(window, false, this.data.title)
     if (!this.fileHandler) return // User cancelled
+
+    // fileHandler is now guaranteed to be non-null
+    this.setUnsavedChanges(false)
 
     const writable = await this.fileHandler.createWritable()
     await writable.write(JSON.stringify(this.data))

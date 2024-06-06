@@ -7,8 +7,14 @@
 }
 
 #projectTitle {
+  position: relative;
   width: 10vw;
   margin-right: 20px;
+
+  &.unsavedChanges {
+    border-left-color: var(--red);
+    border-right-color: var(--red);
+  }
 }
 
 #mainSplit {

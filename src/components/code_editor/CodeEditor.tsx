@@ -6,17 +6,21 @@ import { useContext, useEffect } from "react"
 export default function CodeEditor() {
   const { project } = useContext(ProjectContext)
 
-  const onCodeChange = () => {
+  const onCodeChange = async (user: boolean = true) => {
     const codeElement = document.getElementById(styles.codeEditor) as HTMLDivElement
     if (!codeElement) return
 
-    const code = codeElement.textContent || ""
-    project.updateData(data => {
-      const selectedGameObject = data.gameObjects.find(obj => obj.id === data.workspace.selectedGameObjectId)
-      if (!selectedGameObject) return
-      selectedGameObject.code = code
-    })
-    project.activeGameObject.code = code
+    // Update code in project data if the change was made by the user
+    if (user) {
+      const code = codeElement.textContent || ""
+      await project.updateData(data => {
+        const selectedGameObject = data.gameObjects.find(obj => obj.id === data.workspace.selectedGameObjectId)
+        if (!selectedGameObject) return
+        selectedGameObject.code = code
+      })
+    }
+
+    const code = project.activeGameObject.code
 
     // Update line numbers
     const lineNumbers = document.getElementById(styles.codeLineNumbers) as HTMLDivElement
@@ -47,7 +51,7 @@ export default function CodeEditor() {
     if (!code) return
 
     code.textContent = project.activeGameObject.code
-    onCodeChange()
+    onCodeChange(false)
   }, [project, project.data.workspace.selectedGameObjectId, project.activeGameObject.code])
 
   return (
@@ -57,7 +61,7 @@ export default function CodeEditor() {
       <div id={styles.code}>
         <code id={styles.codeEditor}
           contentEditable={true} spellCheck={false} 
-          onInput={onCodeChange}
+          onInput={() => onCodeChange()}
           onKeyDown={(e) => {
             if (e.key !== "Tab") return
 
