@@ -1,4 +1,4 @@
-import { ProjectData } from "./Project";
+import { ProjectData } from "../types/ProjectData";
 
 export default class SproutEngine {
   static render(data: ProjectData, canvas: HTMLCanvasElement) {

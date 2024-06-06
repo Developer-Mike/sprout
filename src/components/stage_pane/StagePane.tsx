@@ -34,11 +34,11 @@ export default function StagePane({ canvasRef }: {
     const highlighter = document.getElementById(styles.gameObjectSelectionHighlighter) as HTMLDivElement
     if (!highlighter) return
 
-    const selectedGameObject = project.getActiveGameObject()
+    const activeGameObject = project.activeGameObject
 
     const scale = project.data.stage.width / canvas.width
-    const [width, height] = [selectedGameObject.width / scale, selectedGameObject.height / scale]
-    const [x, y] = [selectedGameObject.x / scale - width / 2, selectedGameObject.y / scale - height / 2]
+    const [width, height] = [activeGameObject.width / scale, activeGameObject.height / scale]
+    const [x, y] = [activeGameObject.x / scale - width / 2, activeGameObject.y / scale - height / 2]
 
     highlighter.style.top = `${y}px`
     highlighter.style.left = `${x}px`
@@ -71,8 +71,8 @@ export default function StagePane({ canvasRef }: {
     if (!gameObject) return
 
     // Still show the highlighter if the same object is clicked
-    if (project.data.workspace.selectedGameObject === gameObject.id) highlightBlink()
-    else project.setData(data => { data.workspace.selectedGameObject = gameObject.id })
+    if (project.data.workspace.selectedGameObjectId === gameObject.id) highlightBlink()
+    else project.updateData(data => { data.workspace.selectedGameObjectId = gameObject.id }, false)
   }
 
   useEffect(() => {
@@ -106,7 +106,7 @@ export default function StagePane({ canvasRef }: {
 
   useEffect(() => {
     highlightBlink()
-  }, [project.data.workspace.selectedGameObject])
+  }, [project.data.workspace.selectedGameObjectId])
 
   const onInput = (e: React.KeyboardEvent<HTMLInputElement>, setter: (value: number) => void) => {
     if (e.key !== "Enter") return
@@ -124,11 +124,11 @@ export default function StagePane({ canvasRef }: {
     <div id={styles.stage} className={isEnlarged ? styles.fullscreen : ""}>
       <div id={styles.controlBar}>
         <input type="number" defaultValue={project.data.stage.width} onKeyDown={(e) => { 
-          onInput(e, (value) => { project.setData(data => { data.stage.width = value }) })
+          onInput(e, (value) => { project.updateData(data => { data.stage.width = value }) })
         }} disabled={!project.data.workspace.advanced} />
         <span>x</span>
         <input type="number" defaultValue={project.data.stage.height} onKeyDown={(e) => {
-          onInput(e, (value) => { project.setData(data => { data.stage.height = value }) })
+          onInput(e, (value) => { project.updateData(data => { data.stage.height = value }) })
         }} disabled={!project.data.workspace.advanced} />
 
         <button id={styles.fullscreenToggle} onClick={() => { setEnlarged(!isEnlarged) }}><Icon iconId={isEnlarged ? "fullscreen_exit" : "fullscreen"} /></button>

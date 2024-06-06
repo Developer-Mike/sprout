@@ -8,7 +8,7 @@ import GameObjectsPane from "@/components/game_objects_pane/GameObjectsPane"
 import Navbar from "@/components/navbar/Navbar"
 import StagePane from "@/components/stage_pane/StagePane"
 import TabView from "@/components/tab_view/TabView"
-import Project, { STARTER_PROJECTS } from "@/core/Project"
+import Project from "@/core/Project"
 import styles from "@/styles/Builder.module.scss"
 import useTranslation from "next-translate/useTranslation"
 import { useEffect, useRef, useState } from "react"
@@ -35,6 +35,8 @@ export default function Builder() {
       <DefaultHead title={t("common:builder")} />
 
       { project?.data && <ProjectContext.Provider value={{ project }}>
+        <Shortcut ctrl keyName="z" action={() => { project.undo() }} />
+        <Shortcut ctrl keyName="y" action={() => { project.redo() }} />
         <Shortcut ctrl keyName="s" action={() => { project.saveToFS() }} />
         <Shortcut keyName="F6" action={() => { project.run(canvasRef.current) }} />
         <Shortcut shift keyName="F6" action={() => { project.stop(canvasRef.current) }} />
@@ -44,7 +46,7 @@ export default function Builder() {
             items={[
               {
                 element: <input id={styles.projectTitle} value={project.data.title}
-                  onChange={(e) => project.setData(data => { data.title = e.target.value })} />,
+                  onChange={(e) => project.updateData(data => { data.title = e.target.value })} />,
                 customStyling: true
               },
               {
@@ -101,8 +103,8 @@ export default function Builder() {
                     <CodeEditor />
                     <img id={styles.gameObjectPreview} 
                       src={project.data.sprites[
-                        project.getActiveGameObject().sprites[
-                          project.getActiveGameObject().activeSprite
+                        project.activeGameObject.sprites[
+                          project.activeGameObject.activeSprite
                         ]
                       ]}
                     />

@@ -11,7 +11,12 @@ export default function CodeEditor() {
     if (!codeElement) return
 
     const code = codeElement.textContent || ""
-    project.getActiveGameObject().code = code
+    project.updateData(data => {
+      const selectedGameObject = data.gameObjects.find(obj => obj.id === data.workspace.selectedGameObjectId)
+      if (!selectedGameObject) return
+      selectedGameObject.code = code
+    })
+    project.activeGameObject.code = code
 
     // Update line numbers
     const lineNumbers = document.getElementById(styles.codeLineNumbers) as HTMLDivElement
@@ -41,9 +46,9 @@ export default function CodeEditor() {
     const code = document.getElementById(styles.codeEditor) as HTMLDivElement
     if (!code) return
 
-    code.textContent = project.getActiveGameObject().code
+    code.textContent = project.activeGameObject.code
     onCodeChange()
-  }, [project, project.data.workspace.selectedGameObject])
+  }, [project, project.data.workspace.selectedGameObjectId, project.activeGameObject.code])
 
   return (
     <div id={styles.codeContainer}>

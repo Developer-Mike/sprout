@@ -20,92 +20,92 @@ export default function GameObjectsPane() {
   const [aspectRatioCache, setAspectRatioCache] = useState(1)
 
   useEffect(() => {
-    setAspectRatioCache(project.getActiveGameObject().width / Math.max(1, project.getActiveGameObject().height))
-  }, [project.data.workspace.selectedGameObject])
+    setAspectRatioCache(project.activeGameObject.width / Math.max(1, project.activeGameObject.height))
+  }, [project.data.workspace.selectedGameObjectId])
 
   return (
     <>
       <div id={styles.gameObjectProperties}>
-        <LabeledTextInput label={t("id")} value={project.getActiveGameObject().id}
+        <LabeledTextInput label={t("id")} value={project.activeGameObject.id}
           isValidValue={value =>
             value.trim().length > 0 && (
-              project.getActiveGameObject().id === value.trim() || 
+              project.activeGameObject.id === value.trim() || 
               project.data.gameObjects.find(gameObject => gameObject.id === value.trim()) === undefined
             )
           }
-          onChange={value => project.setData(data => {
-            data.workspace.selectedGameObject = value.trim()
-            data.gameObjects[project.getActiveGameObjectIndex()].id = value.trim()
+          onChange={value => project.updateData(data => {
+            data.workspace.selectedGameObjectId = value.trim()
+            data.gameObjects[project.activeGameObjectIndex].id = value.trim()
           })}
         />
 
-        <LabeledNumberInput label={t("layer")} value={project.getActiveGameObject().layer} precision={0} onChange={value => project.setData(data => {
-          data.gameObjects[project.getActiveGameObjectIndex()].layer = value
+        <LabeledNumberInput label={t("layer")} value={project.activeGameObject.layer} precision={0} onChange={value => project.updateData(data => {
+          data.gameObjects[project.activeGameObjectIndex].layer = value
         })} />
 
-        <LabeledBooleanInput label={t("visible")} value={project.getActiveGameObject().visible} onChange={value => project.setData(data => {
-          data.gameObjects[project.getActiveGameObjectIndex()].visible = value
+        <LabeledBooleanInput label={t("visible")} value={project.activeGameObject.visible} onChange={value => project.updateData(data => {
+          data.gameObjects[project.activeGameObjectIndex].visible = value
         })} />
 
-        <LabeledNumberInput label={t("x")} value={project.getActiveGameObject().x} precision={0} onChange={value => project.setData(data => {
-          data.gameObjects[project.getActiveGameObjectIndex()].x = value
+        <LabeledNumberInput label={t("x")} value={project.activeGameObject.x} precision={0} onChange={value => project.updateData(data => {
+          data.gameObjects[project.activeGameObjectIndex].x = value
         })} />
 
-        <LabeledNumberInput label={t("y")} value={project.getActiveGameObject().y} precision={0} onChange={value => project.setData(data => {
-          data.gameObjects[project.getActiveGameObjectIndex()].y = value
+        <LabeledNumberInput label={t("y")} value={project.activeGameObject.y} precision={0} onChange={value => project.updateData(data => {
+          data.gameObjects[project.activeGameObjectIndex].y = value
         })} />
 
-        <LabeledNumberInput label={t("rotation")} value={project.getActiveGameObject().rotation} precision={2} onChange={value => project.setData(data => {
-          data.gameObjects[project.getActiveGameObjectIndex()].rotation = (value > 0 ? value : 360 + value) % 360
+        <LabeledNumberInput label={t("rotation")} value={project.activeGameObject.rotation} precision={2} onChange={value => project.updateData(data => {
+          data.gameObjects[project.activeGameObjectIndex].rotation = (value > 0 ? value : 360 + value) % 360
         })} />
 
-        <LabeledNumberInput label={t("width")} value={project.getActiveGameObject().width} precision={2} onChange={newWidth => project.setData(data => {
+        <LabeledNumberInput label={t("width")} value={project.activeGameObject.width} precision={2} onChange={newWidth => project.updateData(data => {
           if (linkedScalingEnabled) {
-            const oldWidth = data.gameObjects[project.getActiveGameObjectIndex()].width
-            let newHeight = data.gameObjects[project.getActiveGameObjectIndex()].height
+            const oldWidth = data.gameObjects[project.activeGameObjectIndex].width
+            let newHeight = data.gameObjects[project.activeGameObjectIndex].height
 
             if (oldWidth == 0) newHeight = newWidth * (1 / aspectRatioCache)
             else newHeight *= newWidth / oldWidth
 
-            data.gameObjects[project.getActiveGameObjectIndex()].height = parseFloat(newHeight.toFixed(2))
+            data.gameObjects[project.activeGameObjectIndex].height = parseFloat(newHeight.toFixed(2))
           } else if (newWidth > 0) {
-            setAspectRatioCache(newWidth / data.gameObjects[project.getActiveGameObjectIndex()].height)
+            setAspectRatioCache(newWidth / data.gameObjects[project.activeGameObjectIndex].height)
           }
 
-          data.gameObjects[project.getActiveGameObjectIndex()].width = newWidth
+          data.gameObjects[project.activeGameObjectIndex].width = newWidth
         })} />
 
         <div id={styles.linkedScaling} onClick={() => setLinkedScalingEnabled(!linkedScalingEnabled)}>
           <Icon iconId={linkedScalingEnabled ? "link" : "link_off"} />
         </div>
 
-        <LabeledNumberInput label={t("height")} value={project.getActiveGameObject().height} precision={2} onChange={newHeight => project.setData(data => {
+        <LabeledNumberInput label={t("height")} value={project.activeGameObject.height} precision={2} onChange={newHeight => project.updateData(data => {
           if (linkedScalingEnabled) {
-            const oldHeight = data.gameObjects[project.getActiveGameObjectIndex()].height
-            let newWidth = data.gameObjects[project.getActiveGameObjectIndex()].width
+            const oldHeight = data.gameObjects[project.activeGameObjectIndex].height
+            let newWidth = data.gameObjects[project.activeGameObjectIndex].width
 
             if (oldHeight == 0) newWidth = newHeight * aspectRatioCache
             else newWidth *= newHeight / oldHeight
 
-            data.gameObjects[project.getActiveGameObjectIndex()].width = parseFloat(newWidth.toFixed(2))
+            data.gameObjects[project.activeGameObjectIndex].width = parseFloat(newWidth.toFixed(2))
           } else if (newHeight > 0) {
-            setAspectRatioCache(data.gameObjects[project.getActiveGameObjectIndex()].width / newHeight)
+            setAspectRatioCache(data.gameObjects[project.activeGameObjectIndex].width / newHeight)
           }
 
-          data.gameObjects[project.getActiveGameObjectIndex()].height = newHeight
+          data.gameObjects[project.activeGameObjectIndex].height = newHeight
         })} />
 
-        <div id={styles.resetScale} onClick={() => project.setData(data => {
+        <div id={styles.resetScale} onClick={() => project.updateData(data => {
           const sprite = new Image()
-          sprite.src = data.sprites[data.gameObjects[project.getActiveGameObjectIndex()].sprites[0]]
+          sprite.src = data.sprites[data.gameObjects[project.activeGameObjectIndex].sprites[0]]
 
           const [width, height] = [
             Math.max(sprite.naturalWidth, 32),
             Math.max(sprite.naturalHeight, 32)
           ]
 
-          data.gameObjects[project.getActiveGameObjectIndex()].width = width
-          data.gameObjects[project.getActiveGameObjectIndex()].height = height
+          data.gameObjects[project.activeGameObjectIndex].width = width
+          data.gameObjects[project.activeGameObjectIndex].height = height
 
           setAspectRatioCache(width / height)
         })}>
@@ -115,12 +115,12 @@ export default function GameObjectsPane() {
       
       <DraggableGridView id={styles.gameObjectList}>
         { project.data.gameObjects.map((gameObject, index) => (
-          <DraggableObject key={gameObject.id} onDragged={targetIndex => project.setData(data => {
+          <DraggableObject key={gameObject.id} onDragged={targetIndex => project.updateData(data => {
             const temp = data.gameObjects.splice(index, 1)[0]
             data.gameObjects.splice(targetIndex, 0, temp)
           })}>
-            <div className={`${styles.gameObject} ${gameObject.id === project.data.workspace.selectedGameObject ? styles.selected : ""}`}
-              onClick={() => { project.setData(data => { data.workspace.selectedGameObject = gameObject.id }) }}
+            <div className={`${styles.gameObject} ${gameObject.id === project.data.workspace.selectedGameObjectId ? styles.selected : ""}`}
+              onClick={() => { project.updateData(data => { data.workspace.selectedGameObjectId = gameObject.id }, false) }}
             >
               <img className={styles.gameObjectPreview}
                 alt={gameObject.id}
@@ -150,9 +150,9 @@ export default function GameObjectsPane() {
                         onClick: hide => {
                           hide()
                           
-                          project.setData(data => {
+                          project.updateData(data => {
                             data.gameObjects.splice(index, 1)
-                            data.workspace.selectedGameObject = data.gameObjects[index]?.id 
+                            data.workspace.selectedGameObjectId = data.gameObjects[index]?.id 
                               ?? data.gameObjects[index - 1]?.id 
                               ?? data.gameObjects[0]?.id
                           })
@@ -249,7 +249,7 @@ function CreateGameObjectButton({ t, project }: {
 }) {
   return (
     <div id={styles.addGameObject} className={styles.gameObject}
-      onClick={() => project.setData(data => {
+      onClick={() => project.updateData(data => {
         const baseId = t("game-object", { count: 1 })
         let newId = baseId
 
@@ -274,7 +274,7 @@ function CreateGameObjectButton({ t, project }: {
           code: ""
         })
 
-        data.workspace.selectedGameObject = newId
+        data.workspace.selectedGameObjectId = newId
       })}
     >
       <Icon iconId="add" />

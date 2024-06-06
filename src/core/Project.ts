@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import SproutEngine from "./SproutEngine"
+import { ProjectData } from "../types/ProjectData"
 
 export const STARTER_PROJECTS = {
   empty: require("./starter-projects/empty").default,
@@ -7,105 +8,69 @@ export const STARTER_PROJECTS = {
 }
 
 export default class Project {
-  static dataState: ProjectData
-  static setDataState: (data: ProjectData, callback?: (data: ProjectData) => void) => void
+  //#region Static React States
+  static data: ProjectData
+  static setData: (data: ProjectData) => void
+  static updateData: (transaction: (data: ProjectData) => void) => Promise<ProjectData>
+
+  static runningInstanceId: string | null
+  static setRunningInstanceId: (id: string | null) => Promise<string | null>
+  
   static registerHooks() {
-    const [dataState, setDataState] = useState<ProjectData>(null as any)
-    const callbackRef = useRef<(data: ProjectData) => void>()
+    [Project.data, Project.setData] = useState<ProjectData>(null as any)
+    const projectDataCallbackRef = useRef<(data: ProjectData) => void>()
 
     useEffect(() => {
-      if (callbackRef.current) callbackRef.current(dataState)
-    }, [dataState])
+      if (!projectDataCallbackRef.current) return
+      projectDataCallbackRef.current(Project.data)
+    }, [Project.data])
 
-    Project.dataState = dataState
-    Project.setDataState = (data: ProjectData, callback?: (data: ProjectData) => void) => {
-      callbackRef.current = callback
-      setDataState(data)
-    }
-  }
+    Project.updateData = async (transaction: (data: ProjectData) => void) => new Promise(resolve => {
+      projectDataCallbackRef.current = resolve
 
-  fileHandler: FileSystemFileHandle | null = null
-
-  get data() { return Project.dataState }
-  setData: (transaction: (data: ProjectData) => void, callback?: (data: ProjectData) => void) => void
-
-  get isRunning() {
-    return this.data.workspace.runningInstanceId !== null
-  }
-
-  constructor(data: ProjectData, fileHandler: FileSystemFileHandle | null = null) {
-    this.fileHandler = fileHandler
-    Project.setDataState(data)
-
-    this.setData = (transaction: (data: ProjectData) => void, callback?: (data: ProjectData) => void) => {
       const newData = JSON.parse(JSON.stringify(this.data))
       transaction(newData)
 
-      Project.setDataState(newData, callback)
-    }
+      Project.setData(newData)
+    })
+
+    // Running instance
+    const [runningInstanceIdState, setRunningInstanceIdState] = useState<string | null>(null)
+    const runningInstanceIdCallbackRef = useRef<(id: string | null) => void>()
+
+    useEffect(() => {
+      if (!runningInstanceIdCallbackRef.current) return
+      runningInstanceIdCallbackRef.current(runningInstanceIdState)
+    }, [runningInstanceIdState])
+
+    this.runningInstanceId = runningInstanceIdState
+    this.setRunningInstanceId = async (id: string | null) => new Promise(resolve => {
+      runningInstanceIdCallbackRef.current = resolve
+      setRunningInstanceIdState(id)
+    })
+  }
+  //#endregion
+
+  //#region Easy access to static states
+  get data() { return Project.data }
+  updateData = async (transaction: (data: ProjectData) => void, saveHistory: boolean = true) => {
+    await Project.updateData(transaction)
+    if (saveHistory) this.saveHistory()
   }
 
-  getGameObjectIndex(id: string) {
-    return this.data.gameObjects.findIndex(gameObject => gameObject.id === id)
-  }
-
-  getActiveGameObjectIndex() {
-    return this.getGameObjectIndex(this.data.workspace.selectedGameObject)
-  }
-
-  getActiveGameObject() {
-    return this.data.gameObjects[this.getActiveGameObjectIndex()]
+  getGameObjectIndex(id: string) { return this.data.gameObjects.findIndex(gameObject => gameObject.id === id) }
+  get activeGameObjectIndex() { return this.getGameObjectIndex(this.data.workspace.selectedGameObjectId) }
+  get activeGameObject() {
+    return this.data.gameObjects[this.activeGameObjectIndex]
       ?? this.data.gameObjects[0]
   }
 
-  render(canvas: HTMLCanvasElement) {
-    SproutEngine.render(this.data, canvas)
-  }
+  get runningInstanceId(): string | null { return Project.runningInstanceId }
+  setRunningInstanceId = Project.setRunningInstanceId
+  get isRunning() { return this.runningInstanceId !== null }
+  //#endregion
 
-  // TODO: Return errors
-  async run(canvas?: HTMLCanvasElement | null) {
-    if (!canvas) return
-    if (this.isRunning) await this.stop(canvas)
-    
-    const instanceId = Math.random().toString(36).substring(7)
-
-    await new Promise(resolve =>
-      this.setData(
-        data => { data.workspace.runningInstanceId = instanceId },
-        resolve
-      )
-    )
-
-    SproutEngine.run(this.data, () => this.data.workspace.runningInstanceId === instanceId, canvas)
-  }
-
-  async stop(canvas?: HTMLCanvasElement | null) {
-    if (!canvas || !this.isRunning) return
-
-    await new Promise(resolve => 
-      this.setData(
-        data => { data.workspace.runningInstanceId = null },
-        resolve
-      )
-    )
-
-    // Reset canvas
-    this.render(canvas)
-  }
-
-  static loadFromTemplate(id: keyof typeof STARTER_PROJECTS) {
-    return new Project(STARTER_PROJECTS[id])
-  }
-
-  static async selectFSLocation(window: Window, open: Boolean = true): Promise<FileSystemFileHandle | null> {
-    const fileOptions = { types: [{ description: "Sprout project", accept: { "application/sprout": [".sprout"] } }] }
-
-    try {
-      const fileHandle = await (open ? (window as any).showOpenFilePicker(fileOptions) : (window as any).showSaveFilePicker(fileOptions))
-      return open ? fileHandle[0] : fileHandle
-    } catch { return null }
-  }
-
+  //#region Static factory methods
   static async loadFromFS(window: Window): Promise<Project | null> {
     const fileHandle = await this.selectFSLocation(window)
     if (!fileHandle) return null // User cancelled
@@ -116,8 +81,76 @@ export default class Project {
     return new Project(data, fileHandle)
   }
 
-  async saveToFS() {
-    if (!this.fileHandler) this.fileHandler = await Project.selectFSLocation(window, false)
+  static loadFromTemplate(id: keyof typeof STARTER_PROJECTS) {
+    return new Project(STARTER_PROJECTS[id])
+  }
+  //#endregion
+
+  constructor(data: ProjectData, fileHandler: FileSystemFileHandle | null = null) {
+    // Create link to fs file and copy data
+    this.fileHandler = fileHandler
+    Project.setData(data)
+  }
+
+  //#region History methods
+  readonly MAX_HISTORY_LENGTH = 50
+  historyIndex = 0
+  history: ProjectData[] = []
+
+  async saveHistory() {
+    if (this.historyIndex < this.history.length - 1) this.history = this.history.slice(0, this.historyIndex + 1)
+    this.history.push(JSON.parse(JSON.stringify(this.data)))
+    this.historyIndex = this.history.length - 1
+
+    // Limit history size
+    if (this.history.length > this.MAX_HISTORY_LENGTH) this.history.shift()
+
+    // Autosave
+    await this.saveToFS(false)
+
+    console.log(this.history)
+  }
+
+  undo() {
+    if (this.historyIndex === 0) return
+    Project.setData(this.history[--this.historyIndex])
+  }
+
+  redo() {
+    if (this.historyIndex === this.history.length - 1) return
+    Project.setData(this.history[++this.historyIndex])
+  }
+  //#endregion
+
+  //#region SproutEngine integration
+  render(canvas: HTMLCanvasElement) { SproutEngine.render(this.data, canvas) }
+
+  // TODO: Return errors
+  async run(canvas?: HTMLCanvasElement | null) {
+    if (!canvas) return
+    if (this.isRunning) await this.stop(canvas)
+    
+    const instanceId = Math.random().toString(36).substring(7)
+    await this.setRunningInstanceId(instanceId)
+
+    SproutEngine.run(this.data, () => this.runningInstanceId === instanceId, canvas)
+  }
+
+  async stop(canvas?: HTMLCanvasElement | null) {
+    if (!canvas || !this.isRunning) return
+
+    await this.setRunningInstanceId(null)
+
+    // Reset canvas
+    this.render(canvas)
+  }
+  //#endregion
+
+  //#region Save and export methods
+  fileHandler: FileSystemFileHandle | null = null
+
+  async saveToFS(force: boolean = true) {
+    if (!this.fileHandler && force) this.fileHandler = await Project.selectFSLocation(window, false)
     if (!this.fileHandler) return // User cancelled
 
     const writable = await this.fileHandler.createWritable()
@@ -135,44 +168,14 @@ export default class Project {
     a.download = `${this.data.title}.html`
     a.click()
   }
-}
 
-export interface ProjectData {
-  title: string
-  workspace: WorkspaceData
+  static async selectFSLocation(window: Window, open: Boolean = true): Promise<FileSystemFileHandle | null> {
+    const fileOptions = { types: [{ description: "Sprout project", accept: { "application/sprout": [".sprout"] } }] }
 
-  sprites: { [id: string]: string }
-
-  stage: StageData
-  gameObjects: GameObjectData[]
-}
-
-export interface WorkspaceData {
-  runningInstanceId: string | null
-
-  selectedGameObject: string
-
-  advanced?: boolean
-}
-
-export interface StageData {
-  width: number
-  height: number
-}
-
-export interface GameObjectData {
-  id: string
-
-  visible: boolean
-  x: number
-  y: number
-  layer: number
-  rotation: number
-  width: number
-  height: number
-
-  sprites: string[]
-  activeSprite: number
-
-  code: string
+    try {
+      const fileHandle = await (open ? (window as any).showOpenFilePicker(fileOptions) : (window as any).showSaveFilePicker(fileOptions))
+      return open ? fileHandle[0] : fileHandle
+    } catch { return null }
+  }
+  //#endregion
 }
