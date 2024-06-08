@@ -44,10 +44,8 @@ npm run dev
   - [x] Automatically save the project data
     - [x] Add save history
     - [ ] Make the history less detailed
-  - [ ] Add loading progress bar
+  - [x] Add loading progress bar
 - [ ] Add projects overview (list of projects)
-- [ ] Add snackbar
-  - [ ] Add snackbar notification for loading and saving
 - [ ] Add tooltips?
   - [ ] Unsaved changes
   - [ ] Game object properties
