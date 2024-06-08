@@ -6,21 +6,24 @@ import { useContext, useEffect } from "react"
 export default function CodeEditor() {
   const { project } = useContext(ProjectContext)
 
-  const onCodeChange = async (user: boolean = true) => {
+  const saveCodeChanges = async () => {
     const codeElement = document.getElementById(styles.codeEditor) as HTMLDivElement
     if (!codeElement) return
 
-    // Update code in project data if the change was made by the user
-    if (user) {
-      const code = codeElement.textContent || ""
-      await project.updateData(data => {
-        const selectedGameObject = data.gameObjects.find(obj => obj.id === data.workspace.selectedGameObjectId)
-        if (!selectedGameObject) return
-        selectedGameObject.code = code
-      })
-    }
+    const code = codeElement.textContent || ""
+    await project.updateData(data => {
+      const selectedGameObject = data.gameObjects.find(obj => obj.id === data.workspace.selectedGameObjectId)
+      if (!selectedGameObject) return
+      selectedGameObject.code = code
+    })
+  }
+
+  const onCodeChange = async () => {
+    const codeElement = document.getElementById(styles.codeEditor) as HTMLDivElement
+    if (!codeElement) return
 
     const code = project.activeGameObject.code
+    if (codeElement.textContent != code) codeElement.textContent = project.activeGameObject.code
 
     // Update line numbers
     const lineNumbers = document.getElementById(styles.codeLineNumbers) as HTMLDivElement
@@ -50,8 +53,7 @@ export default function CodeEditor() {
     const code = document.getElementById(styles.codeEditor) as HTMLDivElement
     if (!code) return
 
-    code.textContent = project.activeGameObject.code
-    onCodeChange(false)
+    onCodeChange()
   }, [project, project.data.workspace.selectedGameObjectId, project.activeGameObject.code])
 
   return (
@@ -61,7 +63,7 @@ export default function CodeEditor() {
       <div id={styles.code}>
         <code id={styles.codeEditor}
           contentEditable={true} spellCheck={false} 
-          onInput={() => onCodeChange()}
+          onInput={saveCodeChanges}
           onKeyDown={(e) => {
             if (e.key !== "Tab") return
 

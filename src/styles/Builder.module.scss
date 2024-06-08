@@ -17,6 +17,20 @@
   }
 }
 
+#saving {
+  margin: 0 20px;
+
+  font-weight: 600;
+  color: var(--primary);
+
+  opacity: 0;
+  transition: opacity 0.2s;
+
+  &.triggered {
+    opacity: 1;
+  }
+}
+
 #mainSplit {
   display: flex;
 

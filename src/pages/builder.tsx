@@ -69,6 +69,13 @@ export default function Builder() {
                 ]
               },
               {
+                element: <span id={styles.saving} className={project.isSaving ? styles.triggered : ""}>
+                  {t("common:saving")}
+                </span>,
+                customStyling: true,
+                align: "end"
+              },
+              {
                 element: <div
                   onClick={() => { project.run(canvasRef.current) }}
                   className={project.isRunning ? styles.running : ""}

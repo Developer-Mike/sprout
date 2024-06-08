@@ -27,5 +27,6 @@
         "message": "Are you sure you want to delete \"{{id}}\"?"
     },
     "delete": "Delete",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "saving": "Saving"
 }

@@ -9,19 +9,31 @@ export const STARTER_PROJECTS = {
 
 export default class Project {
   //#region Static React States
+  static isLoading: boolean
+  private static setIsLoading: (value: boolean) => void
+
+  static isSaving: boolean
+  private static setIsSaving: (value: boolean) => void
+
   static unsavedChanges: boolean
-  static setUnsavedChanges: (value: boolean) => void
+  private static setUnsavedChanges: (value: boolean) => void
 
   static data: ProjectData
-  static setData: (data: ProjectData) => Promise<ProjectData>
+  private static setData: (data: ProjectData) => Promise<ProjectData>
   static updateData: (transaction: (data: ProjectData) => void) => Promise<ProjectData>
 
   static runningInstanceId: string | null
-  static setRunningInstanceId: (id: string | null) => Promise<string | null>
+  private static setRunningInstanceId: (id: string | null) => Promise<string | null>
   
   static registerHooks() {
+    // Loading state
+    ;[this.isLoading, this.setIsLoading] = useState(true)
+
+    // Saving state
+    ;[this.isSaving, this.setIsSaving] = useState(false)
+
     // Unsaved changes state
-    [this.unsavedChanges, this.setUnsavedChanges] = useState(false)
+    ;[this.unsavedChanges, this.setUnsavedChanges] = useState(false)
 
     // Data state
     const [dataState, setDataState] = useState<ProjectData>(null as any)
@@ -62,6 +74,12 @@ export default class Project {
   //#endregion
 
   //#region Easy access to static states
+  get isLoading() { return Project.isLoading }
+  private setIsLoading = Project.setIsLoading
+
+  get isSaving() { return Project.isSaving }
+  private setIsSaving = Project.setIsSaving
+
   get unsavedChanges() { return Project.unsavedChanges }
   setUnsavedChanges = Project.setUnsavedChanges
 
@@ -79,7 +97,7 @@ export default class Project {
   }
 
   get runningInstanceId(): string | null { return Project.runningInstanceId }
-  setRunningInstanceId = Project.setRunningInstanceId
+  private setRunningInstanceId = Project.setRunningInstanceId
   get isRunning() { return this.runningInstanceId !== null }
   //#endregion
 
@@ -102,11 +120,20 @@ export default class Project {
   constructor(data: ProjectData, fileHandler: FileSystemFileHandle | null = null) {
     // Create link to fs file and copy data
     this.fileHandler = fileHandler
-    Project.setData(data)
-      .then(() => this.history = [JSON.parse(JSON.stringify(data))])
-
-    // Only possible to save if fileHandler is provided
     this.setUnsavedChanges(!this.fileHandler)
+
+    // Set loading and saving states
+    Project.setIsLoading(true)
+    Project.setIsSaving(false)
+
+    // Set data and save history
+    const promise = Project.setData(data)
+
+    // Save history after data is set
+    promise.then(() => this.history = [JSON.parse(JSON.stringify(data))])
+
+    // Set loading state to false after data is set
+    promise.finally(() => Project.setIsLoading(false))
   }
 
   //#region History methods
@@ -170,10 +197,13 @@ export default class Project {
 
     // fileHandler is now guaranteed to be non-null
     this.setUnsavedChanges(false)
+    this.setIsSaving(true)
 
     const writable = await this.fileHandler.createWritable()
     await writable.write(JSON.stringify(this.data))
     await writable.close()
+
+    this.setIsSaving(false)
   }
 
   exportAsHTML() {
