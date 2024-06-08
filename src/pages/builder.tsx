@@ -48,8 +48,9 @@ export default function Builder() {
         <Shortcut ctrl keyName="z" action={() => { project.undo() }} />
         <Shortcut ctrl keyName="y" action={() => { project.redo() }} />
         <Shortcut ctrl keyName="s" action={() => { project.saveToFS() }} />
-        <Shortcut keyName="F6" action={() => { project.run(canvasRef.current) }} />
-        <Shortcut shift keyName="F6" action={() => { project.stop(canvasRef.current) }} />
+
+        { process.env.NODE_ENV !== "development" && <Shortcut keyName="F5" action={() => { project.run(canvasRef.current) }} /> }
+        { process.env.NODE_ENV !== "development" && <Shortcut shift keyName="F5" action={() => { project.stop(canvasRef.current) }} /> }
         
         <header>
           <Navbar
@@ -142,6 +143,10 @@ export default function Builder() {
           </div>
         </main>
       </ProjectContext.Provider> }
+
+      { project?.isLoading && <div id={styles.loadingOverlay}>
+        <div className="loader" />
+      </div> }
     </>
   )
 }

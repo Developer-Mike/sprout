@@ -187,3 +187,19 @@ code {
   color: var(--on-primary);
   background-color: var(--primary);
 }
+
+/* https://css-loaders.com/square-circle/ */
+.loader {
+  height: 35px;
+  aspect-ratio: 1;
+  border: 3px solid var(--primary);
+  animation: l4 2s infinite;
+  
+  @keyframes l4 {
+    0%  {aspect-ratio:1;border-radius:50px}
+    25% {aspect-ratio:2;border-radius:50px} 
+    50% {aspect-ratio:2;border-radius:0}  
+    75% {aspect-ratio:1;border-radius:0} 
+    100%{aspect-ratio:1;border-radius:50px}
+  }
+}
