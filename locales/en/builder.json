@@ -1,4 +1,9 @@
 {
     "export-as-html": "Export as HTML",
-    "unsaved-changes-warning": "You have unsaved changes. Are you sure you want to leave this page?"
+    "unsaved-changes-warning": "You have unsaved changes. Are you sure you want to leave this page?",
+    "invalid-project-path-dialog": {
+        "title": "Invalid Project",
+        "message": "The project \"{{path}}\" was not found.",
+        "return-to-overview": "Return to Projects Overview"
+    }
 }

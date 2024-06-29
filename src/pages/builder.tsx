@@ -3,27 +3,60 @@ import DefaultHead from "@/components/DefaultHead"
 import Icon from "@/components/Icon"
 import Shortcut from "@/components/Shortcut"
 import CodeEditor from "@/components/code_editor/CodeEditor"
+import { DialogContext } from "@/components/dialog/Dialog"
 import DocumentationView from "@/components/documentation_view/DocumentationView"
 import GameObjectsPane from "@/components/game_objects_pane/GameObjectsPane"
 import Navbar from "@/components/navbar/Navbar"
 import StagePane from "@/components/stage_pane/StagePane"
 import TabView from "@/components/tab_view/TabView"
-import Project from "@/core/Project"
+import Project, { STARTER_PROJECTS } from "@/core/Project"
 import styles from "@/styles/Builder.module.scss"
 import useTranslation from "next-translate/useTranslation"
-import { useEffect, useRef, useState } from "react"
+import { useRouter } from "next/router"
+import { useContext, useEffect, useRef, useState } from "react"
 
 export default function Builder() {
   const { t } = useTranslation("builder")
+  const router = useRouter()
+
+  const dialog = useContext(DialogContext)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   Project.registerHooks()
   const [project, _setProject] = useState<Project | null>(null)
   
-  useEffect(() => {
-    // TODO: Load project data from local storage
-    _setProject(Project.loadFromTemplate("debug"))
-  }, [])
+  useEffect(() => { (async () => {
+    if (!router.isReady) return
+
+    const projectPath = router.query.project as string | undefined
+    const projectTemplate = router.query.template as string | undefined
+
+    if (projectTemplate) {
+      const validTemplateId = (Object.keys(STARTER_PROJECTS).includes(projectTemplate) ? projectTemplate : "empty") as keyof typeof STARTER_PROJECTS
+      _setProject(Project.loadFromTemplate(validTemplateId))
+    } else {
+      const project = await Project.loadFromFS(window, projectPath)
+
+      if (project) _setProject(project)
+      else {
+        dialog.showDialog({
+          id: "invalid-project-path",
+          title: t("invalid-project-path-dialog.title"),
+          content: t("invalid-project-path-dialog.message", { path: projectPath }),
+          actions: [
+            {
+              default: true,
+              element: <button className="primary">{t("invalid-project-path-dialog.return-to-overview")}</button>,
+              onClick: hide => {
+                hide()
+                router.push("/projects-overview")
+              }
+            }
+          ]
+        })
+      }
+    }
+  })() }, [router.query])
 
   useEffect(() => {
     // Allow access to project from the browser console
@@ -63,8 +96,8 @@ export default function Builder() {
               {
                 element: <span>{t("common:file")}</span>,
                 nested: [
-                  <span onClick={() => _setProject(Project.loadFromTemplate("empty"))}>{t("common:new")}</span>,
-                  <span onClick={async () => _setProject(await Project.loadFromFS(window) || project)}>{t("common:open")}</span>,
+                  <span onClick={() => router.push("/builder?template?empty")}>{t("common:new")}</span>,
+                  <span onClick={() => router.push("/builder")}>{t("common:open")}</span>,
                   <span onClick={() => project.saveToFS()}>{t("common:save")}</span>,
                   <span onClick={() => project.exportAsHTML()}>{t("export-as-html")}</span>
                 ]

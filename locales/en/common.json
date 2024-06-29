@@ -1,5 +1,6 @@
 {
     "project-name": "Sprout",
+    "home": "Home",
     "builder": "Builder",
     "file": "File",
     "new": "New",
@@ -27,6 +28,7 @@
         "message": "Are you sure you want to delete \"{{id}}\"?"
     },
     "delete": "Delete",
+    "ok": "Ok",
     "cancel": "Cancel",
     "saving": "Saving"
 }

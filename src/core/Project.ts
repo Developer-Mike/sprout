@@ -102,7 +102,7 @@ export default class Project {
   //#endregion
 
   //#region Static factory methods
-  static async loadFromFS(window: Window): Promise<Project | null> {
+  static async loadFromFS(window: Window, path?: string /* TODO */): Promise<Project | null> {
     const fileHandle = await this.selectFSLocation(window)
     if (!fileHandle) return null // User cancelled
 
@@ -123,8 +123,8 @@ export default class Project {
     this.setUnsavedChanges(!this.fileHandler)
 
     // Set loading and saving states
-    Project.setIsLoading(true)
-    Project.setIsSaving(false)
+    this.setIsLoading(true)
+    this.setIsSaving(false)
 
     // Set data and save history
     const promise = Project.setData(data)

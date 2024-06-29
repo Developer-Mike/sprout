@@ -42,7 +42,7 @@ export default function Home() {
 
           <h1 id={styles.sprout}>{t("common:project-name")}</h1>
           <h2 id={styles.slogan}>{t("slogan")}</h2>
-          <a id={styles.cta} href="/builder"><button className="primary">{t("start-building")}</button></a>
+          <a id={styles.cta} href="/builder?template=empty"><button className="primary">{t("start-building")}</button></a>
         </section>
       </main>
     </>
