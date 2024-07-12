@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react"
 import SproutEngine from "./SproutEngine"
 import { ProjectData } from "../types/ProjectData"
+import FSHelper from "@/utils/fs-helper"
+import DBHelper from "@/utils/db-helper"
 
 export const STARTER_PROJECTS = {
   empty: require("./starter-projects/empty").default,
@@ -102,9 +104,9 @@ export default class Project {
   //#endregion
 
   //#region Static factory methods
-  static async loadFromFS(window: Window, path?: string /* TODO */): Promise<Project | null> {
-    const fileHandle = await this.selectFSLocation(window)
-    if (!fileHandle) return null // User cancelled
+  static async loadFromRecent(path: string): Promise<Project | null> {
+    const fileHandle = await DBHelper.getHandlerForRecentProject(path)
+    if (!fileHandle) return null
 
     const file = await fileHandle.getFile()
     const data = JSON.parse(await file.text())
@@ -150,7 +152,7 @@ export default class Project {
     if (this.history.length > this.MAX_HISTORY_LENGTH) this.history.shift()
 
     // Autosave
-    await this.saveToFS(false)
+    await this.save(false)
   }
 
   undo() {
@@ -191,17 +193,22 @@ export default class Project {
   //#region Save and export methods
   fileHandler: FileSystemFileHandle | null = null
 
-  async saveToFS(force: boolean = true) {
-    if (!this.fileHandler && force) this.fileHandler = await Project.selectFSLocation(window, false, this.data.title)
+  async save(isAutosave: boolean = false) {
+    // If fileHandler is null and this is not an autosave, prompt user to save
+    if (!this.fileHandler && !isAutosave) this.fileHandler = await FSHelper.saveFile(window, this.data.title, [FSHelper.SPROUT_PROJECT_TYPE])
     if (!this.fileHandler) return // User cancelled
 
     // fileHandler is now guaranteed to be non-null
     this.setUnsavedChanges(false)
     this.setIsSaving(true)
 
+    // Write data to fs
     const writable = await this.fileHandler.createWritable()
     await writable.write(JSON.stringify(this.data))
     await writable.close()
+
+    // Update recent projects
+    await DBHelper.addRecentProject(this.fileHandler.name, this.data.title, "", this.fileHandler) // TODO: Add thumbnail
 
     this.setIsSaving(false)
   }
@@ -215,22 +222,6 @@ export default class Project {
     a.href = url
     a.download = `${this.data.title}.html`
     a.click()
-  }
-
-  static async selectFSLocation(window: Window, open: Boolean = true, projectName?: string): Promise<FileSystemFileHandle | null> {
-    const fileOptions = { 
-      excludeAcceptAllOption: true, 
-      suggestedName: projectName ? `${projectName}.sprout` : undefined,
-      types: [{ description: "Sprout project", accept: { "application/sprout": [".sprout"] } }] 
-    }
-
-    try {
-      const fileHandle = await (open ? (window as any).showOpenFilePicker(fileOptions) : (window as any).showSaveFilePicker(fileOptions))
-      return open ? fileHandle[0] : fileHandle
-    } catch (e: any) {
-      if (e.name != "AbortError") console.error(e)
-      return null
-    }
   }
   //#endregion
 }

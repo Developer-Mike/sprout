@@ -24,6 +24,24 @@ export default function Builder() {
 
   Project.registerHooks()
   const [project, _setProject] = useState<Project | null>(null)
+
+  const showInvalidProjectDialog = (path: string) => {
+    dialog.showDialog({
+      id: "invalid-project-path",
+      title: t("invalid-project-path-dialog.title"),
+      content: t("invalid-project-path-dialog.message", { path: path }),
+      actions: [
+        {
+          default: true,
+          element: <button className="primary">{t("invalid-project-path-dialog.return-to-overview")}</button>,
+          onClick: hide => {
+            hide()
+            router.push("/projects-overview")
+          }
+        }
+      ]
+    })
+  }
   
   useEffect(() => { (async () => {
     if (!router.isReady) return
@@ -31,35 +49,24 @@ export default function Builder() {
     const projectPath = router.query.project as string | undefined
     const projectTemplate = router.query.template as string | undefined
 
+    if (!projectPath && !projectTemplate) {
+      router.push("/projects-overview")
+      return
+    }
+
     if (projectTemplate) {
       const validTemplateId = (Object.keys(STARTER_PROJECTS).includes(projectTemplate) ? projectTemplate : "empty") as keyof typeof STARTER_PROJECTS
       _setProject(Project.loadFromTemplate(validTemplateId))
-    } else {
-      const project = await Project.loadFromFS(window, projectPath)
+    } else if (projectPath) {
+      const project = await Project.loadFromRecent(projectPath)
 
       if (project) _setProject(project)
-      else {
-        dialog.showDialog({
-          id: "invalid-project-path",
-          title: t("invalid-project-path-dialog.title"),
-          content: t("invalid-project-path-dialog.message", { path: projectPath }),
-          actions: [
-            {
-              default: true,
-              element: <button className="primary">{t("invalid-project-path-dialog.return-to-overview")}</button>,
-              onClick: hide => {
-                hide()
-                router.push("/projects-overview")
-              }
-            }
-          ]
-        })
-      }
+      else showInvalidProjectDialog(projectPath)
     }
   })() }, [router.query])
 
+  // Allow access to project from the browser console
   useEffect(() => {
-    // Allow access to project from the browser console
     (window as any).project = project
   }, [project])
 
@@ -80,7 +87,7 @@ export default function Builder() {
       { project?.data && <ProjectContext.Provider value={{ project }}>
         <Shortcut ctrl keyName="z" action={() => { project.undo() }} />
         <Shortcut ctrl keyName="y" action={() => { project.redo() }} />
-        <Shortcut ctrl keyName="s" action={() => { project.saveToFS() }} />
+        <Shortcut ctrl keyName="s" action={() => { project.save() }} />
 
         { process.env.NODE_ENV !== "development" && <Shortcut keyName="F5" action={() => { project.run(canvasRef.current) }} /> }
         { process.env.NODE_ENV !== "development" && <Shortcut shift keyName="F5" action={() => { project.stop(canvasRef.current) }} /> }
@@ -96,9 +103,9 @@ export default function Builder() {
               {
                 element: <span>{t("common:file")}</span>,
                 nested: [
-                  <span onClick={() => router.push("/builder?template?empty")}>{t("common:new")}</span>,
-                  <span onClick={() => router.push("/builder")}>{t("common:open")}</span>,
-                  <span onClick={() => project.saveToFS()}>{t("common:save")}</span>,
+                  <span onClick={() => router.push("/builder?template=empty")}>{t("common:new")}</span>,
+                  <span onClick={() => router.push("/projects-overview")}>{t("common:open")}</span>,
+                  <span onClick={() => project.save()}>{t("common:save")}</span>,
                   <span onClick={() => project.exportAsHTML()}>{t("export-as-html")}</span>
                 ]
               },

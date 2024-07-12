@@ -1,4 +1,3 @@
-
 export interface ProjectData {
   title: string
   workspace: WorkspaceData
