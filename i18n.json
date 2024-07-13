@@ -4,6 +4,7 @@
     "pages": {
         "*": ["common"],
         "/": ["home"],
+        "/projects-overview": ["projects-overview"],
         "/builder": ["builder"]
     }
 }

@@ -1,5 +1,6 @@
 import styles from "@/components/navbar/Navbar.module.scss"
 import useTranslation from "next-translate/useTranslation"
+import Link from "next/link"
 import React, { MouseEvent, ReactElement, useEffect, useState } from "react"
 
 export interface NavbarItem {
@@ -53,10 +54,10 @@ export default function Navbar({ items }: {
   
   return (
     <div id={styles.navbar}>
-      <a href="/" id={styles.logoContainer}>
+      <Link href="/" id={styles.logoContainer}>
         <img id={styles.logoIcon} src="/sprout.svg" alt="Sprout logo" />
         <h1 id={styles.logo}>{t("project-name")}</h1>
-      </a>
+      </Link>
 
       { generateItems(items.filter((item) => item.align !== "end")) }
       <div className={styles.spacer} />

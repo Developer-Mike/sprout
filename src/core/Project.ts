@@ -3,11 +3,7 @@ import SproutEngine from "./SproutEngine"
 import { ProjectData } from "../types/ProjectData"
 import FSHelper from "@/utils/fs-helper"
 import DBHelper from "@/utils/db-helper"
-
-export const STARTER_PROJECTS = {
-  empty: require("./starter-projects/empty").default,
-  debug: require("./starter-projects/debug").default
-}
+import PROJECT_TEMPLATES from "./project-templates/project-templates"
 
 export default class Project {
   //#region Static React States
@@ -114,8 +110,11 @@ export default class Project {
     return new Project(data, fileHandle)
   }
 
-  static loadFromTemplate(id: keyof typeof STARTER_PROJECTS) {
-    return new Project(STARTER_PROJECTS[id])
+  static loadFromTemplate(id: keyof typeof PROJECT_TEMPLATES): Project | null {
+    const template = PROJECT_TEMPLATES[id]
+    if (!template) return null
+
+    return new Project(template.data)
   }
   //#endregion
 

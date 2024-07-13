@@ -1,9 +1,8 @@
-import { ProjectData } from "../../types/ProjectData"
+import { ProjectData } from "@/types/ProjectData"
 
 const project: ProjectData = {
   title: "Debug Project",
   workspace: {
-    runningInstanceId: null,
     selectedGameObjectId: "player",
     advanced: true
   },

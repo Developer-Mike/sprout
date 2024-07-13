@@ -3,6 +3,7 @@ import Navbar from "@/components/navbar/Navbar"
 import styles from "@/styles/Home.module.scss"
 import { useEffect } from "react"
 import useTranslation from 'next-translate/useTranslation'
+import Link from "next/link"
 
 export default function Home() {
   const { t } = useTranslation("home")
@@ -30,7 +31,7 @@ export default function Home() {
       <DefaultHead />
       <header>
         <Navbar items={[
-          { element: <a href="/builder">{t("common:builder")}</a> }
+          { element: <Link href="/builder">{t("common:builder")}</Link> }
         ]} />
       </header>
       <main>
@@ -42,7 +43,7 @@ export default function Home() {
 
           <h1 id={styles.sprout}>{t("common:project-name")}</h1>
           <h2 id={styles.slogan}>{t("slogan")}</h2>
-          <a id={styles.cta} href="/builder?template=empty"><button className="primary">{t("start-building")}</button></a>
+          <Link id={styles.cta} href="/builder?template=empty"><button className="primary">{t("start-building")}</button></Link>
         </section>
       </main>
     </>

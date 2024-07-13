@@ -1,0 +1,53 @@
+#main {
+  margin: 2em;
+
+  .projectSection {
+    .projectsGrid {
+      .projectCard {
+        display: flex;
+        flex-direction: column;
+
+        height: 12vw;
+        width: 17vw;
+        padding: 10px;
+
+        border: var(--border-color) solid var(--border-width);
+        border-radius: 16px;
+
+        color: var(--on-container);
+        background-color: var(--container-low);
+        transition: background-color 0.2s;
+
+        user-select: none;
+
+        &:hover {
+          background-color: var(--container-high);
+        }
+
+        &.unknownProject {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+      
+          border-style: dashed;
+          background: none;
+      
+          transition: border-color 0.2s;
+      
+          &:hover {
+            border-color: var(--primary-dim);
+          }
+
+          #icon {
+            font-size: 3rem;
+          }
+      
+          & > span {
+            margin-top: 10px;
+            font-size: 1rem;
+          }
+        }
+      }
+    }
+  }
+}

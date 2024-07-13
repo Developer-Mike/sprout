@@ -33,4 +33,9 @@ export default class DBHelper {
     const db = await this.openRecentProjectsDB()
     db.put("projects", { path, title, thumbnail, fileHandle })
   }
+
+  static async removeRecentProject(path: string) {
+    const db = await this.openRecentProjectsDB()
+    db.delete("projects", path)
+  }
 }

@@ -4,7 +4,9 @@
     "builder": "Builder",
     "file": "File",
     "new": "New",
+    "new-project": "Create New Project",
     "open": "Open",
+    "open-project": "Open Project",
     "save": "Save",
     "code": "Code",
     "sprite": {

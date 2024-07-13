@@ -9,7 +9,7 @@ import GameObjectsPane from "@/components/game_objects_pane/GameObjectsPane"
 import Navbar from "@/components/navbar/Navbar"
 import StagePane from "@/components/stage_pane/StagePane"
 import TabView from "@/components/tab_view/TabView"
-import Project, { STARTER_PROJECTS } from "@/core/Project"
+import Project from "@/core/Project"
 import styles from "@/styles/Builder.module.scss"
 import useTranslation from "next-translate/useTranslation"
 import { useRouter } from "next/router"
@@ -55,8 +55,10 @@ export default function Builder() {
     }
 
     if (projectTemplate) {
-      const validTemplateId = (Object.keys(STARTER_PROJECTS).includes(projectTemplate) ? projectTemplate : "empty") as keyof typeof STARTER_PROJECTS
-      _setProject(Project.loadFromTemplate(validTemplateId))
+      let project = Project.loadFromTemplate(projectTemplate)
+      if (!project) project = Project.loadFromTemplate("empty")
+
+      _setProject(project)
     } else if (projectPath) {
       const project = await Project.loadFromRecent(projectPath)
 
