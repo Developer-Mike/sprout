@@ -11,6 +11,7 @@ import StagePane from "@/components/stage_pane/StagePane"
 import TabView from "@/components/tab_view/TabView"
 import Project from "@/core/Project"
 import styles from "@/styles/Builder.module.scss"
+import DBHelper from "@/utils/db-helper"
 import useTranslation from "next-translate/useTranslation"
 import { useRouter } from "next/router"
 import { useContext, useEffect, useRef, useState } from "react"
@@ -60,8 +61,9 @@ export default function Builder() {
 
       _setProject(project)
     } else if (projectPath) {
+      // TODO: Show dialog for user gesture if the project was directly opened by the link without visiting the projects overview page
       const project = await Project.loadFromRecent(projectPath)
-
+      
       if (project) _setProject(project)
       else showInvalidProjectDialog(projectPath)
     }
@@ -72,9 +74,14 @@ export default function Builder() {
     (window as any).project = project
   }, [project])
 
-  // Warn user about unsaved changes (except in development mode)
+  // Update recent projects list and warn user about unsaved changes (except in development mode)
   useEffect(() => {
     window.onbeforeunload = () => {
+      if (!project) return
+
+      // TODO: Async not supported in onbeforeunload
+      project.close(canvasRef.current)
+
       if (!project?.unsavedChanges) return
       if (process.env.NODE_ENV === "development") return
 

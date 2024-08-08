@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import SproutEngine from "./SproutEngine"
 import { ProjectData } from "../types/ProjectData"
-import FSHelper from "@/utils/fs-helper"
+import FSHelper, { ExtendedFileHandle } from "@/utils/fs-helper"
 import DBHelper from "@/utils/db-helper"
 import PROJECT_TEMPLATES from "./project-templates/project-templates"
 
@@ -100,12 +100,37 @@ export default class Project {
   //#endregion
 
   //#region Static factory methods
-  static async loadFromRecent(path: string): Promise<Project | null> {
-    const fileHandle = await DBHelper.getHandlerForRecentProject(path)
+  static async addToRecent(): Promise<string | null> {
+    const fileHandle = await FSHelper.openFile(window, [FSHelper.SPROUT_PROJECT_TYPE])
     if (!fileHandle) return null
 
     const file = await fileHandle.getFile()
     const data = JSON.parse(await file.text())
+
+    DBHelper.addRecentProject(fileHandle.name, data.title, fileHandle)
+    return fileHandle.name
+  }
+
+  static async refreshPermissionOfRecentProject(path: string): Promise<Boolean> {
+    const fileHandle = await DBHelper.getHandlerForRecentProject(path)
+    if (!fileHandle) return false
+    
+    const permissionStatus = await (fileHandle as ExtendedFileHandle).requestPermission({ mode: "readwrite" })
+    return permissionStatus === "granted"
+  }
+
+  static async loadFromRecent(path: string): Promise<Project | null> {
+    const fileHandle = await DBHelper.getHandlerForRecentProject(path)
+    if (!fileHandle) return null
+
+    let data: ProjectData
+    try {
+      const file = await fileHandle.getFile()
+      data = JSON.parse(await file.text())
+    } catch (e: any) {
+      if (e.name !== "NotAllowedError") console.error(e)
+      return null
+    }
 
     return new Project(data, fileHandle)
   }
@@ -151,7 +176,7 @@ export default class Project {
     if (this.history.length > this.MAX_HISTORY_LENGTH) this.history.shift()
 
     // Autosave
-    await this.save(false)
+    await this.save(true)
   }
 
   undo() {
@@ -192,10 +217,23 @@ export default class Project {
   //#region Save and export methods
   fileHandler: FileSystemFileHandle | null = null
 
+  async close(canvas: HTMLCanvasElement | null) {
+    return Promise.all([
+      DBHelper.updateRecentProject(this.data.title, canvas?.toDataURL() ?? null),
+      this.save(true)
+    ])
+  }
+
   async save(isAutosave: boolean = false) {
     // If fileHandler is null and this is not an autosave, prompt user to save
-    if (!this.fileHandler && !isAutosave) this.fileHandler = await FSHelper.saveFile(window, this.data.title, [FSHelper.SPROUT_PROJECT_TYPE])
-    if (!this.fileHandler) return // User cancelled
+    if (!this.fileHandler && !isAutosave) {
+      this.fileHandler = await FSHelper.saveFile(window, this.data.title, [FSHelper.SPROUT_PROJECT_TYPE])
+
+      if (!this.fileHandler) return
+      DBHelper.addRecentProject(this.fileHandler.name, this.data.title, this.fileHandler)
+    }
+
+    if (!this.fileHandler) return // FileHandler is still null
 
     // fileHandler is now guaranteed to be non-null
     this.setUnsavedChanges(false)
@@ -205,9 +243,6 @@ export default class Project {
     const writable = await this.fileHandler.createWritable()
     await writable.write(JSON.stringify(this.data))
     await writable.close()
-
-    // Update recent projects
-    await DBHelper.addRecentProject(this.fileHandler.name, this.data.title, "", this.fileHandler) // TODO: Add thumbnail
 
     this.setIsSaving(false)
   }

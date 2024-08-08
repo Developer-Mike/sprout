@@ -8,8 +8,8 @@ export default class FSHelper {
     }
 
     try {
-      const fileHandle = await (window as any).showOpenFilePicker(fileOptions)[0]
-      return fileHandle[0]
+      const [fileHandle] = await (window as any).showOpenFilePicker(fileOptions)
+      return fileHandle
     } catch (e: any) {
       if (e.name != "AbortError") console.error(e)
       return null
@@ -22,7 +22,7 @@ export default class FSHelper {
     const fileOptions = {
       excludeAcceptAllOption: true,
       suggestedName: suggestedName + fileExtension,
-      types: [fileTypes]
+      types: fileTypes
     }
 
     try {
@@ -33,4 +33,8 @@ export default class FSHelper {
       return null
     }
   }
+}
+
+export interface ExtendedFileHandle extends FileSystemFileHandle {
+  requestPermission: (options: { mode: "read" | "readwrite" }) => Promise<PermissionState>
 }

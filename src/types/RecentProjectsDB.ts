@@ -7,7 +7,9 @@ export interface RecentProjectsDB extends DBSchema {
       path: string
       title: string
       thumbnail: string
+      lastEdited: number
       fileHandle: FileSystemFileHandle
     }
+    indexes: { lastEdited: number }
   }
 }

@@ -3,25 +3,58 @@
 
   .projectSection {
     .projectsGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(17vw, 1fr));
+      gap: 1em;
+
+      a:has(.projectCard) {
+        text-decoration: none;
+      }
+
       .projectCard {
+        $border-radius: 16px;
+        $padding: 10px;
+
         display: flex;
         flex-direction: column;
 
-        height: 12vw;
         width: 17vw;
-        padding: 10px;
+        padding: $padding;
 
         border: var(--border-color) solid var(--border-width);
-        border-radius: 16px;
+        border-radius: $border-radius;
 
         color: var(--on-container);
         background-color: var(--container-low);
         transition: background-color 0.2s;
 
+        cursor: pointer;
         user-select: none;
 
         &:hover {
           background-color: var(--container-high);
+        }
+
+        .projectThumbnail {
+          width: 100%;
+          aspect-ratio: 16/9;
+
+          object-fit: cover;
+          border-radius: calc(#{$border-radius} - #{$padding});
+        }
+
+        .projectTitle {
+          padding: 5px;
+
+          margin-top: 10px;
+          margin-bottom: 0;
+        }
+
+        .projectDescription {
+          padding: 5px;
+
+          margin-top: 0;
+          margin-bottom: 0;
         }
 
         &.unknownProject {
