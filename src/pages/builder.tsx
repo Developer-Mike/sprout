@@ -62,10 +62,12 @@ export default function Builder() {
       _setProject(project)
     } else if (projectPath) {
       // TODO: Show dialog for user gesture if the project was directly opened by the link without visiting the projects overview page
+      // TODO: Show invalid project dialog if the file isn't a valid project
+      // TODO: Redirect back if the project doesn't exist
       const project = await Project.loadFromRecent(projectPath)
       
       if (project) _setProject(project)
-      else showInvalidProjectDialog(projectPath)
+      else router.push("/projects-overview") // TODO showInvalidProjectDialog(projectPath)
     }
   })() }, [router.query])
 

@@ -1,6 +1,7 @@
 import styles from "@/components/navbar/Navbar.module.scss"
 import useTranslation from "next-translate/useTranslation"
 import Link from "next/link"
+import { useRouter } from "next/router"
 import React, { MouseEvent, ReactElement, useEffect, useState } from "react"
 
 export interface NavbarItem {
@@ -14,6 +15,8 @@ export default function Navbar({ items }: {
   items: NavbarItem[]
 }) {
   const { t } = useTranslation("common")
+  const router = useRouter()
+
   const [selectedItem, _setSelectedItem] = useState<NavbarItem | null>(null)
   const setSelectedItem = (item: NavbarItem | null) => {
     _setSelectedItem((item?.nested && item !== selectedItem) ? item : null)
@@ -51,10 +54,10 @@ export default function Navbar({ items }: {
 
     return () => { document.removeEventListener("click", checkBlurred) }
   }, [])
-  
+
   return (
     <div id={styles.navbar}>
-      <Link href="/" id={styles.logoContainer}>
+      <Link href={router.pathname == "/builder" ? "/projects-overview" : "/"} id={styles.logoContainer}>
         <img id={styles.logoIcon} src="/sprout.svg" alt="Sprout logo" />
         <h1 id={styles.logo}>{t("project-name")}</h1>
       </Link>
