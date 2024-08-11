@@ -4,7 +4,7 @@ import { ProjectData } from "../types/ProjectData"
 import FSHelper, { ExtendedFileHandle } from "@/utils/fs-helper"
 import DBHelper from "@/utils/db-helper"
 import PROJECT_TEMPLATES from "./project-templates/project-templates"
-import TransactionInfo from "@/types/TransactionInfo"
+import TransactionInfo, { TransactionCategory, TransactionType } from "@/types/TransactionInfo"
 
 export default class Project {
   //#region Static React States
@@ -162,36 +162,54 @@ export default class Project {
     const promise = Project.setData(data)
 
     // Save history after data is set
-    promise.then(() => this.history = [JSON.parse(JSON.stringify(data))])
+    promise.then(() => this.history = [{
+      transactionInfo: new TransactionInfo(TransactionType.Add, TransactionCategory.ProjectSettings, null, "initialization"),
+      data: JSON.parse(JSON.stringify(data))
+    }])
 
     // Set loading state to false after data is set
     promise.finally(() => Project.setIsLoading(false))
   }
 
   //#region History methods
-  readonly MAX_HISTORY_LENGTH = 50
+  readonly MAX_HISTORY_LENGTH = 100
   historyIndex = 0
-  history: ProjectData[] = []
+  history: { transactionInfo: TransactionInfo, data: ProjectData }[] = []
 
   async addToHistory(transactionInfo: TransactionInfo) {
-    /*if (addToHistory) {
-      if (this.historyIndex < this.history.length - 1) this.history = this.history.slice(0, this.historyIndex + 1)
-      this.history.push(JSON.parse(JSON.stringify(this.data)))
-      this.historyIndex = this.history.length - 1
+    const lastTransaction = this.history[this.historyIndex]
 
-      // Limit history size
-      if (this.history.length > this.MAX_HISTORY_LENGTH) this.history.shift()
-    }*/
+    if (lastTransaction?.transactionInfo.canBeCombined(transactionInfo)) {
+      lastTransaction.data = JSON.parse(JSON.stringify(this.data))
+      return
+    }
+
+    // Pop all transactions after historyIndex (rewriting the future)
+    if (this.historyIndex < this.history.length - 1) this.history = this.history.slice(0, this.historyIndex + 1)
+    
+    // Add new transaction
+    this.history.push({
+      transactionInfo,
+      data: JSON.parse(JSON.stringify(this.data))
+    })
+
+    // Limit history size
+    if (this.history.length > this.MAX_HISTORY_LENGTH) this.history.shift()
+
+    // Update history index
+    this.historyIndex = this.history.length - 1
   }
 
   undo() {
-    /*if (this.historyIndex === 0) return
-    Project.setData(this.history[--this.historyIndex])*/
+    console.debug("Here is your history:", this.history)
+
+    if (this.historyIndex === 0) return
+    Project.setData(this.history[--this.historyIndex].data)
   }
 
   redo() {
-    /*if (this.historyIndex === this.history.length - 1) return
-    Project.setData(this.history[++this.historyIndex])*/
+    if (this.historyIndex === this.history.length - 1) return
+    Project.setData(this.history[++this.historyIndex].data)
   }
   //#endregion
 

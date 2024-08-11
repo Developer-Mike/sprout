@@ -66,13 +66,13 @@ export default class TransactionInfo {
 }
 
 export enum TransactionType {
-  Add,
-  Update,
-  Remove
+  Add = "add",
+  Update = "update",
+  Remove = "remove"
 }
 
 export enum TransactionCategory {
-  ProjectSettings,
-  GameObjectList,
-  GameObjectProperty
+  ProjectSettings = "project-settings",
+  GameObjectList = "game-object-list",
+  GameObjectProperty = "game-object-property"
 }

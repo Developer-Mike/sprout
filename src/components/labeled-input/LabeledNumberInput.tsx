@@ -18,7 +18,10 @@ export default function LabeledNumberInput({ label, value, precision, dragSensit
       const input = inputRef.current
       if (!input) return
 
-      input.value = (parseFloat(input.value) + e.movementX * (dragSensitivity ?? 1)).toFixed(precision ?? 20)
+      const newValue = (parseFloat(input.value) + e.movementX * (dragSensitivity ?? 1)).toFixed(precision ?? 20)
+      if (input.value === newValue) return
+
+      input.value = newValue
       input.dispatchEvent(new Event("input", { bubbles: true }))
     }
     window.addEventListener("mousemove", onMouseMove)
