@@ -43,20 +43,30 @@ npm run dev
   - [x] Detect unsaved project and prevent closing the tab if the data is not saved
   - [x] Automatically save the project data
     - [x] Add save history
-    - [ ] Make the history less detailed
+    - [x] Make the history less detailed
   - [x] Add loading progress bar
 - [x] Add projects overview (list of projects)
+- [ ] Add sprites library dialog
+  - [ ] Add the ability to upload sprites
+  - [ ] Add the ability to delete sprites
+  - [ ] Add the ability to rename sprites
+  - [ ] Add the ability to assign sprites to game objects
+  - [ ] Add the ability to search for sprites
+- [ ] Only add LabeledNumberInput change to history after the user stops dragging
+- [ ] Add undo/redo to the navbar
+- [ ] Always save project before rerouting
+- [ ] Remove the usage of large strings and eval in the SproutEngine
+- [ ] Add absolute identifiers to project paths -> Fix project with same filename not visible in the projects overview
+- [ ] Create the Lexer and the Parser for the programming language
+  - [ ] Add implemented functions to the engine
+  - [ ] Add documentation for the programming language
+  - [ ] (If time allows) Add syntax highlighting
+  - [ ] (If time allows) Add error messages and explanations
 - [ ] Add tooltips?
   - [ ] Unsaved changes
   - [ ] Game object properties
   - [ ] Add game object button
   - [ ] Vertical tab buttons
-- [ ] Create the Lexer and the Parser for the programming language
-- [ ] Add the implemented functions to the engine
-- [ ] Create tool for simple image editing of sprites
-- [ ] Add documentation for the programming language
 - [ ] Create some example games
-- [ ] (If time allows) Add syntax highlighting for the programming language
-- [ ] (If time allows) Add error messages and explanations
-- [ ] (If time allows) Add support for multiple "scenes"
+- [ ] (If time allows) Create tool for simple image editing of sprites
 - [ ] (If time allows) Add export of the games to standalone websites

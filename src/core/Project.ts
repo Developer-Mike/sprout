@@ -200,9 +200,8 @@ export default class Project {
     this.historyIndex = this.history.length - 1
   }
 
+  // TODO: Don't change data of the CodeEditor (It will have its own undo/redo system)
   undo() {
-    console.debug("Here is your history:", this.history)
-
     if (this.historyIndex === 0) return
     Project.setData(this.history[--this.historyIndex].data)
   }
