@@ -45,7 +45,7 @@ npm run dev
     - [x] Add save history
     - [ ] Make the history less detailed
   - [x] Add loading progress bar
-- [ ] Add projects overview (list of projects)
+- [x] Add projects overview (list of projects)
 - [ ] Add tooltips?
   - [ ] Unsaved changes
   - [ ] Game object properties

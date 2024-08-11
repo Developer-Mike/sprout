@@ -43,6 +43,8 @@
           aspect-ratio: 16/9;
 
           object-fit: cover;
+
+          background-color: white;
           border-radius: calc(#{$border-radius} - #{$padding});
         }
 

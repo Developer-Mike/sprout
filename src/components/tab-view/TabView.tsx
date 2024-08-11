@@ -1,4 +1,4 @@
-import styles from "@/components/tab_view/TabView.module.scss"
+import styles from "@/components/tab-view/TabView.module.scss"
 import { useState } from "react"
 import Icon from "../Icon"
 

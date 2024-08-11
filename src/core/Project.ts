@@ -4,6 +4,7 @@ import { ProjectData } from "../types/ProjectData"
 import FSHelper, { ExtendedFileHandle } from "@/utils/fs-helper"
 import DBHelper from "@/utils/db-helper"
 import PROJECT_TEMPLATES from "./project-templates/project-templates"
+import TransactionInfo from "@/types/TransactionInfo"
 
 export default class Project {
   //#region Static React States
@@ -82,9 +83,14 @@ export default class Project {
   setUnsavedChanges = Project.setUnsavedChanges
 
   get data() { return Project.data }
-  updateData = async (transaction: (data: ProjectData) => void, saveHistory: boolean = true) => {
+  updateData = async (transactionInfo: TransactionInfo | null, transaction: (data: ProjectData) => void) => {
+    // Update data
     await Project.updateData(transaction)
-    if (saveHistory) this.saveHistory()
+    this.setUnsavedChanges(true)
+
+    // Add to history
+    if (!transactionInfo) return
+    this.addToHistory(transactionInfo)
   }
 
   getGameObjectIndex(id: string) { return this.data.gameObjects.findIndex(gameObject => gameObject.id === id) }
@@ -167,26 +173,25 @@ export default class Project {
   historyIndex = 0
   history: ProjectData[] = []
 
-  async saveHistory() {
-    if (this.historyIndex < this.history.length - 1) this.history = this.history.slice(0, this.historyIndex + 1)
-    this.history.push(JSON.parse(JSON.stringify(this.data)))
-    this.historyIndex = this.history.length - 1
+  async addToHistory(transactionInfo: TransactionInfo) {
+    /*if (addToHistory) {
+      if (this.historyIndex < this.history.length - 1) this.history = this.history.slice(0, this.historyIndex + 1)
+      this.history.push(JSON.parse(JSON.stringify(this.data)))
+      this.historyIndex = this.history.length - 1
 
-    // Limit history size
-    if (this.history.length > this.MAX_HISTORY_LENGTH) this.history.shift()
-
-    // Autosave
-    await this.save(true)
+      // Limit history size
+      if (this.history.length > this.MAX_HISTORY_LENGTH) this.history.shift()
+    }*/
   }
 
   undo() {
-    if (this.historyIndex === 0) return
-    Project.setData(this.history[--this.historyIndex])
+    /*if (this.historyIndex === 0) return
+    Project.setData(this.history[--this.historyIndex])*/
   }
 
   redo() {
-    if (this.historyIndex === this.history.length - 1) return
-    Project.setData(this.history[++this.historyIndex])
+    /*if (this.historyIndex === this.history.length - 1) return
+    Project.setData(this.history[++this.historyIndex])*/
   }
   //#endregion
 
@@ -217,14 +222,25 @@ export default class Project {
   //#region Save and export methods
   fileHandler: FileSystemFileHandle | null = null
 
-  async close(canvas: HTMLCanvasElement | null) {
-    return Promise.all([
-      DBHelper.updateRecentProject(this.data.title, canvas?.toDataURL() ?? null),
-      this.save(true)
-    ])
+  createAutosaveInterval(canvasRef: React.MutableRefObject<HTMLCanvasElement | null>) {
+    const interval = setInterval(async () => {
+      if (!this.unsavedChanges) return
+
+      await Promise.all([
+        this.updateRecentProjectEntry(canvasRef.current),
+        this.saveToFS(true)
+      ])
+    }, 1000 * 10) // 10 seconds
+
+    return () => clearInterval(interval)
   }
 
-  async save(isAutosave: boolean = false) {
+  async updateRecentProjectEntry(canvas: HTMLCanvasElement | null) {
+    if (!this.fileHandler) return
+    await DBHelper.updateRecentProject(this.fileHandler.name, this.data.title, canvas?.toDataURL() ?? null)
+  }
+
+  async saveToFS(isAutosave: boolean = false) {
     // If fileHandler is null and this is not an autosave, prompt user to save
     if (!this.fileHandler && !isAutosave) {
       this.fileHandler = await FSHelper.saveFile(window, this.data.title, [FSHelper.SPROUT_PROJECT_TYPE])
@@ -236,7 +252,6 @@ export default class Project {
     if (!this.fileHandler) return // FileHandler is still null
 
     // fileHandler is now guaranteed to be non-null
-    this.setUnsavedChanges(false)
     this.setIsSaving(true)
 
     // Write data to fs
@@ -244,6 +259,7 @@ export default class Project {
     await writable.write(JSON.stringify(this.data))
     await writable.close()
 
+    this.setUnsavedChanges(false)
     this.setIsSaving(false)
   }
 

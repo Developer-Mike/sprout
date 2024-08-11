@@ -1,7 +1,8 @@
 import { ProjectContext } from "@/ProjectContext"
-import styles from "@/components/stage_pane/StagePane.module.scss"
+import styles from "@/components/stage-pane/StagePane.module.scss"
 import { useContext, useEffect, useState } from "react"
 import Icon from "../Icon"
+import TransactionInfo, { TransactionCategory, TransactionType } from "@/types/TransactionInfo"
 
 export default function StagePane({ canvasRef }: {
   canvasRef?: React.MutableRefObject<HTMLCanvasElement | null>
@@ -72,7 +73,10 @@ export default function StagePane({ canvasRef }: {
 
     // Still show the highlighter if the same object is clicked
     if (project.data.workspace.selectedGameObjectId === gameObject.id) highlightBlink()
-    else project.updateData(data => { data.workspace.selectedGameObjectId = gameObject.id }, false)
+    else project.updateData(
+      new TransactionInfo(TransactionType.Update, TransactionCategory.GameObjectList, gameObject.id, "select"),
+      data => { data.workspace.selectedGameObjectId = gameObject.id }
+    )
   }
 
   useEffect(() => {
@@ -124,11 +128,25 @@ export default function StagePane({ canvasRef }: {
     <div id={styles.stage} className={isEnlarged ? styles.fullscreen : ""}>
       <div id={styles.controlBar}>
         <input type="number" defaultValue={project.data.stage.width} onKeyDown={(e) => { 
-          onInput(e, (value) => { project.updateData(data => { data.stage.width = value }) })
+          onInput(e, (newWidth) => { project.updateData(
+            new TransactionInfo(
+              TransactionInfo.getType(project.data.stage.width, newWidth),
+              TransactionCategory.ProjectSettings, 
+              null, "stageWidth"
+            ),
+            data => { data.stage.width = newWidth }
+          ) })
         }} disabled={!project.data.workspace.advanced} />
         <span>x</span>
         <input type="number" defaultValue={project.data.stage.height} onKeyDown={(e) => {
-          onInput(e, (value) => { project.updateData(data => { data.stage.height = value }) })
+          onInput(e, (newHeight) => { project.updateData(
+            new TransactionInfo(
+              TransactionInfo.getType(project.data.stage.height, newHeight),
+              TransactionCategory.ProjectSettings, 
+              null, "stageHeight"
+            ),
+            data => { data.stage.height = newHeight }
+          ) })
         }} disabled={!project.data.workspace.advanced} />
 
         <button id={styles.fullscreenToggle} onClick={() => { setEnlarged(!isEnlarged) }}><Icon iconId={isEnlarged ? "fullscreen_exit" : "fullscreen"} /></button>

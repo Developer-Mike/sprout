@@ -1,17 +1,16 @@
 import { ProjectContext } from "@/ProjectContext"
 import DefaultHead from "@/components/DefaultHead"
 import Icon from "@/components/Icon"
-import Shortcut from "@/components/Shortcut"
+import KeyboardShortcut from "@/components/KeyboardShortcut"
 import CodeEditor from "@/components/code_editor/CodeEditor"
 import { DialogContext } from "@/components/dialog/Dialog"
-import DocumentationView from "@/components/documentation_view/DocumentationView"
-import GameObjectsPane from "@/components/game_objects_pane/GameObjectsPane"
+import DocumentationView from "@/components/documentation-view/DocumentationView"
+import GameObjectsPane from "@/components/game-objects-pane/GameObjectsPane"
 import Navbar from "@/components/navbar/Navbar"
-import StagePane from "@/components/stage_pane/StagePane"
-import TabView from "@/components/tab_view/TabView"
+import StagePane from "@/components/stage-pane/StagePane"
+import TabView from "@/components/tab-view/TabView"
 import Project from "@/core/Project"
 import styles from "@/styles/Builder.module.scss"
-import DBHelper from "@/utils/db-helper"
 import useTranslation from "next-translate/useTranslation"
 import { useRouter } from "next/router"
 import { useContext, useEffect, useRef, useState } from "react"
@@ -67,48 +66,49 @@ export default function Builder() {
       const project = await Project.loadFromRecent(projectPath)
       
       if (project) _setProject(project)
-      else router.push("/projects-overview") // TODO showInvalidProjectDialog(projectPath)
+      else router.push("/projects-overview") // TODO: showInvalidProjectDialog(projectPath)
     }
   })() }, [router.query])
 
-  // Allow access to project from the browser console
   useEffect(() => {
+    // Allow access to project from the browser console
     (window as any).project = project
-  }, [project])
 
-  // Update recent projects list and warn user about unsaved changes (except in development mode)
-  useEffect(() => {
+    // Set up autosave interval
+    const uninstallAutosave = project?.createAutosaveInterval(canvasRef)
+
+    // Warn user about unsaved changes (except in development mode)
     window.onbeforeunload = () => {
-      if (!project) return
-
-      // TODO: Async not supported in onbeforeunload
-      project.close(canvasRef.current)
-
       if (!project?.unsavedChanges) return
       if (process.env.NODE_ENV === "development") return
 
       return t("unsaved-changes-warning")
     }
-  }, [project, project?.unsavedChanges])
+
+    return uninstallAutosave
+  }, [project])
+
+  useEffect(() => {
+  }, [project])
 
   return (
     <>
       <DefaultHead title={t("common:builder")} />
 
       { project?.data && <ProjectContext.Provider value={{ project }}>
-        <Shortcut ctrl keyName="z" action={() => { project.undo() }} />
-        <Shortcut ctrl keyName="y" action={() => { project.redo() }} />
-        <Shortcut ctrl keyName="s" action={() => { project.save() }} />
+        <KeyboardShortcut ctrl keyName="z" action={() => { project.undo() }} />
+        <KeyboardShortcut ctrl keyName="y" action={() => { project.redo() }} />
+        <KeyboardShortcut ctrl keyName="s" action={() => { project.saveToFS() }} />
 
-        { process.env.NODE_ENV !== "development" && <Shortcut keyName="F5" action={() => { project.run(canvasRef.current) }} /> }
-        { process.env.NODE_ENV !== "development" && <Shortcut shift keyName="F5" action={() => { project.stop(canvasRef.current) }} /> }
+        { process.env.NODE_ENV !== "development" && <KeyboardShortcut keyName="F5" action={() => { project.run(canvasRef.current) }} /> }
+        { process.env.NODE_ENV !== "development" && <KeyboardShortcut shift keyName="F5" action={() => { project.stop(canvasRef.current) }} /> }
         
         <header>
           <Navbar
             items={[
               {
                 element: <input id={styles.projectTitle} className={project.unsavedChanges ? styles.unsavedChanges : ""} value={project.data.title}
-                  onChange={(e) => project.updateData(data => { data.title = e.target.value })} />,
+                  onChange={(e) => project.updateData(null, data => { data.title = e.target.value })} />,
                 customStyling: true
               },
               {
@@ -116,7 +116,7 @@ export default function Builder() {
                 nested: [
                   <span onClick={() => router.push("/builder?template=empty")}>{t("common:new")}</span>,
                   <span onClick={() => router.push("/projects-overview")}>{t("common:open")}</span>,
-                  <span onClick={() => project.save()}>{t("common:save")}</span>,
+                  <span onClick={() => project.saveToFS()}>{t("common:save")}</span>,
                   <span onClick={() => project.exportAsHTML()}>{t("export-as-html")}</span>
                 ]
               },

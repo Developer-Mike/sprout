@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 
-export default function Shortcut({ ctrl, shift, alt, keyName, action }: {
+export default function KeyboardShortcut({ ctrl, shift, alt, keyName, action }: {
   ctrl?: boolean
   shift?: boolean
   alt?: boolean

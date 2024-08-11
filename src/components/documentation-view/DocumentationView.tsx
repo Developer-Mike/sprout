@@ -1,4 +1,4 @@
-import styles from "@/components/documentation_view/DocumentationView.module.scss"
+import styles from "@/components/documentation-view/DocumentationView.module.scss"
 
 export default function DocumentationView() {
   return (

@@ -11,10 +11,8 @@ export default function CodeEditor() {
     if (!codeElement) return
 
     const code = codeElement.textContent || ""
-    await project.updateData(data => {
-      const selectedGameObject = data.gameObjects.find(obj => obj.id === data.workspace.selectedGameObjectId)
-      if (!selectedGameObject) return
-      selectedGameObject.code = code
+    await project.updateData(null, data => {
+      data.gameObjects[project.activeGameObjectIndex].code = code
     })
   }
 
