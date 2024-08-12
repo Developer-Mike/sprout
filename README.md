@@ -52,7 +52,7 @@ npm run dev
   - [ ] Add the ability to rename sprites
   - [ ] Add the ability to assign sprites to game objects
   - [ ] Add the ability to search for sprites
-- [ ] Only add LabeledNumberInput change to history after the user stops dragging
+- [x] Only add LabeledNumberInput change to history after the user stops dragging
 - [ ] Add undo/redo to the navbar
 - [ ] Always save project before rerouting
 - [ ] Remove the usage of large strings and eval in the SproutEngine

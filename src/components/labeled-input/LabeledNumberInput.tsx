@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import style from "./LabeledInput.module.scss"
 
 export default function LabeledNumberInput({ label, value, precision, dragSensitivity, onChange }: {
@@ -6,10 +6,17 @@ export default function LabeledNumberInput({ label, value, precision, dragSensit
   value?: number
   precision?: number
   dragSensitivity?: number
-  onChange?: (value: number) => void
+  onChange?: (value: number, inputType: InputType) => void
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isBeingDragged, setIsBeingDragged] = useState(false)
+
+  const dispatchOnChange = useCallback((input: HTMLInputElement, inputType: InputType) => {
+    const value = parseFloat(parseFloat(input.value).toFixed(precision ?? 20)) 
+
+    if (isNaN(value)) onChange?.(0, inputType)
+    else onChange?.(value, inputType)
+  }, [onChange])
 
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
@@ -22,11 +29,19 @@ export default function LabeledNumberInput({ label, value, precision, dragSensit
       if (input.value === newValue) return
 
       input.value = newValue
-      input.dispatchEvent(new Event("input", { bubbles: true }))
+      dispatchOnChange(input, InputType.Dragging)
     }
     window.addEventListener("mousemove", onMouseMove)
 
-    const onMouseUp = () => setIsBeingDragged(false)
+    const onMouseUp = () => {
+      if (!isBeingDragged) return
+      
+      const input = inputRef.current
+      if (!input) return
+
+      setIsBeingDragged(false)
+      dispatchOnChange(input, InputType.Dragged)
+    }
     window.addEventListener("mouseup", onMouseUp)
 
     return () => {
@@ -38,20 +53,21 @@ export default function LabeledNumberInput({ label, value, precision, dragSensit
   return (
     <label className={style.container}>
       <span className={`${style.label} ${style.draggable}`}
-        onMouseDown={e => setIsBeingDragged(true)}
+        onMouseDown={_ => setIsBeingDragged(true)}
       >{label}</span>
       <input ref={inputRef} className={style.input} type="text" value={value}
         onKeyDown={e => {
           if (e.key !== "Enter") return
           e.currentTarget.blur()
         }}
-        onInput={e => {
-          const value = parseFloat(parseFloat(e.currentTarget.value).toFixed(precision ?? 20)) 
-
-          if (isNaN(value)) onChange?.(0)
-          else onChange?.(value)
-        }}
+        onInput={e => dispatchOnChange(e.currentTarget, InputType.Typing)}
       />
     </label>
   )
+}
+
+export enum InputType {
+  Typing,
+  Dragging,
+  Dragged
 }

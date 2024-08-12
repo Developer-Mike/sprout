@@ -26,16 +26,19 @@ export default class TransactionInfo {
   category: TransactionCategory
   affectedGameObjectId: string | null
   transactionId: string
+  alwaysUnique: boolean
 
-  constructor(type: TransactionType, category: TransactionCategory, affectedGameObjectId: string | null, transactionId: string) {
+  constructor(type: TransactionType, category: TransactionCategory, affectedGameObjectId: string | null, transactionId: string, alwaysUnique: boolean = false) {
     this.type = type
     this.category = category
     this.affectedGameObjectId = affectedGameObjectId
     this.transactionId = transactionId
+    this.alwaysUnique = alwaysUnique
   }
 
   canBeCombined(other: TransactionInfo): boolean {
-    return this.type === other.type && 
+    return !this.alwaysUnique && !other.alwaysUnique &&
+      this.type === other.type && 
       this.category === other.category && 
       this.affectedGameObjectId === other.affectedGameObjectId && 
       this.transactionId === other.transactionId

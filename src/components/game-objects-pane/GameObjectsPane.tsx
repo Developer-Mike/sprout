@@ -7,7 +7,7 @@ import LabeledTextInput from "../labeled-input/LabeledTextInput"
 import Icon from "../Icon"
 import { BLANK_IMAGE } from "@/constants"
 import LabeledBooleanInput from "../labeled-input/LabeledBooleanInput"
-import LabeledNumberInput from "../labeled-input/LabeledNumberInput"
+import LabeledNumberInput, { InputType } from "../labeled-input/LabeledNumberInput"
 import { DialogContext } from "../dialog/Dialog"
 import Project from "@/core/Project"
 import TransactionInfo, { TransactionCategory, TransactionType } from "@/types/TransactionInfo"
@@ -51,8 +51,8 @@ export default function GameObjectsPane() {
           }}
         />
 
-        <LabeledNumberInput label={t("layer")} value={project.activeGameObject.layer} precision={0} onChange={newLayer => project.updateData(
-          new TransactionInfo(TransactionInfo.getType(project.activeGameObject.layer, newLayer), TransactionCategory.GameObjectProperty, project.activeGameObject.id, "layer"),
+        <LabeledNumberInput label={t("layer")} value={project.activeGameObject.layer} precision={0} onChange={(newLayer, inputType) => project.updateData(
+          inputType === InputType.Dragging ? null : new TransactionInfo(TransactionInfo.getType(project.activeGameObject.layer, newLayer), TransactionCategory.GameObjectProperty, project.activeGameObject.id, "layer", inputType === InputType.Dragged),
           data => { data.gameObjects[project.activeGameObjectIndex].layer = newLayer }
         )} />
 
@@ -61,27 +61,27 @@ export default function GameObjectsPane() {
           data => { data.gameObjects[project.activeGameObjectIndex].visible = newIsVisible }
         )} />
 
-        <LabeledNumberInput label={t("x")} value={project.activeGameObject.x} precision={0} onChange={newX => project.updateData(
-          new TransactionInfo(TransactionInfo.getType(project.activeGameObject.x, newX), TransactionCategory.GameObjectProperty, project.activeGameObject.id, "x"),
+        <LabeledNumberInput label={t("x")} value={project.activeGameObject.x} precision={0} onChange={(newX, inputType) => project.updateData(
+          inputType === InputType.Dragging ? null : new TransactionInfo(TransactionInfo.getType(project.activeGameObject.x, newX), TransactionCategory.GameObjectProperty, project.activeGameObject.id, "x", inputType === InputType.Dragged),
           data => { data.gameObjects[project.activeGameObjectIndex].x = newX }
         )} />
 
-        <LabeledNumberInput label={t("y")} value={project.activeGameObject.y} precision={0} onChange={newY => project.updateData(
-          new TransactionInfo(TransactionInfo.getType(project.activeGameObject.y, newY), TransactionCategory.GameObjectProperty, project.activeGameObject.id, "y"),
+        <LabeledNumberInput label={t("y")} value={project.activeGameObject.y} precision={0} onChange={(newY, inputType) => project.updateData(
+          inputType === InputType.Dragging ? null : new TransactionInfo(TransactionInfo.getType(project.activeGameObject.y, newY), TransactionCategory.GameObjectProperty, project.activeGameObject.id, "y", inputType === InputType.Dragged),
           data => { data.gameObjects[project.activeGameObjectIndex].y = newY }
         )} />
 
-        <LabeledNumberInput label={t("rotation")} value={project.activeGameObject.rotation} precision={2} onChange={value => {
+        <LabeledNumberInput label={t("rotation")} value={project.activeGameObject.rotation} precision={2} onChange={(value, inputType) => {
           const newRotation = (value > 0 ? value : 360 + value) % 360
 
           project.updateData(
             // Use the raw value to calculate the type to avoid the modulo operation
-            new TransactionInfo(TransactionInfo.getType(project.activeGameObject.rotation, value), TransactionCategory.GameObjectProperty, project.activeGameObject.id, "rotation"),
+            inputType === InputType.Dragging ? null : new TransactionInfo(TransactionInfo.getType(project.activeGameObject.rotation, value), TransactionCategory.GameObjectProperty, project.activeGameObject.id, "rotation", inputType === InputType.Dragged),
             data => { data.gameObjects[project.activeGameObjectIndex].rotation = newRotation }
           )
         }} />
 
-        <LabeledNumberInput label={t("width")} value={project.activeGameObject.width} precision={2} onChange={newWidth => {
+        <LabeledNumberInput label={t("width")} value={project.activeGameObject.width} precision={2} onChange={(newWidth, inputType) => {
           const oldWidth = project.data.gameObjects[project.activeGameObjectIndex].width
           const oldHeight = project.data.gameObjects[project.activeGameObjectIndex].height
           let newHeight = project.data.gameObjects[project.activeGameObjectIndex].height
@@ -96,7 +96,7 @@ export default function GameObjectsPane() {
           }
 
           project.updateData(
-            new TransactionInfo(TransactionInfo.getType(oldWidth, newWidth), TransactionCategory.GameObjectProperty, project.activeGameObject.id, "width"),
+            inputType === InputType.Dragging ? null : new TransactionInfo(TransactionInfo.getType(oldWidth, newWidth), TransactionCategory.GameObjectProperty, project.activeGameObject.id, "width", inputType === InputType.Dragged),
             data => {
               data.gameObjects[project.activeGameObjectIndex].width = newWidth
               if (linkedScalingEnabled) data.gameObjects[project.activeGameObjectIndex].height = newHeight
@@ -108,7 +108,7 @@ export default function GameObjectsPane() {
           <Icon iconId={linkedScalingEnabled ? "link" : "link_off"} />
         </div>
 
-        <LabeledNumberInput label={t("height")} value={project.activeGameObject.height} precision={2} onChange={newHeight => {
+        <LabeledNumberInput label={t("height")} value={project.activeGameObject.height} precision={2} onChange={(newHeight, inputType) => {
           const oldHeight = project.data.gameObjects[project.activeGameObjectIndex].height
           const oldWidth = project.data.gameObjects[project.activeGameObjectIndex].width
           let newWidth = project.data.gameObjects[project.activeGameObjectIndex].width
@@ -123,7 +123,7 @@ export default function GameObjectsPane() {
           }
 
           project.updateData(
-            new TransactionInfo(TransactionInfo.getType(oldHeight, newHeight), TransactionCategory.GameObjectProperty, project.activeGameObject.id, "height"),
+            inputType === InputType.Dragging ? null : new TransactionInfo(TransactionInfo.getType(oldHeight, newHeight), TransactionCategory.GameObjectProperty, project.activeGameObject.id, "height", inputType === InputType.Dragged),
             data => {
               data.gameObjects[project.activeGameObjectIndex].height = newHeight
               if (linkedScalingEnabled) data.gameObjects[project.activeGameObjectIndex].width = newWidth

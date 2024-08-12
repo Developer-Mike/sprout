@@ -179,7 +179,8 @@ export default class Project {
   async addToHistory(transactionInfo: TransactionInfo) {
     const lastTransaction = this.history[this.historyIndex]
 
-    if (lastTransaction?.transactionInfo.canBeCombined(transactionInfo)) {
+    // Only combine if not in the middle of history -> Would lead to weird combining
+    if (this.historyIndex === this.history.length - 1 && lastTransaction?.transactionInfo.canBeCombined(transactionInfo)) {
       lastTransaction.data = JSON.parse(JSON.stringify(this.data))
       return
     }
