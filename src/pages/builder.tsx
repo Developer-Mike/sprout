@@ -96,9 +96,9 @@ export default function Builder() {
       <DefaultHead title={t("common:builder")} />
 
       { project?.data && <ProjectContext.Provider value={{ project }}>
-        <KeyboardShortcut ctrl keyName="z" action={() => { project.undo() }} />
-        <KeyboardShortcut ctrl keyName="y" action={() => { project.redo() }} />
-        <KeyboardShortcut ctrl keyName="s" action={() => { project.saveToFS() }} />
+        <KeyboardShortcut ctrl keyName="z" action={() => project.undo()} />
+        <KeyboardShortcut ctrl keyName="y" action={() => project.redo()} />
+        <KeyboardShortcut ctrl keyName="s" action={() => project.saveToFS()} />
 
         { process.env.NODE_ENV !== "development" && <KeyboardShortcut keyName="F5" action={() => { project.run(canvasRef.current) }} /> }
         { process.env.NODE_ENV !== "development" && <KeyboardShortcut shift keyName="F5" action={() => { project.stop(canvasRef.current) }} /> }
@@ -118,6 +118,13 @@ export default function Builder() {
                   <span onClick={() => router.push("/projects-overview")}>{t("common:open")}</span>,
                   <span onClick={() => project.saveToFS()}>{t("common:save")}</span>,
                   <span onClick={() => project.exportAsHTML()}>{t("export-as-html")}</span>
+                ]
+              },
+              {
+                element: <span>{t("common:edit")}</span>,
+                nested: [
+                  <span onClick={() => project.undo()}>{t("common:undo")}</span>,
+                  <span onClick={() => project.redo()}>{t("common:redo")}</span>,
                 ]
               },
               {

@@ -53,7 +53,7 @@ npm run dev
   - [ ] Add the ability to assign sprites to game objects
   - [ ] Add the ability to search for sprites
 - [x] Only add LabeledNumberInput change to history after the user stops dragging
-- [ ] Add undo/redo to the navbar
+- [x] Add undo/redo to the navbar
 - [ ] Always save project before rerouting
 - [ ] Remove the usage of large strings and eval in the SproutEngine
 - [ ] Add absolute identifiers to project paths -> Fix project with same filename not visible in the projects overview
