@@ -2,6 +2,7 @@ import { ProjectContext } from "@/ProjectContext"
 import useTranslation from "next-translate/useTranslation"
 import { Translate } from "next-translate"
 import styles from "@/components/game-objects-pane/GameObjectsPane.module.scss"
+import namedSpriteListItemStyles from "@/components/named-sprite-list-item/NamedSpriteListItem.module.scss"
 import React, { useCallback, useContext, useEffect, useState } from "react"
 import LabeledTextInput from "../labeled-input/LabeledTextInput"
 import Icon from "../Icon"
@@ -11,6 +12,7 @@ import LabeledNumberInput, { InputType } from "../labeled-input/LabeledNumberInp
 import { DialogContext } from "../dialog/Dialog"
 import Project from "@/core/Project"
 import TransactionInfo, { TransactionCategory, TransactionType } from "@/types/TransactionInfo"
+import NamedSpriteListItem from "../named-sprite-list-item/NamedSpriteListItem"
 
 export default function GameObjectsPane() {
   const { t } = useTranslation("common")
@@ -170,62 +172,47 @@ export default function GameObjectsPane() {
               data.gameObjects.splice(targetIndex, 0, temp)
             }
           )}>
-            <div className={`${styles.gameObject} ${gameObject.id === project.data.workspace.selectedGameObjectId ? styles.selected : ""}`}
-              onClick={() => { project.updateData(
+            <NamedSpriteListItem
+              label={gameObject.id}
+              src={project.data.sprites[gameObject.sprites[gameObject.activeSprite]] ?? BLANK_IMAGE}
+              onClick={() => project.updateData(
                 new TransactionInfo(TransactionType.Update, TransactionCategory.GameObjectList, gameObject.id, "select"),
                 data => { data.workspace.selectedGameObjectId = gameObject.id }
-              ) }}
-            >
-              <img className={styles.gameObjectPreview}
-                alt={gameObject.id}
-                src={project.data.sprites[
-                  gameObject.sprites[
-                    gameObject.activeSprite
-                  ]
-                ] ?? BLANK_IMAGE} />
-              <span className={styles.gameObjectId}>{gameObject.id}</span>
+              )}
+              isFocused={project.data.workspace.selectedGameObjectId === gameObject.id}
+              onDelete={() => showDialog({
+                id: "delete-game-object",
+                title: t("delete-game-object-dialog.title"),
+                content: t("delete-game-object-dialog.message", { id: gameObject.id }),
+                actions: [
+                  {
+                    default: true,
+                    element: <button>{t("cancel")}</button>,
+                    onClick: hide => hide()
+                  },
+                  {
+                    element: <button className="danger">{t("delete")}</button>,
+                    onClick: hide => {
+                      hide()
 
-              <div className={styles.deleteGameObject}
-                onClick={(e) => {
-                  e.stopPropagation()
-
-                  showDialog({
-                    id: "delete-game-object",
-                    title: t("delete-game-object-dialog.title"),
-                    content: t("delete-game-object-dialog.message", { id: gameObject.id }),
-                    actions: [
-                      {
-                        default: true,
-                        element: <button>{t("cancel")}</button>,
-                        onClick: hide => hide()
-                      },
-                      {
-                        element: <button className="danger">{t("delete")}</button>,
-                        onClick: hide => {
-                          hide()
-                          
-                          project.updateData(
-                            new TransactionInfo(
-                              TransactionType.Remove,
-                              TransactionCategory.GameObjectList,
-                              gameObject.id, ""
-                            ),
-                            data => {
-                              data.gameObjects.splice(index, 1)
-                              data.workspace.selectedGameObjectId = data.gameObjects[index]?.id 
-                                ?? data.gameObjects[index - 1]?.id 
-                                ?? data.gameObjects[0]?.id
-                            }
-                          )
+                      project.updateData(
+                        new TransactionInfo(
+                          TransactionType.Remove,
+                          TransactionCategory.GameObjectList,
+                          gameObject.id, "delete"
+                        ),
+                        data => {
+                          data.gameObjects.splice(index, 1)
+                          data.workspace.selectedGameObjectId = data.gameObjects[index]?.id 
+                            ?? data.gameObjects[index - 1]?.id 
+                            ?? data.gameObjects[0]?.id
                         }
-                      }
-                    ]
-                  })
-                }}
-              >
-                <Icon iconId="delete" />
-              </div>
-            </div>
+                      )
+                    }
+                  }
+                ]
+              })}
+            />
           </DraggableObject>
         )) }
 
@@ -347,7 +334,7 @@ function CreateGameObjectButton({ t, project }: {
   }
 
   return (
-    <div id={styles.addGameObject} className={styles.gameObject} onClick={() => createNewGameObject()}>
+    <div id={styles.addGameObject} className={namedSpriteListItemStyles.listItem} onClick={() => createNewGameObject()}>
       <Icon iconId="add" />
     </div>
   )

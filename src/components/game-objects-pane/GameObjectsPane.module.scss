@@ -48,88 +48,9 @@
   padding-top: 10px;
   overflow: hidden auto;
 
-  .gameObject {
-    position: relative;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-
+  & > * {
     width: 75px;
     height: 75px;
-    padding: 10px;
-
-    border: var(--border-color) solid var(--border-width);
-    border-radius: 16px;
-
-    color: var(--on-container);
-    background-color: var(--container-low);
-    transition: background-color 0.2s;
-
-    cursor: pointer;
-    user-select: none;
-    
-    &.selected {
-      transition: border-color 0.2s;
-      border-color: var(--primary-dim);
-    }
-
-    &:not(.selected):hover {
-      background-color: var(--container-high);
-    }
-
-    &.dragging {
-      opacity: 0.5;
-    }
-
-    .gameObjectPreview {
-      height: 50px;
-      object-fit: contain;
-    }
-
-    .gameObjectId {
-      position: relative;
-      margin-top: 5px;
-
-      text-align: center;
-      text-wrap: nowrap;
-
-      overflow: hidden;
-
-      --mask: linear-gradient(to left, transparent 0%, white 20%);
-      -webkit-mask-image: var(--mask);
-      mask-image: var(--mask);
-    }
-
-    &:not(.selected) .deleteGameObject {
-      display: none;
-    }
-
-    .deleteGameObject {
-      position: absolute;
-      top: 0;
-      right: 0;
-
-      transform: translate(25%, -25%);
-      padding: 5px;
-
-      color: var(--on-container);
-      background-color: var(--container-high);
-
-      border: var(--primary-dim) solid var(--border-width);
-      border-radius: 8px;
-
-      font-size: 0;
-
-      &:hover {
-        transition: border-color 0.2s;
-        border-color: var(--red);
-      }
-
-      & > * {
-        font-size: 1.25rem;
-      }
-    }
   }
 
   #addGameObject {
