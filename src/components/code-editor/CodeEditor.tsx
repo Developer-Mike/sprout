@@ -1,5 +1,5 @@
 import { ProjectContext } from "@/ProjectContext"
-import styles from "@/components/code_editor/CodeEditor.module.scss"
+import styles from "@/components/code-editor/CodeEditor.module.scss"
 import { TAB_SIZE } from "@/constants"
 import { useContext, useEffect } from "react"
 
