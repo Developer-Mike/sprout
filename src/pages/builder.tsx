@@ -7,6 +7,7 @@ import { DialogContext } from "@/components/dialog/Dialog"
 import DocumentationView from "@/components/documentation-view/DocumentationView"
 import GameObjectsPane from "@/components/game-objects-pane/GameObjectsPane"
 import Navbar from "@/components/navbar/Navbar"
+import SpritesTab from "@/components/sprites-tab/SpritesTab"
 import StagePane from "@/components/stage-pane/StagePane"
 import TabView from "@/components/tab-view/TabView"
 import Project from "@/core/Project"
@@ -190,7 +191,7 @@ export default function Builder() {
               {
                 id: "sprites",
                 label: t("common:sprite", { count: 0 }),
-                content: <div>Sprites</div>
+                content: <SpritesTab />
               }
             ]}
           />

@@ -17,10 +17,12 @@ export type DialogAction = {
 
 export const DialogContext = createContext<{
   dialogs: Dialog[]
+  getCurrentDialog: () => HTMLElement | null
   showDialog: (dialog: Dialog) => void
-  hideDialog: (dialog: Dialog) => void
+  hideDialog: (id: string) => void
 }>({
   dialogs: [],
+  getCurrentDialog: () => null,
   showDialog: () => { },
   hideDialog: () => { }
 })
@@ -30,17 +32,20 @@ export default function DialogWrapper({ children }: {
 }) {
   const [dialogs, setDialogs] = useState<Dialog[]>([])
 
+  const getCurrentDialog = useCallback(() => document.getElementById(styles.dialog), [])
+
   const showDialog = useCallback((dialog: Dialog) => {
     setDialogs([...dialogs, dialog])
   }, [dialogs])
 
-  const hideDialog = useCallback((dialog: Dialog) => {
-    setDialogs(dialogs.filter(d => d.id !== dialog.id))
+  const hideDialog = useCallback((id: string) => {
+    setDialogs(dialogs.filter(d => d.id !== id))
   }, [dialogs])
 
   return (
     <DialogContext.Provider value={{
       dialogs,
+      getCurrentDialog,
       showDialog,
       hideDialog
     }}>
@@ -50,7 +55,7 @@ export default function DialogWrapper({ children }: {
         onClick={(e) => {
           if (e.target !== e.currentTarget) return
           const defaultAction = dialogs[0]?.actions.find(action => action.default)
-          defaultAction?.onClick(() => hideDialog(dialogs[0]))
+          defaultAction?.onClick(() => hideDialog(dialogs[0].id))
         }}
       >
         <div id={styles.dialog}>
@@ -62,7 +67,7 @@ export default function DialogWrapper({ children }: {
             {dialogs[0]?.actions?.map((action, i) =>
               React.cloneElement(
                 action.element as React.ReactElement,
-                { key: i, onClick: () => action.onClick(() => hideDialog(dialogs[0])) }
+                { key: i, onClick: () => action.onClick(() => hideDialog(dialogs[0].id)) }
               )
             )}
           </div>

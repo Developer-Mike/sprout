@@ -116,12 +116,12 @@ button, .button {
   &.danger {
     color: var(--on-red);
     background-color: var(--red);
-    border-color: var(--red-dim);
+    border-color: var(--red);
 
     transition: border-color 0.2s;
 
     &:hover {
-      border-color: var(--red);
+      border-color: var(--red-dim);
     }
   }
 

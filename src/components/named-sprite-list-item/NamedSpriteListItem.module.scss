@@ -34,15 +34,17 @@
   }
 
   .image {
-    height: 100%;
+    height: calc(100% - 1em - 10px);
     object-fit: contain;
   }
 
   .label {
+    flex-shrink: 0;
+
     position: relative;
     width: 100%;
     margin-top: 5px;
-
+    
     text-align: center;
     text-wrap: nowrap;
 
