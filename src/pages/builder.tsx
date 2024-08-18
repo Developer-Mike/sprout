@@ -99,7 +99,7 @@ export default function Builder() {
       { project?.data && <ProjectContext.Provider value={{ project }}>
         <KeyboardShortcut ctrl keyName="z" action={() => project.undo()} />
         <KeyboardShortcut ctrl keyName="y" action={() => project.redo()} />
-        <KeyboardShortcut ctrl keyName="s" action={() => project.saveToFS()} />
+        <KeyboardShortcut ctrl keyName="s" action={() => project.saveToFS(canvasRef.current)} />
 
         { process.env.NODE_ENV !== "development" && <KeyboardShortcut keyName="F5" action={() => { project.run(canvasRef.current) }} /> }
         { process.env.NODE_ENV !== "development" && <KeyboardShortcut shift keyName="F5" action={() => { project.stop(canvasRef.current) }} /> }

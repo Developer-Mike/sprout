@@ -245,8 +245,7 @@ export default class Project {
       if (!this.unsavedChanges) return
 
       await Promise.all([
-        this.updateRecentProjectEntry(canvasRef.current),
-        this.saveToFS(true)
+        this.saveToFS(canvasRef.current, true)
       ])
     }, 1000 * 10) // 10 seconds
 
@@ -258,16 +257,19 @@ export default class Project {
     await DBHelper.updateRecentProject(this.fileHandler.name, this.data.title, canvas?.toDataURL() ?? null)
   }
 
-  async saveToFS(isAutosave: boolean = false) {
+  async saveToFS(canvas: HTMLCanvasElement | null, isAutosave: boolean = false) {
     // If fileHandler is null and this is not an autosave, prompt user to save
     if (!this.fileHandler && !isAutosave) {
       this.fileHandler = await FSHelper.saveFile(window, this.data.title, [FSHelper.SPROUT_PROJECT_TYPE])
 
       if (!this.fileHandler) return
       DBHelper.addRecentProject(this.fileHandler.name, this.data.title, this.fileHandler)
-    }
+    } else {
+      if (!this.fileHandler) return // FileHandler is still null
 
-    if (!this.fileHandler) return // FileHandler is still null
+      // Update recent project entry
+      await this.updateRecentProjectEntry(canvas)
+    }
 
     // fileHandler is now guaranteed to be non-null
     this.setIsSaving(true)
