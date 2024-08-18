@@ -1,43 +1,44 @@
 #spritesTab {
-  display: flex;
-  flex-direction: row;
+  position: relative;
 
   width: 100%;
   height: 100%;
 
   #gameObjectSprites {
-    flex: 0.35;
-  }
+    height: 100%;
+    width: 100%;
 
-  #spritesLibrary {
-    flex: 0.65;
-    position: relative;
-
-    #uploadSpriteContainer {
-      position: absolute;
-      bottom: 10px;
-      right: 30px;
-
-      #uploadSpriteLabel {
-        display: block;
-
-        cursor: pointer;
-      }
-    }
-  }
-
-  #gameObjectSprites, #librarySprites {
-    $sprites-width: 100px;
+    $sprites-width: 125px;
 
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax($sprites-width, 1fr));
-    grid-gap: 10px;
+    grid-gap: 25px;
 
     height: 100%;
     min-height: fit-content;
     overflow: auto scroll;
 
-    margin: 10px 0;
-    padding: 0 10px;
+    & > * {
+      height: $sprites-width;
+      width: $sprites-width;
+    }
+  }
+
+  #addSpriteButton {
+    position: absolute;
+    bottom: 10px;
+    right: 30px;
+
+    display: flex;
+    align-items: center;
+
+    padding: 10px 20px;
+
+    font-size: 1.5em;
+    margin-left: 10px;
+
+    #buttonIcon {
+      margin-right: 10px;
+    }
   }
 }

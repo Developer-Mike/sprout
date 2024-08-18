@@ -35,5 +35,6 @@
     "delete": "Delete",
     "ok": "Ok",
     "cancel": "Cancel",
-    "saving": "Saving"
+    "saving": "Saving",
+    "add-sprite": "Add Sprite"
 }

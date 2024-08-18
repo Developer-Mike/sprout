@@ -88,6 +88,7 @@ button, .button {
   padding: 10px;
 
   cursor: pointer;
+  font-family: var(--font-family);
 
   border: var(--border-width) solid var(--border-color);
   border-radius: 8px;
@@ -123,10 +124,6 @@ button, .button {
     &:hover {
       border-color: var(--red-dim);
     }
-  }
-
-  &:has(> span.material-symbols-rounded) {
-    font-size: 0;
   }
 }
 

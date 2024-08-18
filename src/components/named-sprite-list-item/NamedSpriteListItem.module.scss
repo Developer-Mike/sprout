@@ -6,8 +6,9 @@
   justify-content: space-between;
   align-items: center;
 
-  width: 75px;
-  height: 75px;
+  box-sizing: border-box;
+  width: 100px;
+  height: 100px;
   padding: 10px;
 
   border: var(--border-color) solid var(--border-width);
