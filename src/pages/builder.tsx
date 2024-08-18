@@ -117,7 +117,7 @@ export default function Builder() {
                 nested: [
                   <span onClick={() => router.push("/builder?template=empty")}>{t("common:new")}</span>,
                   <span onClick={() => router.push("/projects-overview")}>{t("common:open")}</span>,
-                  <span onClick={() => project.saveToFS()}>{t("common:save")}</span>,
+                  <span onClick={() => project.saveToFS(canvasRef.current)}>{t("common:save")}</span>,
                   <span onClick={() => project.exportAsHTML()}>{t("export-as-html")}</span>
                 ]
               },
