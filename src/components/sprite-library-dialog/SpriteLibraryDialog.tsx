@@ -1,7 +1,8 @@
 import { Dialog } from "../dialog/Dialog"
 import styles from "./SpriteLibraryDialog.module.scss"
+import Project from "@/core/Project"
 
-export default function SpriteLibraryDialog(): Dialog {
+export default function SpriteLibraryDialog(project: Project): Dialog {
   return {
     id: "sprite-library",
     title: "Sprite Library",
@@ -21,8 +22,8 @@ export default function SpriteLibraryDialog(): Dialog {
         onClick: hide => hide()
       },
       {
-        element: <button className="primary">Select</button>,
-        onClick: hide => { hide() }
+        element: <button className="primary">Add</button>,
+        onClick: hide => { hide(); project.updateData(null, data => { data.gameObjects[project.activeGameObjectIndex].sprites.push(Object.keys(data.sprites)[0]) }) }
       }
     ]
   }
