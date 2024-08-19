@@ -46,27 +46,33 @@ npm run dev
     - [x] Make the history less detailed
   - [x] Add loading progress bar
 - [x] Add projects overview (list of projects)
+- [ ] Sprites Tab
+  - [x] Add the ability to reorder sprites
+  - [x] Add the ability to change the active sprite
+  - [x] Add the ability to delete sprites
+    - [ ] Confirm deletion of sprites
 - [ ] Add sprites library dialog
   - [ ] Add the ability to upload sprites
   - [ ] Add the ability to delete sprites
   - [ ] Add the ability to rename sprites
   - [ ] Add the ability to assign sprites to game objects
-  - [ ] Add the ability to search for sprites
 - [x] Only add LabeledNumberInput change to history after the user stops dragging
 - [x] Add undo/redo to the navbar
 - [ ] Always save project before rerouting
 - [ ] Remove the usage of large strings and eval in the SproutEngine
 - [ ] Add absolute identifiers to project paths -> Fix project with same filename not visible in the projects overview
+- [ ] Add warning if not using Chrome
 - [ ] Create the Lexer and the Parser for the programming language
   - [ ] Add implemented functions to the engine
   - [ ] Add documentation for the programming language
   - [ ] (If time allows) Add syntax highlighting
   - [ ] (If time allows) Add error messages and explanations
-- [ ] Add tooltips?
+- [ ] Create some example games
+- [ ] (If time allows) Add the ability to add plugins (security risk)
+- [ ] (If time allows) Add export of the games to standalone websites
+- [ ] (Out of scope) Create tool for simple image editing of sprites
+- [ ] (Out of scope) Add tooltips
   - [ ] Unsaved changes
   - [ ] Game object properties
   - [ ] Add game object button
   - [ ] Vertical tab buttons
-- [ ] Create some example games
-- [ ] (If time allows) Create tool for simple image editing of sprites
-- [ ] (If time allows) Add export of the games to standalone websites
