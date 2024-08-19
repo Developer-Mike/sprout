@@ -2,12 +2,13 @@ import React from "react"
 import { useCallback, useState } from "react"
 
 export default class DraggableGrid {
-  static Root({ id, children }: {
-    id: string,
+  static Root({ id, className, children }: {
+    id?: string,
+    className?: string,
     children: React.ReactNode
   }) {
     return (
-      <div id={id}
+      <div id={id} className={className}
         onDragOver={e => {
           e.preventDefault()
           e.dataTransfer.dropEffect = "move"
