@@ -12,7 +12,7 @@ export default function LabeledNumberInput({ label, value, precision, dragSensit
   const [isBeingDragged, setIsBeingDragged] = useState(false)
 
   const dispatchOnChange = useCallback((input: HTMLInputElement, inputType: InputType) => {
-    const value = parseFloat(parseFloat(input.value).toFixed(precision ?? 20)) 
+    const value = parseFloat(parseFloat(input.value).toFixed(precision ?? 20))
 
     if (isNaN(value)) onChange?.(0, inputType)
     else onChange?.(value, inputType)
@@ -57,8 +57,7 @@ export default function LabeledNumberInput({ label, value, precision, dragSensit
       >{label}</span>
       <input ref={inputRef} className={style.input} type="text" value={value}
         onKeyDown={e => {
-          if (e.key !== "Enter") return
-          e.currentTarget.blur()
+          if (e.key === "Enter") e.currentTarget.blur()
         }}
         onInput={e => dispatchOnChange(e.currentTarget, InputType.Typing)}
       />

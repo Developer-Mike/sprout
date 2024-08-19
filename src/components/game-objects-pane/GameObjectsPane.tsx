@@ -74,7 +74,7 @@ export default function GameObjectsPane() {
         )} />
 
         <LabeledNumberInput label={t("rotation")} value={project.activeGameObject.rotation} precision={2} onChange={(value, inputType) => {
-          const newRotation = (value > 0 ? value : 360 + value) % 360
+          const newRotation = inputType === InputType.Dragging ? (value > 0 ? value : 360 + value) % 360 : value
 
           project.updateData(
             // Use the raw value to calculate the type to avoid the modulo operation
@@ -165,7 +165,7 @@ export default function GameObjectsPane() {
       
       <DraggableGridView id={styles.gameObjectList}>
         { project.data.gameObjects.map((gameObject, index) => (
-          <DraggableObject key={gameObject.id} onDragged={targetIndex => project.updateData(
+          <DraggableObject key={gameObject.id} onDraggedClassName={namedSpriteListItemStyles.dragging} onDragged={targetIndex => project.updateData(
             new TransactionInfo(TransactionType.Update, TransactionCategory.GameObjectList, gameObject.id, "reorder"),
             data => {
               const temp = data.gameObjects.splice(index, 1)[0]
@@ -238,7 +238,8 @@ function DraggableGridView ({ id, children }: {
   )
 }
 
-function DraggableObject({ onDragged, children }: {
+function DraggableObject({ onDraggedClassName, onDragged, children }: {
+  onDraggedClassName?: string
   onDragged: (index: number) => void
   children: React.ReactNode
 }) {
@@ -276,7 +277,7 @@ function DraggableObject({ onDragged, children }: {
 
   return React.cloneElement(children as React.ReactElement, { 
     draggable: true,
-    className: `${(children as React.ReactElement).props.className} ${isDragging ? styles.dragging : ""}`,
+    className: `${(children as React.ReactElement).props.className ?? ""} ${isDragging ? onDraggedClassName ?? "" : ""}`,
     onDragStart: (e: React.DragEvent) => {
       setIsDragging(true)
       setDragOffset({

@@ -1,16 +1,21 @@
 import Icon from "../Icon"
 import styles from "./NamedSpriteListItem.module.scss"
 
-export default function NamedSpriteListItem({ className, label, src, onClick, isFocused, onDelete }: {
+export default function NamedSpriteListItem({ className, label, src, draggable, onDragStart, onDragEnd, onClick, isFocused, onDelete }: {
   className?: string
   label: string
   src: string
+  draggable?: boolean
+  onDragStart?: (e: React.DragEvent) => void
+  onDragEnd?: (e: React.DragEvent) => void
   onClick: () => void
   isFocused?: boolean
   onDelete?: () => void
 }) {
   return (
-    <div className={`${styles.listItem} ${isFocused ? styles.focused : ""} ${className ?? ""}`} onClick={onClick}>
+    <div className={`${styles.listItem} ${isFocused ? styles.focused : ""} ${className ?? ""}`} onClick={onClick} 
+      draggable={draggable} onDragStart={onDragStart} onDragEnd={onDragEnd}
+    >
       <img className={styles.image} src={src} alt={label} />
       <span className={styles.label}>{label}</span>
 
