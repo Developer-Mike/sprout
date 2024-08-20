@@ -1,32 +1,19 @@
-import { Dialog } from "../dialog/Dialog"
+import { useContext } from "react"
 import styles from "./SpriteLibraryDialog.module.scss"
-import Project from "@/core/Project"
+import dialogStyles from "@/components/dialog/Dialog.module.scss"
+import { ProjectContext } from "@/ProjectContext"
 
-export default function SpriteLibraryDialog(project: Project): Dialog {
-  return {
-    id: "sprite-library",
-    title: "Sprite Library",
-    content: (
-      <div id={styles.spriteLibraryDialog}>
-        <div id={styles.spriteLibraryList}>
-          <div id={styles.spriteLibraryListItem}>
-            <div id={styles.spriteLibraryListItemImage}></div>
-            <div id={styles.spriteLibraryListItemName}>Sprite Name</div>
-          </div>
-        </div>
-      </div>
-    ),
-    actions: [
-      {
-        element: <button className="danger">Cancel</button>,
-        onClick: hide => hide()
-      },
-      {
-        element: <button className="primary">Add</button>,
-        onClick: hide => { hide(); project.updateData(null, data => { data.gameObjects[project.activeGameObjectIndex].sprites.push(Object.keys(data.sprites)[0]) }) }
-      }
-    ]
-  }
+export default function SpriteLibraryDialog({ onSelect, onCancel }: {
+  onSelect: (sprite: string) => void
+  onCancel: () => void
+}) {
+  const { project } = useContext(ProjectContext)
+
+  return (
+    <div id={styles.spriteLibraryDialog} className={dialogStyles.dialog}>
+
+    </div>
+  )
 }
 
 /*
@@ -95,6 +82,31 @@ useEffect(() => {
 
         e.target.value = ""
       }} />
+  </div>
+</div>
+*/
+
+/*
+ <div id={styles.dialogBackground} className={dialogs.length > 0 ? styles.visible : ""} 
+  onClick={(e) => {
+    if (e.target !== e.currentTarget) return
+    const defaultAction = dialogs[0]?.actions.find(action => action.default)
+    defaultAction?.onClick(() => hideDialog(dialogs[0].id))
+  }}
+>
+  <div id={styles.dialog}>
+    <h1 id={styles.dialogTitle}>{dialogs[0]?.title}</h1>
+
+    <div>{dialogs[0]?.content}</div>
+
+    <div id={styles.dialogActions}>
+      {dialogs[0]?.actions?.map((action, i) =>
+        React.cloneElement(
+          action.element as React.ReactElement,
+          { key: i, onClick: () => action.onClick(() => hideDialog(dialogs[0].id)) }
+        )
+      )}
+    </div>
   </div>
 </div>
 */

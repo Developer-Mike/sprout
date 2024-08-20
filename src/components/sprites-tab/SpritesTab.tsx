@@ -1,11 +1,10 @@
 import { ProjectContext } from "@/ProjectContext"
 import styles from "@/components/sprites-tab/SpritesTab.module.scss"
 import namedSpriteListItemStyles from "@/components/named-sprite-list-item/NamedSpriteListItem.module.scss"
-import { useContext } from "react"
+import { useContext, useState } from "react"
 import NamedSpriteListItem from "../named-sprite-list-item/NamedSpriteListItem"
 import Icon from "../Icon"
 import useTranslation from "next-translate/useTranslation"
-import { DialogContext } from "../dialog/Dialog"
 import SpriteLibraryDialog from "../sprite-library-dialog/SpriteLibraryDialog"
 import DraggableGrid from "../DraggableGrid"
 import TransactionInfo, { TransactionCategory, TransactionType } from "@/types/TransactionInfo"
@@ -14,7 +13,7 @@ export default function SpritesTab() {
   const { t } = useTranslation("common")
   
   const { project } = useContext(ProjectContext)
-  const dialog = useContext(DialogContext)
+  const [isSpriteLibraryVisible, setIsSpriteLibraryVisible] = useState(false)
 
   return (
     <div id={styles.spritesTab}>
@@ -51,10 +50,22 @@ export default function SpritesTab() {
         )) }
       </DraggableGrid.Root>
 
-      <button id={styles.addSpriteButton} className="primary" onClick={() => dialog.showDialog(SpriteLibraryDialog(project))}>
+      <button id={styles.addSpriteButton} className="primary" onClick={() => setIsSpriteLibraryVisible(true)}>
         <Icon id={styles.buttonIcon} iconId="add" />
         {t("add-sprite")}
       </button>
+
+      { isSpriteLibraryVisible && <SpriteLibraryDialog
+        onSelect={sprite => {
+          setIsSpriteLibraryVisible(false)
+
+          project.updateData(
+            new TransactionInfo(TransactionType.Update, TransactionCategory.GameObjectProperty, project.activeGameObject.id, "add-sprite", true),
+            data => data.gameObjects[project.activeGameObjectIndex].sprites.push(sprite)
+          )
+        }}
+        onCancel={() => setIsSpriteLibraryVisible(false)}
+      /> }
     </div>
   )
 }
