@@ -9,13 +9,20 @@ export default function LabeledNumberInput({ label, value, precision, dragSensit
   onChange?: (value: number, inputType: InputType) => void
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const [stringValue, setStringValue] = useState(value?.toString())
+  useEffect(() => setStringValue(value?.toString()), [value])
+
   const [isBeingDragged, setIsBeingDragged] = useState(false)
 
   const dispatchOnChange = useCallback((input: HTMLInputElement, inputType: InputType) => {
-    const value = parseFloat(parseFloat(input.value).toFixed(precision ?? 20))
+    const numericalValue = parseFloat(parseFloat(input.value).toFixed(precision ?? 20))
 
-    if (isNaN(value)) onChange?.(0, inputType)
-    else onChange?.(value, inputType)
+    if (((precision ?? 20) > 0 && input.value.endsWith(".")) || isNaN(numericalValue))
+      setStringValue(input.value)
+    else setStringValue(numericalValue.toString())
+
+    if (isNaN(numericalValue)) onChange?.(0, inputType)
+    else onChange?.(numericalValue, inputType)
   }, [onChange])
 
   useEffect(() => {
@@ -55,7 +62,7 @@ export default function LabeledNumberInput({ label, value, precision, dragSensit
       <span className={`${style.label} ${style.draggable}`}
         onMouseDown={_ => setIsBeingDragged(true)}
       >{label}</span>
-      <input ref={inputRef} className={style.input} type="text" value={value}
+      <input ref={inputRef} className={style.input} type="text" value={stringValue}
         onKeyDown={e => {
           if (e.key === "Enter") e.currentTarget.blur()
         }}
