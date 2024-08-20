@@ -58,10 +58,11 @@ npm run dev
   - [ ] Add the ability to assign sprites to game objects
 - [x] Only add LabeledNumberInput change to history after the user stops dragging
 - [x] Add undo/redo to the navbar
-- [ ] Always save project before rerouting
+- [x] Always save project before rerouting
 - [ ] Remove the usage of large strings and eval in the SproutEngine
 - [ ] Add absolute identifiers to project paths -> Fix project with same filename not visible in the projects overview
 - [ ] Add warning if not using Chrome
+- [ ] Rework game object scaling (width and factor for height) -> Fix different scaling for different sprites
 - [ ] Create the Lexer and the Parser for the programming language
   - [ ] Add implemented functions to the engine
   - [ ] Add documentation for the programming language

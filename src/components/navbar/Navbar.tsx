@@ -11,7 +11,8 @@ export interface NavbarItem {
   customStyling?: boolean
 }
 
-export default function Navbar({ items }: {
+export default function Navbar({ onReroutingHome, items }: {
+  onReroutingHome?: () => Promise<void>
   items: NavbarItem[]
 }) {
   const { t } = useTranslation("common")
@@ -57,10 +58,15 @@ export default function Navbar({ items }: {
 
   return (
     <div id={styles.navbar}>
-      <Link href={router.pathname == "/builder" ? "/projects-overview" : "/"} id={styles.logoContainer}>
+      <button id={styles.logoContainer} onClick={async () => {
+        if (onReroutingHome) await onReroutingHome()
+        
+        const targetRoute = router.pathname == "/builder" ? "/projects-overview" : "/"
+        router.push(targetRoute)
+      }}>
         <img id={styles.logoIcon} src="/sprout.svg" alt="Sprout logo" />
         <h1 id={styles.logo}>{t("project-name")}</h1>
-      </Link>
+      </button>
 
       { generateItems(items.filter((item) => item.align !== "end")) }
       <div className={styles.spacer} />

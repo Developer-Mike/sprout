@@ -89,9 +89,6 @@ export default function Builder() {
     return uninstallAutosave
   }, [project])
 
-  useEffect(() => {
-  }, [project])
-
   return (
     <>
       <DefaultHead title={t("common:builder")} />
@@ -106,6 +103,7 @@ export default function Builder() {
         
         <header>
           <Navbar
+            onReroutingHome={async () => await project.saveToFS(canvasRef.current, true)}
             items={[
               {
                 element: <input id={styles.projectTitle} className={project.unsavedChanges ? styles.unsavedChanges : ""} value={project.data.title}
