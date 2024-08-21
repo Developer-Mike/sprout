@@ -1,7 +1,7 @@
 import { ProjectContext } from "@/ProjectContext"
 import styles from "@/components/sprites-tab/SpritesTab.module.scss"
 import namedSpriteListItemStyles from "@/components/named-sprite-list-item/NamedSpriteListItem.module.scss"
-import { useContext, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import NamedSpriteListItem from "../named-sprite-list-item/NamedSpriteListItem"
 import Icon from "../Icon"
 import useTranslation from "next-translate/useTranslation"
@@ -14,6 +14,10 @@ export default function SpritesTab() {
   
   const { project } = useContext(ProjectContext)
   const [isSpriteLibraryVisible, setIsSpriteLibraryVisible] = useState(false)
+
+  useEffect(() => {
+    setIsSpriteLibraryVisible(false)
+  }, [project, project.activeGameObject])
 
   return (
     <div id={styles.spritesTab}>
@@ -51,7 +55,7 @@ export default function SpritesTab() {
       </DraggableGrid.Root>
 
       <button id={styles.addSpriteButton} className="primary" onClick={() => setIsSpriteLibraryVisible(true)}>
-        <Icon id={styles.buttonIcon} iconId="add" />
+        <Icon className="icon" iconId="add" />
         {t("add-sprite")}
       </button>
 

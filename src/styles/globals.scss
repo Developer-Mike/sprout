@@ -84,7 +84,7 @@ img {
   -webkit-user-drag: none;
 }
 
-button, .button {
+button, .button {  
   padding: 10px;
 
   cursor: pointer;
@@ -98,7 +98,12 @@ button, .button {
 
   transition: background-color 0.2s;
 
-  &:hover {
+  &:disabled {
+    background-color: var(--container-low);
+    border-color: var(--container-low);
+  }
+
+  &:not(.primary):not(.danger):not(:disabled):hover {
     background-color: var(--container-low);
   }
 
@@ -109,7 +114,12 @@ button, .button {
 
     transition: border-color 0.2s;
 
-    &:hover {
+    &:disabled {
+      background-color: var(--primary-dim);
+      border-color: var(--primary-dim);
+    }
+
+    &:not(:disabled):hover {
       border-color: var(--primary-dim);
     }
   }
@@ -121,9 +131,25 @@ button, .button {
 
     transition: border-color 0.2s;
 
-    &:hover {
+    &:disabled {
+      background-color: var(--red-dim);
       border-color: var(--red-dim);
     }
+
+    &:not(:disabled):hover {
+      border-color: var(--red-dim);
+    }
+  }
+
+  &:has(.icon) {
+    display: flex;
+    align-items: center;
+
+    padding: 10px 20px;
+  }
+
+  .icon {
+    margin-right: 10px;
   }
 }
 

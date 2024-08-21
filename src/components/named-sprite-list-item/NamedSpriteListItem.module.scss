@@ -36,6 +36,8 @@
 
   .image {
     height: calc(100% - 1em - 10px);
+    max-width: 90%;
+
     object-fit: contain;
   }
 

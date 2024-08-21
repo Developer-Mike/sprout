@@ -36,5 +36,11 @@
     "ok": "Ok",
     "cancel": "Cancel",
     "saving": "Saving",
-    "add-sprite": "Add Sprite"
+    "add-sprite": "Add Sprite",
+    "sprite-library-dialog": {
+        "title": "Sprite Library",
+        "no-sprite-selected": "No sprite selected",
+        "upload-sprite": "Upload Sprite",
+        "add-sprite": "Add Sprite"
+    }
 }

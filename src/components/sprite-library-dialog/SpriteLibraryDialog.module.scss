@@ -1,35 +1,104 @@
-#gameObjectSprites {
-  flex: 0.35;
-}
+.spriteLibraryDialog {
+  display: flex;
+  flex-direction: column;
 
-#spritesLibrary {
-  flex: 0.65;
   position: relative;
+  
+  max-width: unset !important;
+  width: 85%;
+  height: 85%;
 
-  #uploadSpriteContainer {
-    position: absolute;
-    bottom: 10px;
-    right: 30px;
+  .dialogTitle {
+    margin-top: 10px;
+    margin-left: 20px;
+  }
 
-    #uploadSpriteLabel {
-      display: block;
+  #spritesLibrary {
+    position: relative;
 
-      cursor: pointer;
+    display: flex;
+    gap: 20px;
+  
+    height: 100%;
+    width: 100%;
+
+    overflow: hidden;
+    
+    #librarySprites {
+      flex: 0.7 1;
+
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      gap: 20px;
+  
+      overflow: auto scroll;
+  
+      margin: 10px 0;
+      padding: 0 10px;
+  
+      & > * {
+        width: 150px;
+        height: 150px;
+      }
+    }
+
+    #spritePreview {
+      flex: 0.3 1;
+
+      display: flex;
+      justify-content: center;
+
+      padding: 20px;
+
+      background-color: var(--container-low);
+
+      border: var(--border-color) solid var(--border-width);
+      border-radius: 16px;
+
+      #noSpriteSelected {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        height: 100%;
+        width: 100%;
+
+        box-sizing: border-box;
+
+        text-align: center;
+        font-size: 1.5em;
+      }
+
+      #image {
+        height: 40%;
+        max-width: 100%;
+        aspect-ratio: 1;
+        object-fit: contain;
+      }
     }
   }
-}
+  
+  #actionsContainer {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
 
-#gameObjectSprites, #librarySprites {
-  $sprites-width: 100px;
+    margin-top: 20px;
 
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax($sprites-width, 1fr));
-  grid-gap: 10px;
+    #uploadSpriteContainer {
+      #uploadSpriteLabel {
+        font-size: 1.5em;
+      }
+    }
 
-  height: 100%;
-  min-height: fit-content;
-  overflow: auto scroll;
+    #dialogActions {
+      display: flex;
+      gap: 15px;
 
-  margin: 10px 0;
-  padding: 0 10px;
+      & > button {
+        font-size: 1.25em;
+      }
+    }
+  }
 }
