@@ -50,17 +50,19 @@ npm run dev
   - [x] Add the ability to reorder sprites
   - [x] Add the ability to change the active sprite
   - [x] Add the ability to delete sprites
-- [ ] Add sprites library dialog
-  - [ ] Add the ability to upload sprites
-  - [ ] Add the ability to delete sprites
+- [x] Add sprites library dialog
+  - [x] Add the ability to upload sprites
+  - [x] Add the ability to delete sprites
   - [ ] Add the ability to rename sprites
-  - [ ] Add the ability to assign sprites to game objects
+  - [x] Add the ability to assign sprites to game objects
+  - [ ] Add sprite information
 - [x] Only add LabeledNumberInput change to history after the user stops dragging
 - [x] Add undo/redo to the navbar
 - [x] Always save project before rerouting
 - [ ] Add warning if not using Chrome
 - [ ] Rework game object scaling (width and factor for height) -> Fix different scaling for different sprites
 - [ ] Add absolute identifiers to project paths -> Fix project with same filename not visible in the projects overview
+- [ ] Fix rotation of game objects causing other game objects to move
 - [ ] Create the Lexer and the Parser for the programming language
   - [ ] Add implemented functions to the engine
   - [ ] Add documentation for the programming language
