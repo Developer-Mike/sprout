@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react"
 import style from "./LabeledInput.module.scss"
 
-export default function LabeledTextInput({ label, value, isValidValue, onChange }: {
+export default function LabeledTextInput({ label, value, makeValid, isValidValue, onChange }: {
   label: string
   value?: any
+  makeValid?: (value: string) => string
   isValidValue?: (value: string) => boolean
   onChange?: (value: string) => void,
 }) {
@@ -19,12 +20,19 @@ export default function LabeledTextInput({ label, value, isValidValue, onChange 
     <label className={`${style.container} ${!isValid ? style.invalid : ""}`}>
       <span className={style.label}>{label}</span>
       <input className={style.input} type="text" value={cachedValue}
+        autoCapitalize="false" autoComplete="false" autoCorrect="false" spellCheck="false"
         onKeyDown={e => {
           if (e.key !== "Enter") return
           e.currentTarget.blur()
         }}
         onChange={e => {
-          const value = e.target.value
+          let value = e.target.value
+
+          if (makeValid) {
+            value = makeValid(value)
+            e.target.value = value
+          }
+
           setCachedValue(value)
 
           const isValid =  isValidValue ? isValidValue(value) : true

@@ -5,6 +5,10 @@ import { ProjectContext } from "@/ProjectContext"
 import NamedSpriteListItem from "../named-sprite-list-item/NamedSpriteListItem"
 import Icon from "../Icon"
 import useTranslation from "next-translate/useTranslation"
+import LabeledTextInput from "../labeled-input/LabeledTextInput"
+import IdHelper from "@/utils/id-helper"
+import TransactionInfo, { TransactionCategory, TransactionType } from "@/types/TransactionInfo"
+import { DialogContext } from "../dialog/Dialog"
 
 export default function SpriteLibraryDialog({ onSelect, onCancel }: {
   onSelect: (sprite: string) => void
@@ -13,6 +17,8 @@ export default function SpriteLibraryDialog({ onSelect, onCancel }: {
   const { t } = useTranslation("common")
   
   const { project } = useContext(ProjectContext)
+  const { showDialog } = useContext(DialogContext)
+
   const [selectedSprite, setSelectedSprite] = useState<string | null>(null)
 
   const availableSprites = useMemo(() => {
@@ -32,6 +38,51 @@ export default function SpriteLibraryDialog({ onSelect, onCancel }: {
                 src={project.data.sprites[sprite]}
                 onClick={() => setSelectedSprite(sprite)}
                 isFocused={selectedSprite === sprite}
+                onDelete={() => showDialog({
+                  id: "delete-sprite-dialog",
+                  title: t("delete-sprite-dialog.title"),
+                  content: t("delete-sprite-dialog.message", { id: selectedSprite }),
+                  actions: [
+                    {
+                      default: true,
+                      element: <button>{t("cancel")}</button>,
+                      onClick: hide => hide()
+                    },
+                    {
+                      element: <button className="danger">{t("delete")}</button>,
+                      onClick: hide => {
+                        hide()
+  
+                        project.updateData(
+                          new TransactionInfo(
+                            TransactionType.Remove,
+                            TransactionCategory.SpriteLibrary,
+                            selectedSprite, "delete"
+                          ),
+                          data => {
+                            if (!selectedSprite) return
+
+                            delete data.sprites[selectedSprite]
+
+                            // Remove all references to the sprite
+                            data.gameObjects = data.gameObjects.map(gameObject => {
+                              gameObject.sprites = gameObject.sprites.filter(sprite => sprite != selectedSprite)
+
+                              // If the last sprite was removed and active, set the active sprite to the last one
+                              if (gameObject.activeSprite >= gameObject.sprites.length) {
+                                gameObject.activeSprite = gameObject.sprites.length - 1
+                              }
+
+                              return gameObject
+                            })
+
+                            setSelectedSprite(null)
+                          }
+                        )
+                      }
+                    }
+                  ]
+                })}
               />
             )) }
           </div>
@@ -40,6 +91,29 @@ export default function SpriteLibraryDialog({ onSelect, onCancel }: {
             { !selectedSprite && <div id={styles.noSpriteSelected}>{t("sprite-library-dialog.no-sprite-selected")}</div> }
             { selectedSprite && <div>
               <img id={styles.image} src={project.data.sprites[selectedSprite]} />
+              <LabeledTextInput label={t("id")} value={selectedSprite}
+                makeValid={value => IdHelper.makeIdValid(value)}
+                isValidValue={value => IdHelper.isValidId(value, Object.keys(project.data.sprites).filter(sprite => selectedSprite != sprite))}
+                onChange={value => {
+                  const newId = value.trim()
+
+                  // TODO: Fix fast typing loosing reference
+
+                  project.updateData(
+                    new TransactionInfo(
+                      TransactionInfo.getType(selectedSprite, newId),
+                      TransactionCategory.SpriteLibrary,
+                      selectedSprite, "id"
+                    ),
+                    data => {
+                      data.sprites[newId] = data.sprites[selectedSprite]
+                      delete data.sprites[selectedSprite]
+                    }
+                  )
+
+                  setSelectedSprite(newId)
+                }}
+              />
             </div> }
           </div>
         </div>
@@ -50,15 +124,19 @@ export default function SpriteLibraryDialog({ onSelect, onCancel }: {
               <Icon className="icon" iconId="upload" />
               {t("sprite-library-dialog.upload-sprite")}
             </label>
-            <input id="upload-sprite" hidden type="file" accept="image/png" onChange={e => {
+            <input id="upload-sprite" hidden type="file" accept="image/*" onChange={e => {
               const file = e.target.files?.[0]
               if (!file) return
 
               const reader = new FileReader()
               reader.onload = () => project.updateData(null, data => {
-                const spriteName = file.name.replace(/\.[^/.]+$/, "")
+                // TODO: Resize image
+                // TODO: Don't close dialog
+                
+                const spriteName = IdHelper.generateId(t("default-sprite-id"), Object.keys(data.sprites))
                 data.sprites[spriteName] = reader.result as string
-                onSelect(spriteName)
+
+                setSelectedSprite(spriteName)
               })
               reader.readAsDataURL(file)
 
@@ -75,98 +153,3 @@ export default function SpriteLibraryDialog({ onSelect, onCancel }: {
     </div>
   )
 }
-
-/*
-const availableSprites = useMemo(() => {
-  return Object.keys(project.data.sprites).filter(sprite => !project.activeGameObject.sprites.includes(sprite))
-}, [project.data.sprites, project.activeGameObject.sprites])
-
-const nameUploadedSpriteDialog = (fileContent: string) => {
-  dialog.showDialog({
-    id: "name-uploaded-sprite",
-    title: t("name-uploaded-sprite-dialog.title"),
-    content: (
-      <input placeholder={t("name-uploaded-sprite-dialog.placeholder")} />
-    ),
-    actions: [
-      {
-        element: <button className="danger">{t("cancel")}</button>,
-        onClick: hide => hide()
-      },
-      {
-        element: <button className="primary">{t("save")}</button>,
-        onClick: hide => {
-          const input = dialog.getCurrentDialog()?.querySelector("input")
-          if (!input) return
-          const spriteName = input.value
-
-          // TODO: Check if sprite name is valid and unique
-
-          project.updateData(null, data => {
-            data.sprites[spriteName] = fileContent
-          })
-          hide()
-        }
-      }
-    ]
-  })
-}
-
-useEffect(() => {
-
-}, [project, project.activeGameObject.sprites, project.activeGameObject.activeSprite, project.data.sprites])
-
-<div id={styles.spritesLibrary}>
-  <div id={styles.librarySprites}>
-    { availableSprites.map((sprite, index) => (
-      <NamedSpriteListItem key={index}
-        label={sprite}
-        src={project.data.sprites[sprite]}
-        onClick={() => setSelectedSprite(sprite)}
-        isFocused={selectedSprite === sprite}
-      />
-    )) }
-  </div>
-
-  <div id={styles.uploadSpriteContainer}>
-      <label htmlFor="upload-sprite" id={styles.uploadSpriteLabel} className="button primary">
-        <Icon iconId="upload" />
-      </label>
-      <input id="upload-sprite" hidden type="file" accept="image/png" onChange={e => {
-        const file = e.target.files?.[0]
-        if (!file) return
-
-        const reader = new FileReader()
-        reader.onload = () => nameUploadedSpriteDialog(reader.result as string)
-        reader.readAsDataURL(file)
-
-        e.target.value = ""
-      }} />
-  </div>
-</div>
-*/
-
-/*
- <div id={styles.dialogBackground} className={dialogs.length > 0 ? styles.visible : ""} 
-  onClick={(e) => {
-    if (e.target !== e.currentTarget) return
-    const defaultAction = dialogs[0]?.actions.find(action => action.default)
-    defaultAction?.onClick(() => hideDialog(dialogs[0].id))
-  }}
->
-  <div id={styles.dialog}>
-    <h1 id={styles.dialogTitle}>{dialogs[0]?.title}</h1>
-
-    <div>{dialogs[0]?.content}</div>
-
-    <div id={styles.dialogActions}>
-      {dialogs[0]?.actions?.map((action, i) =>
-        React.cloneElement(
-          action.element as React.ReactElement,
-          { key: i, onClick: () => action.onClick(() => hideDialog(dialogs[0].id)) }
-        )
-      )}
-    </div>
-  </div>
-</div>
-*/

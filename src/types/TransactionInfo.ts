@@ -76,6 +76,7 @@ export enum TransactionType {
 
 export enum TransactionCategory {
   ProjectSettings = "project-settings",
+  SpriteLibrary = "sprite-library",
   GameObjectList = "game-object-list",
   GameObjectProperty = "game-object-property"
 }

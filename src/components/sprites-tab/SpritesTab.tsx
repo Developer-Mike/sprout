@@ -6,7 +6,7 @@ import NamedSpriteListItem from "../named-sprite-list-item/NamedSpriteListItem"
 import Icon from "../Icon"
 import useTranslation from "next-translate/useTranslation"
 import SpriteLibraryDialog from "../sprite-library-dialog/SpriteLibraryDialog"
-import DraggableGrid from "../DraggableGrid"
+import DraggableLayout from "../DraggableLayout"
 import TransactionInfo, { TransactionCategory, TransactionType } from "@/types/TransactionInfo"
 
 export default function SpritesTab() {
@@ -17,13 +17,13 @@ export default function SpritesTab() {
 
   useEffect(() => {
     setIsSpriteLibraryVisible(false)
-  }, [project, project.activeGameObject])
+  }, [project, project.activeGameObjectIndex])
 
   return (
     <div id={styles.spritesTab}>
-      <DraggableGrid.Root id={styles.gameObjectSprites} className={styles.spritesGrid}>
+      <DraggableLayout.Root id={styles.gameObjectSprites} className={styles.spritesGrid}>
         { project.activeGameObject.sprites.map((sprite, index) => (
-          <DraggableGrid.Item key={index} onDraggedClassName={namedSpriteListItemStyles.dragging} onDragged={targetIndex => project.updateData(
+          <DraggableLayout.Item key={index} onDraggedClassName={namedSpriteListItemStyles.dragging} onDragged={targetIndex => project.updateData(
             new TransactionInfo(TransactionType.Update, TransactionCategory.GameObjectProperty, project.activeGameObject.id, "reorder-sprites", true),
             data => {
               const temp = data.gameObjects[project.activeGameObjectIndex].sprites.splice(index, 1)[0]
@@ -50,9 +50,9 @@ export default function SpritesTab() {
                 }
               )}
             />
-          </DraggableGrid.Item>
+          </DraggableLayout.Item>
         )) }
-      </DraggableGrid.Root>
+      </DraggableLayout.Root>
 
       <button id={styles.addSpriteButton} className="primary" onClick={() => setIsSpriteLibraryVisible(true)}>
         <Icon className="icon" iconId="add" />

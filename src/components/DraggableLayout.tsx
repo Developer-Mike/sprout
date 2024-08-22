@@ -1,7 +1,7 @@
 import React from "react"
 import { useCallback, useState } from "react"
 
-export default class DraggableGrid {
+export default class DraggableLayout {
   static Root({ id, className, children }: {
     id?: string,
     className?: string,

@@ -13,7 +13,8 @@ import { DialogContext } from "../dialog/Dialog"
 import Project from "@/core/Project"
 import TransactionInfo, { TransactionCategory, TransactionType } from "@/types/TransactionInfo"
 import NamedSpriteListItem from "../named-sprite-list-item/NamedSpriteListItem"
-import DraggableGrid from "../DraggableGrid"
+import DraggableLayout from "../DraggableLayout"
+import IdHelper from "@/utils/id-helper"
 
 export default function GameObjectsPane() {
   const { t } = useTranslation("common")
@@ -31,12 +32,8 @@ export default function GameObjectsPane() {
     <>
       <div id={styles.gameObjectProperties}>
         <LabeledTextInput label={t("id")} value={project.activeGameObject.id}
-          isValidValue={value =>
-            value.trim().length > 0 && (
-              project.activeGameObject.id === value.trim() || 
-              project.data.gameObjects.find(gameObject => gameObject.id === value.trim()) === undefined
-            )
-          }
+          makeValid={value => IdHelper.makeIdValid(value)}
+          isValidValue={value => IdHelper.isValidId(value, project.data.gameObjects.filter(gameObject => project.activeGameObject.id !== gameObject.id).map(gameObject => gameObject.id))}
           onChange={value => {
             const newId = value.trim()
 
@@ -164,9 +161,9 @@ export default function GameObjectsPane() {
         </div>
       </div>
       
-      <DraggableGrid.Root id={styles.gameObjectList}>
+      <DraggableLayout.Root id={styles.gameObjectList}>
         { project.data.gameObjects.map((gameObject, index) => (
-          <DraggableGrid.Item key={gameObject.id} onDraggedClassName={namedSpriteListItemStyles.dragging} onDragged={targetIndex => project.updateData(
+          <DraggableLayout.Item key={gameObject.id} onDraggedClassName={namedSpriteListItemStyles.dragging} onDragged={targetIndex => project.updateData(
             new TransactionInfo(TransactionType.Update, TransactionCategory.GameObjectList, gameObject.id, "reorder"),
             data => {
               const temp = data.gameObjects.splice(index, 1)[0]
@@ -182,7 +179,7 @@ export default function GameObjectsPane() {
               )}
               isFocused={project.data.workspace.selectedGameObjectId === gameObject.id}
               onDelete={() => showDialog({
-                id: "delete-game-object",
+                id: "delete-game-object-dialog",
                 title: t("delete-game-object-dialog.title"),
                 content: t("delete-game-object-dialog.message", { id: gameObject.id }),
                 actions: [
@@ -214,11 +211,11 @@ export default function GameObjectsPane() {
                 ]
               })}
             />
-          </DraggableGrid.Item>
+          </DraggableLayout.Item>
         )) }
 
         <CreateGameObjectButton t={t} project={project} />
-      </DraggableGrid.Root>
+      </DraggableLayout.Root>
     </>
   )
 }
@@ -239,7 +236,7 @@ function CreateGameObjectButton({ t, project }: {
     }
 
     const newGameObject = {
-      id: newId,
+      id: IdHelper.generateId(t("default-game-object-id"), project.data.gameObjects.map(gameObject => gameObject.id)),
       visible: true,
       x: 0,
       y: 0,

@@ -35,7 +35,8 @@
       overflow: auto scroll;
   
       margin: 10px 0;
-      padding: 0 10px;
+      padding: 10px;
+      padding-bottom: 0;
   
       & > * {
         width: 150px;
@@ -75,6 +76,8 @@
         max-width: 100%;
         aspect-ratio: 1;
         object-fit: contain;
+
+        margin-bottom: 20px;
       }
     }
   }

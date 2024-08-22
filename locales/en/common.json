@@ -20,6 +20,8 @@
         "one": "Game Object",
         "other": "Game Objects"
     },
+    "default-game-object-id": "new_game_object",
+    "default-sprite-id": "new_sprite",
     "id": "ID",
     "layer": "Layer",
     "visible": "Visible",
@@ -42,5 +44,9 @@
         "no-sprite-selected": "No sprite selected",
         "upload-sprite": "Upload Sprite",
         "add-sprite": "Add Sprite"
+    },
+    "delete-sprite-dialog": {
+        "title": "Delete Sprite",
+        "message": "Are you sure you want to delete \"{{id}}\"? This will remove all references to this sprite."
     }
 }
