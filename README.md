@@ -53,9 +53,9 @@ npm run dev
 - [x] Add sprites library dialog
   - [x] Add the ability to upload sprites
   - [x] Add the ability to delete sprites
-  - [ ] Add the ability to rename sprites
+  - [x] Add the ability to rename sprites
   - [x] Add the ability to assign sprites to game objects
-  - [ ] Add sprite information
+  - [x] Add sprite information
 - [x] Only add LabeledNumberInput change to history after the user stops dragging
 - [x] Add undo/redo to the navbar
 - [x] Always save project before rerouting
