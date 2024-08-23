@@ -59,7 +59,8 @@ export default function SpritesTab() {
         {t("add-sprite")}
       </button>
 
-      { isSpriteLibraryVisible && <SpriteLibraryDialog
+      <SpriteLibraryDialog
+        isVisible={isSpriteLibraryVisible}
         onSelect={sprite => {
           setIsSpriteLibraryVisible(false)
 
@@ -69,7 +70,7 @@ export default function SpritesTab() {
           )
         }}
         onCancel={() => setIsSpriteLibraryVisible(false)}
-      /> }
+      />
     </div>
   )
 }

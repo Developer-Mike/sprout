@@ -48,5 +48,14 @@
     "delete-sprite-dialog": {
         "title": "Delete Sprite",
         "message": "Are you sure you want to delete \"{{id}}\"? This will remove all references to this sprite."
+    },
+    "resolution": "Resolution",
+    "file-size": "File Size",
+    "file-type": "File Type",
+    "size-unit": {
+        "byte": {
+            "one": "byte",
+            "other": "bytes"
+        }
     }
 }

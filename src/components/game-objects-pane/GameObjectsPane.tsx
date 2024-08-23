@@ -36,6 +36,7 @@ export default function GameObjectsPane() {
           isValidValue={value => IdHelper.isValidId(value, project.data.gameObjects.filter(gameObject => project.activeGameObject.id !== gameObject.id).map(gameObject => gameObject.id))}
           onChange={value => {
             const newId = value.trim()
+            if (newId === project.activeGameObject.id) return
 
             project.updateData(
               new TransactionInfo(
@@ -135,7 +136,7 @@ export default function GameObjectsPane() {
           const sprite = new Image()
           sprite.src = project.data.sprites[
             project.data.gameObjects[project.activeGameObjectIndex]
-              .sprites[0]
+              .sprites[project.data.gameObjects[project.activeGameObjectIndex].activeSprite]
           ]
 
           const [newWidth, newHeight] = [

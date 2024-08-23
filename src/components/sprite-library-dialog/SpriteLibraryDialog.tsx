@@ -1,4 +1,4 @@
-import { useContext, useMemo, useState } from "react"
+import { useContext, useEffect, useMemo, useState } from "react"
 import styles from "./SpriteLibraryDialog.module.scss"
 import dialogStyles from "@/components/dialog/Dialog.module.scss"
 import { ProjectContext } from "@/ProjectContext"
@@ -10,7 +10,8 @@ import IdHelper from "@/utils/id-helper"
 import TransactionInfo, { TransactionCategory, TransactionType } from "@/types/TransactionInfo"
 import { DialogContext } from "../dialog/Dialog"
 
-export default function SpriteLibraryDialog({ onSelect, onCancel }: {
+export default function SpriteLibraryDialog({ isVisible, onSelect, onCancel }: {
+  isVisible: boolean
   onSelect: (sprite: string) => void
   onCancel: () => void
 }) {
@@ -19,29 +20,39 @@ export default function SpriteLibraryDialog({ onSelect, onCancel }: {
   const { project } = useContext(ProjectContext)
   const { showDialog } = useContext(DialogContext)
 
-  const [selectedSprite, setSelectedSprite] = useState<string | null>(null)
+  const [spriteInfo, setSpriteInfo] = useState<{ fileType: string, width: number, height: number, fileSize: number } | null>(null)
 
-  const availableSprites = useMemo(() => {
-    return Object.keys(project.data.sprites).filter(sprite => !project.activeGameObject.sprites.includes(sprite))
-  }, [project.data.sprites, project.activeGameObject.sprites])
+  useEffect(() => {
+    if (!project.data.workspace.selectedLibrarySpriteId) return
+      const base64 = project.data.sprites[project.data.workspace.selectedLibrarySpriteId]
+
+      const image = new Image()
+      image.onload = () => setSpriteInfo({ 
+        fileType: base64.split(";")[0].split("/")[1],
+        width: image.width,
+        height: image.height,
+        fileSize: Math.ceil((base64.length * (3 / 4)) - 1)
+      })
+      image.src = base64
+  }, [project, project.data.workspace.selectedLibrarySpriteId])
 
   return (
-    <div id={dialogStyles.dialogBackground} className={dialogStyles.visible}>
+    <div id={dialogStyles.dialogBackground} className={isVisible ? dialogStyles.visible : undefined}>
       <div id={dialogStyles.dialog} className={styles.spriteLibraryDialog}>
         <h1 id={styles.dialogTitle} className={styles.dialogTitle}>{t("sprite-library-dialog.title")}</h1>
 
         <div id={styles.spritesLibrary}>
           <div id={styles.librarySprites}>
-            { availableSprites.map((sprite, index) => (
+            { Object.keys(project.data.sprites).map((sprite, index) => (
               <NamedSpriteListItem key={index}
                 label={sprite}
                 src={project.data.sprites[sprite]}
-                onClick={() => setSelectedSprite(sprite)}
-                isFocused={selectedSprite === sprite}
+                onClick={() => project.updateData(null, data => { data.workspace.selectedLibrarySpriteId = sprite })}
+                isFocused={project.data.workspace.selectedLibrarySpriteId === sprite}
                 onDelete={() => showDialog({
                   id: "delete-sprite-dialog",
                   title: t("delete-sprite-dialog.title"),
-                  content: t("delete-sprite-dialog.message", { id: selectedSprite }),
+                  content: t("delete-sprite-dialog.message", { id: project.data.workspace.selectedLibrarySpriteId }),
                   actions: [
                     {
                       default: true,
@@ -57,16 +68,15 @@ export default function SpriteLibraryDialog({ onSelect, onCancel }: {
                           new TransactionInfo(
                             TransactionType.Remove,
                             TransactionCategory.SpriteLibrary,
-                            selectedSprite, "delete"
+                            project.data.workspace.selectedLibrarySpriteId, "delete"
                           ),
                           data => {
-                            if (!selectedSprite) return
-
-                            delete data.sprites[selectedSprite]
+                            if (!data.workspace.selectedLibrarySpriteId) return
+                            delete data.sprites[data.workspace.selectedLibrarySpriteId]
 
                             // Remove all references to the sprite
                             data.gameObjects = data.gameObjects.map(gameObject => {
-                              gameObject.sprites = gameObject.sprites.filter(sprite => sprite != selectedSprite)
+                              gameObject.sprites = gameObject.sprites.filter(sprite => sprite != data.workspace.selectedLibrarySpriteId)
 
                               // If the last sprite was removed and active, set the active sprite to the last one
                               if (gameObject.activeSprite >= gameObject.sprites.length) {
@@ -76,7 +86,7 @@ export default function SpriteLibraryDialog({ onSelect, onCancel }: {
                               return gameObject
                             })
 
-                            setSelectedSprite(null)
+                            data.workspace.selectedLibrarySpriteId = null
                           }
                         )
                       }
@@ -88,32 +98,41 @@ export default function SpriteLibraryDialog({ onSelect, onCancel }: {
           </div>
 
            <div id={styles.spritePreview}>
-            { !selectedSprite && <div id={styles.noSpriteSelected}>{t("sprite-library-dialog.no-sprite-selected")}</div> }
-            { selectedSprite && <div>
-              <img id={styles.image} src={project.data.sprites[selectedSprite]} />
-              <LabeledTextInput label={t("id")} value={selectedSprite}
+            { !project.data.workspace.selectedLibrarySpriteId && <div id={styles.noSpriteSelected}>{t("sprite-library-dialog.no-sprite-selected")}</div> }
+            { project.data.workspace.selectedLibrarySpriteId && <div>
+              <img id={styles.image} src={project.data.sprites[project.data.workspace.selectedLibrarySpriteId]} />
+              <LabeledTextInput label={t("id")} value={project.data.workspace.selectedLibrarySpriteId}
                 makeValid={value => IdHelper.makeIdValid(value)}
-                isValidValue={value => IdHelper.isValidId(value, Object.keys(project.data.sprites).filter(sprite => selectedSprite != sprite))}
+                isValidValue={value => IdHelper.isValidId(value, Object.keys(project.data.sprites).filter(id => project.data.workspace.selectedLibrarySpriteId != id))}
                 onChange={value => {
                   const newId = value.trim()
+                  if (newId === project.data.workspace.selectedLibrarySpriteId) return
 
                   // TODO: Fix fast typing loosing reference
 
                   project.updateData(
                     new TransactionInfo(
-                      TransactionInfo.getType(selectedSprite, newId),
+                      TransactionInfo.getType(project.data.workspace.selectedLibrarySpriteId, newId),
                       TransactionCategory.SpriteLibrary,
-                      selectedSprite, "id"
+                      project.data.workspace.selectedLibrarySpriteId, "id"
                     ),
                     data => {
-                      data.sprites[newId] = data.sprites[selectedSprite]
-                      delete data.sprites[selectedSprite]
+                      if (!data.workspace.selectedLibrarySpriteId) return
+
+                      data.sprites[newId] = data.sprites[data.workspace.selectedLibrarySpriteId]
+                      delete data.sprites[data.workspace.selectedLibrarySpriteId]
+
+                      data.workspace.selectedLibrarySpriteId = newId
                     }
                   )
-
-                  setSelectedSprite(newId)
                 }}
               />
+
+              <div id={styles.spriteInfo}>
+                <div><span>{t("file-type")}</span><span>{spriteInfo?.fileType}</span></div>
+                <div><span>{t("resolution")}</span><span>{spriteInfo?.width}x{spriteInfo?.height}</span></div>
+                <div><span>{t("file-size")}</span><span>~{spriteInfo?.fileSize} {t("size-unit.byte", { count: spriteInfo?.fileSize })}</span></div>
+              </div>
             </div> }
           </div>
         </div>
@@ -136,7 +155,7 @@ export default function SpriteLibraryDialog({ onSelect, onCancel }: {
                 const spriteName = IdHelper.generateId(t("default-sprite-id"), Object.keys(data.sprites))
                 data.sprites[spriteName] = reader.result as string
 
-                setSelectedSprite(spriteName)
+                project.updateData(null, data => { data.workspace.selectedLibrarySpriteId = spriteName })
               })
               reader.readAsDataURL(file)
 
@@ -146,7 +165,11 @@ export default function SpriteLibraryDialog({ onSelect, onCancel }: {
           
           <div id={styles.dialogActions}>
             <button onClick={onCancel}>{t("cancel")}</button>
-            <button className="primary" disabled={selectedSprite === null} onClick={() => selectedSprite && onSelect(selectedSprite)}>{t("sprite-library-dialog.add-sprite")}</button>
+            <button className="primary" disabled={project.data.workspace.selectedLibrarySpriteId === null} 
+              onClick={() => project.data.workspace.selectedLibrarySpriteId && onSelect(project.data.workspace.selectedLibrarySpriteId)}
+            >
+              {t("sprite-library-dialog.add-sprite")}
+            </button>
           </div>
         </div>
       </div>

@@ -5,6 +5,7 @@ const project: ProjectData = {
   title: "Pong",
   workspace: {
     selectedGameObjectId: "player",
+    selectedLibrarySpriteId: null,
     advanced: true
   },
   sprites: {

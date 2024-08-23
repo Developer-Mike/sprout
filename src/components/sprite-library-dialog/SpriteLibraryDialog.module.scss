@@ -79,6 +79,27 @@
 
         margin-bottom: 20px;
       }
+
+      #spriteInfo {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+
+        margin-top: 20px;
+
+        & > div {
+          display: flex;
+
+          & > span:first-child {
+            font-weight: bold;
+          }
+
+          & > span:last-child {
+            margin-left: auto;
+            font-style: italic;
+          }
+        }
+      }
     }
   }
   

@@ -10,6 +10,7 @@ export interface ProjectData {
 
 export interface WorkspaceData {
   selectedGameObjectId: string
+  selectedLibrarySpriteId: string | null
 
   advanced?: boolean
 }

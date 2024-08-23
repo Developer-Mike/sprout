@@ -4,6 +4,7 @@ const project: ProjectData = {
   title: "Debug Project",
   workspace: {
     selectedGameObjectId: "player",
+    selectedLibrarySpriteId: null,
     advanced: true
   },
   sprites: {
