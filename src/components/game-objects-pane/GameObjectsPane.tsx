@@ -6,7 +6,7 @@ import namedSpriteListItemStyles from "@/components/named-sprite-list-item/Named
 import React, { useContext, useEffect, useState } from "react"
 import LabeledTextInput from "../labeled-input/LabeledTextInput"
 import Icon from "../Icon"
-import { BLANK_IMAGE } from "@/constants"
+import { BLANK_IMAGE, DEFAULT_GAME_OBJECT, DEFAULT_GAME_OBJECT_SIZE } from "@/constants"
 import LabeledBooleanInput from "../labeled-input/LabeledBooleanInput"
 import LabeledNumberInput, { InputType } from "../labeled-input/LabeledNumberInput"
 import { DialogContext } from "../dialog/Dialog"
@@ -140,8 +140,8 @@ export default function GameObjectsPane() {
           ]
 
           const [newWidth, newHeight] = [
-            Math.max(sprite.naturalWidth, 32),
-            Math.max(sprite.naturalHeight, 32)
+            Math.max(sprite.naturalWidth, DEFAULT_GAME_OBJECT_SIZE),
+            Math.max(sprite.naturalHeight, DEFAULT_GAME_OBJECT_SIZE)
           ]
 
           setAspectRatioCache(newWidth / newHeight)
@@ -226,39 +226,21 @@ function CreateGameObjectButton({ t, project }: {
   project: Project
 }) {
   const createNewGameObject = () => {
-    const baseId = t("game-object", { count: 1 })
-    let newId = baseId
-
-    // Make sure that the new ID is unique
-    let i = 1
-    while (project.data.gameObjects.find(gameObject => gameObject.id === newId) !== undefined) {
-      newId = `${baseId} ${i}`
-      i++
-    }
-
-    const newGameObject = {
-      id: IdHelper.generateId(t("default-game-object-id"), project.data.gameObjects.map(gameObject => gameObject.id)),
-      visible: true,
-      x: 0,
-      y: 0,
-      layer: 0,
-      rotation: 0,
-      width: 32,
-      height: 32,
-      sprites: [],
-      activeSprite: 0,
-      code: ""
-    }
+    const newGameObject = DEFAULT_GAME_OBJECT
+    newGameObject.id = IdHelper.generateId(
+      t("default-game-object-id"),
+      project.data.gameObjects.map(gameObject => gameObject.id)
+    )
 
     project.updateData(
       new TransactionInfo(
         TransactionType.Add,
         TransactionCategory.GameObjectList,
-        newId, "create"
+        newGameObject.id, "create"
       ),
       data => {
         data.gameObjects.push(newGameObject)
-        data.workspace.selectedGameObjectId = newId
+        data.workspace.selectedGameObjectId = newGameObject.id
       }
     )
   }

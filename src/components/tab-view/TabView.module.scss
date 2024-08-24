@@ -91,6 +91,10 @@
 
     transform: scaleX(1);
 
+    &.noPadding {
+      padding: 0;
+    }
+
     &.collapsible:not(.collapsed) {
       animation: expand 0.2s;
     }

@@ -1,64 +1,18 @@
-#codeContainer {
-  display: flex;
-  flex-direction: row;
-
-  width: 100%;
+#codeEditorContainer {
+  position: relative;
   height: 100%;
-  min-height: fit-content;
-  overflow: auto scroll;
 
-  white-space: pre;
+  margin-left: -5px;
 
-  #codeLineNumbers {
-    min-width: 20px;
-    min-height: 100%;
-    height: fit-content;
+  #gameObjectPreview {
+    position: absolute;
+    top: 0;
+    right: 10px;
+    margin: 20px;
 
-    margin-right: 10px;
+    width: 50px;
     opacity: 0.5;
 
-    color: var(--primary-dim);
-    text-align: right;
-    user-select: none;
-  }
-
-  #code {
-    position: relative;
-    
-    display: flex;
-    width: inherit;
-    min-height: 100%;
-    height: fit-content;
-
-    #codeEditor {     
-      flex: 1;
-
-      &:focus {
-        outline: none;
-      }
-    }
-
-    #codeHighlight {
-      position: absolute;
-      top: 0;
-      left: 0;
-
-      width: 100%;
-      height: 100%;
-  
-      color: transparent;
-      // mix-blend-mode: color; // Issue with TabView.module.scss #leaf[overflow!=initial]
-
-      pointer-events: none;
-      user-select: none;
-
-      .keyword {
-        color: lightgreen;
-      }
-
-      .punctuation {
-        color: lightcoral;
-      }
-    }
+    pointer-events: none;
   }
 }

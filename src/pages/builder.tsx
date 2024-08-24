@@ -173,18 +173,8 @@ export default function Builder() {
               {
                 id: "code",
                 label: t("common:code"),
-                content: (
-                  <div id={styles.codeEditorContainer}>
-                    <CodeEditor />
-                    <img id={styles.gameObjectPreview} 
-                      src={project.data.sprites[
-                        project.activeGameObject.sprites[
-                          project.activeGameObject.activeSprite
-                        ]
-                      ]}
-                    />
-                  </div>
-                )
+                noPadding: true,
+                content: <CodeEditor />
               },
               {
                 id: "sprites",

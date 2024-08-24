@@ -51,25 +51,6 @@
   #editorsTabView {
     flex: 1;
     overflow: hidden; // Hide horizontal overflow
-
-    #codeEditorContainer {
-      position: relative;
-      height: 100%;
-
-      margin-left: -5px;
-
-      #gameObjectPreview {
-        position: absolute;
-        top: 0;
-        right: 10px;
-        margin: 20px;
-
-        width: 50px;
-        opacity: 0.5;
-
-        pointer-events: none;
-      }
-    }
   }
 
   #rightSplit {

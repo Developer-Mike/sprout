@@ -108,8 +108,6 @@ export default function SpriteLibraryDialog({ isVisible, onSelect, onCancel }: {
                   const newId = value.trim()
                   if (newId === project.data.workspace.selectedLibrarySpriteId) return
 
-                  // TODO: Fix fast typing loosing reference
-
                   project.updateData(
                     new TransactionInfo(
                       TransactionInfo.getType(project.data.workspace.selectedLibrarySpriteId, newId),
@@ -150,7 +148,6 @@ export default function SpriteLibraryDialog({ isVisible, onSelect, onCancel }: {
               const reader = new FileReader()
               reader.onload = () => project.updateData(null, data => {
                 // TODO: Resize image
-                // TODO: Don't close dialog
                 
                 const spriteName = IdHelper.generateId(t("default-sprite-id"), Object.keys(data.sprites))
                 data.sprites[spriteName] = reader.result as string
