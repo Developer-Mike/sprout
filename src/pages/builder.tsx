@@ -137,7 +137,7 @@ export default function Builder() {
                 element: <div
                   onClick={() => { project.run(canvasRef.current) }}
                   className={project.isRunning ? styles.running : ""}
-                ><Icon iconId="play_arrow" /></div>,
+                ><Icon iconId={project.isRunning ? "resume" : "play_arrow"} /></div>,
                 align: "end"
               },
               {
