@@ -35,7 +35,7 @@ export default function StagePane({ canvasRef }: {
     const highlighter = document.getElementById(styles.gameObjectSelectionHighlighter) as HTMLDivElement
     if (!highlighter) return
 
-    const activeGameObject = project.activeGameObject
+    const activeGameObject = project.selectedGameObject
 
     const scale = project.data.stage.width / canvas.width
     const [width, height] = [activeGameObject.width / scale, activeGameObject.height / scale]
@@ -58,24 +58,26 @@ export default function StagePane({ canvasRef }: {
     const mouseX = e.offsetX * scale
     const mouseY = e.offsetY * scale
 
-    const gameObject = project.data.gameObjects.find(gameObject => {
-      const bounds = { 
-        minX: gameObject.x - gameObject.width / 2, 
-        minY: gameObject.y - gameObject.height / 2, 
-        maxX: gameObject.x + gameObject.width / 2, 
-        maxY: gameObject.y + gameObject.height / 2
-      }
+    const clickedGameObjectKey = Object.entries(project.data.gameObjects)
+      .sort(([_, gameObject]) => gameObject.layer)
+      .find(([_, gameObject]) => {
+        const bounds = {
+          minX: gameObject.x - gameObject.width / 2,
+          minY: gameObject.y - gameObject.height / 2,
+          maxX: gameObject.x + gameObject.width / 2,
+          maxY: gameObject.y + gameObject.height / 2
+        }
 
-      return mouseX >= bounds.minX && mouseX <= bounds.maxX && mouseY >= bounds.minY && mouseY <= bounds.maxY
-    })
-
-    if (!gameObject) return
+        return mouseX >= bounds.minX && mouseX <= bounds.maxX && mouseY >= bounds.minY && mouseY <= bounds.maxY
+      })?.[0]
+    
+    if (!clickedGameObjectKey) return
 
     // Still show the highlighter if the same object is clicked
-    if (project.data.workspace.selectedGameObjectId === gameObject.id) highlightBlink()
+    if (project.selectedGameObjectKey === clickedGameObjectKey) highlightBlink()
     else project.updateData(
-      new TransactionInfo(TransactionType.Update, TransactionCategory.GameObjectList, gameObject.id, "select"),
-      data => { data.workspace.selectedGameObjectId = gameObject.id }
+      new TransactionInfo(TransactionType.Update, TransactionCategory.GameObjectList, clickedGameObjectKey, "select"),
+      data => { data.workspace.selectedGameObjectKey = clickedGameObjectKey }
     )
   }
 
@@ -110,7 +112,7 @@ export default function StagePane({ canvasRef }: {
 
   useEffect(() => {
     highlightBlink()
-  }, [project.data.workspace.selectedGameObjectId])
+  }, [project.data.workspace.selectedGameObjectKey])
 
   const onInput = (e: React.KeyboardEvent<HTMLInputElement>, setter: (value: number) => void) => {
     if (e.key !== "Enter") return

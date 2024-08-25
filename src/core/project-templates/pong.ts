@@ -4,8 +4,8 @@ import { ProjectData } from "@/types/ProjectData"
 const project: ProjectData = {
   title: "Pong",
   workspace: {
-    selectedGameObjectId: "player",
-    selectedLibrarySpriteId: null,
+    selectedGameObjectKey: "e078df39-1caf-495f-b9c6-a38c137935b5",
+    selectedLibrarySpriteKey: null,
     advanced: true
   },
   sprites: {
@@ -18,8 +18,8 @@ const project: ProjectData = {
     width: 1920,
     height: 1080
   },
-  gameObjects: [
-    {
+  gameObjects: {
+    "e078df39-1caf-495f-b9c6-a38c137935b5": {
       id: "player",
       visible: true,
       x: 660,
@@ -41,7 +41,7 @@ const project: ProjectData = {
   deltaTime = await tick();
 }`
     },
-    {
+    "e551325f-650c-40bd-8cd4-1cd77d5aa076": {
       id: "bee",
       visible: true,
       x: 1260,
@@ -62,7 +62,7 @@ const project: ProjectData = {
   deltaTime = await tick();
 }`
     }
-  ]
+  }
 }
 
 export default project

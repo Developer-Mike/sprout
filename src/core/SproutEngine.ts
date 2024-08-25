@@ -21,7 +21,7 @@ export default class SproutEngine {
         // Clear canvas
         ctx.clearRect(0, 0, data.stage.width, data.stage.height);
 
-        const gameObjects = data.gameObjects
+        const gameObjects = Object.values(data.gameObjects)
           .filter(gameObject => gameObject.visible)
           .sort((a, b) => a.layer - b.layer);
 
@@ -89,7 +89,7 @@ export default class SproutEngine {
 
     const optimizedSprites = Object.fromEntries(
       Object.entries(data.sprites)
-        .filter(([key, _value]) => data.gameObjects.some(gameObject => gameObject.sprites.includes(key)))
+        .filter(([key, _value]) => Object.values(data.gameObjects).some(gameObject => gameObject.sprites.includes(key)))
     )
 
     // Add game objects
@@ -97,12 +97,12 @@ export default class SproutEngine {
       const runningCache = {
         sprites: ${JSON.stringify(optimizedSprites)},
         stage: ${JSON.stringify(data.stage)},
-        gameObjects: ${JSON.stringify(data.gameObjects)}
+        gameObjects: ${JSON.stringify(Object.values(data.gameObjects))}
       };
     `
 
     // Add game objects' code
-    data.gameObjects.forEach(gameObject => {
+    Object.values(data.gameObjects).forEach(gameObject => {
       // TODO: Add tick when while loop
 
       code += `

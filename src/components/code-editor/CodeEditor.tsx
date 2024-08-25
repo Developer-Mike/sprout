@@ -1,13 +1,11 @@
 import { ProjectContext } from "@/ProjectContext"
 import styles from "@/components/code-editor/CodeEditor.module.scss"
 import { Editor, useMonaco } from "@monaco-editor/react"
-import type monaco from 'monaco-editor'
-import { useContext, useEffect, useRef } from "react"
+import { useContext, useEffect } from "react"
 
 export default function CodeEditor() {
   const { project } = useContext(ProjectContext)
 
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
   const monaco = useMonaco()
   useEffect(() => {
     if (!monaco) return
@@ -34,38 +32,38 @@ export default function CodeEditor() {
   }, [monaco])
 
   const onCodeChange = async () => {
-    const code = editorRef.current?.getValue()
+    const code = monaco?.editor?.getValue()
     if (!code) return
 
+    console.log(code)
+
+    /*
     await project.updateData(null, data => {
       data.gameObjects[project.activeGameObjectIndex].code = code
     })
+    */
   }
 
   useEffect(() => {
-    const code = document.getElementById(styles.codeEditor) as HTMLDivElement
-    if (!code) return
 
-    onCodeChange()
-  }, [project, project.data.workspace.selectedGameObjectId, project.activeGameObject.code])
+  }, [project, project.data.workspace.selectedGameObjectKey, project.selectedGameObject?.code])
 
   return (
     <div id={styles.codeEditorContainer}>
-      <Editor onMount={editor => editorRef.current = editor}
+      <Editor
         options={{ 
           padding: { top: 10 },
           minimap: { enabled: false }
         }}
         theme="sproutTheme"
         language="javascript"
-        value={project.activeGameObject.code}
         onChange={onCodeChange}
       />
 
       <img id={styles.gameObjectPreview} 
         src={project.data.sprites[
-          project.activeGameObject.sprites[
-            project.activeGameObject.activeSprite
+          project.selectedGameObject.sprites[
+            project.selectedGameObject.activeSprite
           ]
         ]}
       />

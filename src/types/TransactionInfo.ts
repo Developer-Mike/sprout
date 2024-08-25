@@ -24,23 +24,21 @@
 export default class TransactionInfo {
   type: TransactionType
   category: TransactionCategory
-  affectedGameObjectId: string | null
+  affectedGameObjectKey: string | null
   transactionId: string
-  alwaysUnique: boolean
 
-  constructor(type: TransactionType, category: TransactionCategory, affectedGameObjectId: string | null, transactionId: string, alwaysUnique: boolean = false) {
+  constructor(type: TransactionType, category: TransactionCategory, affectedGameObjectKey: string | null, transactionId: string) {
     this.type = type
     this.category = category
-    this.affectedGameObjectId = affectedGameObjectId
+    this.affectedGameObjectKey = affectedGameObjectKey
     this.transactionId = transactionId
-    this.alwaysUnique = alwaysUnique
   }
 
   canBeCombined(other: TransactionInfo): boolean {
-    return !this.alwaysUnique && !other.alwaysUnique &&
-      this.type === other.type && 
-      this.category === other.category && 
-      this.affectedGameObjectId === other.affectedGameObjectId && 
+    return this.type !== TransactionType.Unique && other.type !== TransactionType.Unique &&
+      this.type === other.type &&
+      this.category === other.category &&
+      this.affectedGameObjectKey === other.affectedGameObjectKey &&
       this.transactionId === other.transactionId
   }
 
@@ -60,7 +58,10 @@ export default class TransactionInfo {
       if (oldValue < newValue) return TransactionType.Add
       else if (oldValue > newValue) return TransactionType.Remove
     } else {
-      if (oldValue.toString().length < newValue.toString().length) return TransactionType.Add
+      // Paste and mass delete operations are considered unique
+      if (Math.abs(oldValue.toString().length - newValue.toString().length) > 1) return TransactionType.Unique
+
+      else if (oldValue.toString().length < newValue.toString().length) return TransactionType.Add
       else if (oldValue.toString().length > newValue.toString().length) return TransactionType.Remove
     }
     
@@ -69,6 +70,7 @@ export default class TransactionInfo {
 }
 
 export enum TransactionType {
+  Unique = "unique",
   Add = "add",
   Update = "update",
   Remove = "remove"

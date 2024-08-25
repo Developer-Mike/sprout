@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import SproutEngine from "./SproutEngine"
-import { ProjectData } from "../types/ProjectData"
+import { GameObjectData, ProjectData } from "../types/ProjectData"
 import FSHelper, { ExtendedFileHandle } from "@/utils/fs-helper"
 import DBHelper from "@/utils/db-helper"
 import PROJECT_TEMPLATES from "./project-templates/project-templates"
@@ -49,7 +49,7 @@ export default class Project {
       setDataState(data)
     })
     this.updateData = async (transaction: (data: ProjectData) => void) => {
-      const newData = JSON.parse(JSON.stringify(this.data))
+      const newData: ProjectData = JSON.parse(JSON.stringify(this.data))
       transaction(newData)
 
       return Project.setData(newData)
@@ -93,11 +93,11 @@ export default class Project {
     this.addToHistory(transactionInfo)
   }
 
-  getGameObjectIndex(id: string) { return this.data.gameObjects.findIndex(gameObject => gameObject.id === id) }
-  get activeGameObjectIndex() { return this.getGameObjectIndex(this.data.workspace.selectedGameObjectId) }
-  get activeGameObject() {
-    return this.data.gameObjects[this.activeGameObjectIndex]
-      ?? this.data.gameObjects[0]
+  get selectedGameObjectKey(): string { 
+    return this.data.workspace.selectedGameObjectKey 
+  }
+  get selectedGameObject(): GameObjectData {
+    return this.data.gameObjects[this.selectedGameObjectKey]
   }
 
   get runningInstanceId(): string | null { return Project.runningInstanceId }
@@ -171,6 +171,16 @@ export default class Project {
     promise.finally(() => Project.setIsLoading(false))
   }
 
+  getNewGameObjectKey() {
+    let key: string | null = null
+
+    while (!key || key in this.data.gameObjects) {
+      key = crypto.randomUUID()
+    }
+
+    return key
+  }
+
   //#region History methods
   readonly MAX_HISTORY_LENGTH = 100
   historyIndex = 0
@@ -201,15 +211,38 @@ export default class Project {
     this.historyIndex = this.history.length - 1
   }
 
-  // TODO: Don't change data of the CodeEditor (It will have its own undo/redo system)
+  // Don't change data of the CodeEditor (It has its own undo/redo system)
+  private transferCodeValues(data: ProjectData) {
+    const newData = data
+
+    for (const key of Object.keys(newData.gameObjects)) {
+      const oldCode = this.data.gameObjects[key]?.code
+      if (!oldCode) continue
+
+      newData.gameObjects[key].code = oldCode
+    }
+
+    return newData
+  }
+
   undo() {
     if (this.historyIndex === 0) return
-    Project.setData(this.history[--this.historyIndex].data)
+    this.historyIndex--
+
+    let newData = this.history[this.historyIndex].data
+    newData = this.transferCodeValues(newData)
+
+    Project.setData(newData)
   }
 
   redo() {
     if (this.historyIndex === this.history.length - 1) return
-    Project.setData(this.history[++this.historyIndex].data)
+    this.historyIndex++
+
+    let newData = this.history[this.historyIndex].data
+    newData = this.transferCodeValues(newData)
+
+    Project.setData(newData)
   }
   //#endregion
 

@@ -25,67 +25,64 @@ export default function GameObjectsPane() {
   const [aspectRatioCache, setAspectRatioCache] = useState(1)
 
   useEffect(() => {
-    setAspectRatioCache(project.activeGameObject.width / Math.max(1, project.activeGameObject.height))
-  }, [project.data.workspace.selectedGameObjectId])
+    setAspectRatioCache(project.selectedGameObject.width / Math.max(1, project.selectedGameObject.height))
+  }, [project.data.workspace.selectedGameObjectKey])
 
   return (
     <>
       <div id={styles.gameObjectProperties}>
-        <LabeledTextInput label={t("id")} value={project.activeGameObject.id}
+        <LabeledTextInput label={t("id")} value={project.selectedGameObject.id}
           makeValid={value => IdHelper.makeIdValid(value)}
-          isValidValue={value => IdHelper.isValidId(value, project.data.gameObjects.filter(gameObject => project.activeGameObject.id !== gameObject.id).map(gameObject => gameObject.id))}
+          isValidValue={value => IdHelper.isValidId(value, Object.values(project.data.gameObjects).map(gameObject => gameObject.id).filter(id => id !== project.selectedGameObject.id))}
           onChange={value => {
             const newId = value.trim()
-            if (newId === project.activeGameObject.id) return
+            if (newId === project.selectedGameObject.id) return
 
             project.updateData(
               new TransactionInfo(
-                TransactionInfo.getType(project.activeGameObject.id, newId),
+                TransactionInfo.getType(project.selectedGameObject.id, newId),
                 TransactionCategory.GameObjectProperty,
-                project.activeGameObject.id, "id"
+                project.selectedGameObjectKey, "id"
               ),
-              data => {
-                data.workspace.selectedGameObjectId = newId
-                data.gameObjects[project.activeGameObjectIndex].id = newId
-              }
+              data => { data.gameObjects[project.selectedGameObjectKey].id = newId }
             )
           }}
         />
 
-        <LabeledNumberInput label={t("layer")} value={project.activeGameObject.layer} precision={0} onChange={(newLayer, inputType) => project.updateData(
-          inputType === InputType.Dragging ? null : new TransactionInfo(TransactionInfo.getType(project.activeGameObject.layer, newLayer), TransactionCategory.GameObjectProperty, project.activeGameObject.id, "layer", inputType === InputType.Dragged),
-          data => { data.gameObjects[project.activeGameObjectIndex].layer = newLayer }
+        <LabeledNumberInput label={t("layer")} value={project.selectedGameObject.layer} precision={0} onChange={(newLayer, inputType) => project.updateData(
+          inputType === InputType.Dragging ? null : new TransactionInfo(inputType === InputType.Dragged ? TransactionType.Unique : TransactionInfo.getType(project.selectedGameObject.layer, newLayer), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "layer"),
+          data => { data.gameObjects[project.selectedGameObjectKey].layer = newLayer }
         )} />
 
-        <LabeledBooleanInput label={t("visible")} value={project.activeGameObject.visible} onChange={newIsVisible => project.updateData(
-          new TransactionInfo(TransactionType.Update, TransactionCategory.GameObjectProperty, project.activeGameObject.id, "visible"),
-          data => { data.gameObjects[project.activeGameObjectIndex].visible = newIsVisible }
+        <LabeledBooleanInput label={t("visible")} value={project.selectedGameObject.visible} onChange={newIsVisible => project.updateData(
+          new TransactionInfo(TransactionType.Update, TransactionCategory.GameObjectProperty, project.selectedGameObject.id, "visible"),
+          data => { data.gameObjects[project.selectedGameObjectKey].visible = newIsVisible }
         )} />
 
-        <LabeledNumberInput label={t("x")} value={project.activeGameObject.x} precision={0} onChange={(newX, inputType) => project.updateData(
-          inputType === InputType.Dragging ? null : new TransactionInfo(TransactionInfo.getType(project.activeGameObject.x, newX), TransactionCategory.GameObjectProperty, project.activeGameObject.id, "x", inputType === InputType.Dragged),
-          data => { data.gameObjects[project.activeGameObjectIndex].x = newX }
+        <LabeledNumberInput label={t("x")} value={project.selectedGameObject.x} precision={0} onChange={(newX, inputType) => project.updateData(
+          inputType === InputType.Dragging ? null : new TransactionInfo(inputType === InputType.Dragged ? TransactionType.Unique : TransactionInfo.getType(project.selectedGameObject.x, newX), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "x"),
+          data => { data.gameObjects[project.selectedGameObjectKey].x = newX }
         )} />
 
-        <LabeledNumberInput label={t("y")} value={project.activeGameObject.y} precision={0} onChange={(newY, inputType) => project.updateData(
-          inputType === InputType.Dragging ? null : new TransactionInfo(TransactionInfo.getType(project.activeGameObject.y, newY), TransactionCategory.GameObjectProperty, project.activeGameObject.id, "y", inputType === InputType.Dragged),
-          data => { data.gameObjects[project.activeGameObjectIndex].y = newY }
+        <LabeledNumberInput label={t("y")} value={project.selectedGameObject.y} precision={0} onChange={(newY, inputType) => project.updateData(
+          inputType === InputType.Dragging ? null : new TransactionInfo(inputType === InputType.Dragged ? TransactionType.Unique : TransactionInfo.getType(project.selectedGameObject.y, newY), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "y"),
+          data => { data.gameObjects[project.selectedGameObjectKey].y = newY }
         )} />
 
-        <LabeledNumberInput label={t("rotation")} value={project.activeGameObject.rotation} precision={2} onChange={(value, inputType) => {
+        <LabeledNumberInput label={t("rotation")} value={project.selectedGameObject.rotation} precision={2} onChange={(value, inputType) => {
           const newRotation = inputType === InputType.Dragging ? (value > 0 ? value : 360 + value) % 360 : value
 
           project.updateData(
             // Use the raw value to calculate the type to avoid the modulo operation
-            inputType === InputType.Dragging ? null : new TransactionInfo(TransactionInfo.getType(project.activeGameObject.rotation, value), TransactionCategory.GameObjectProperty, project.activeGameObject.id, "rotation", inputType === InputType.Dragged),
-            data => { data.gameObjects[project.activeGameObjectIndex].rotation = newRotation }
+            inputType === InputType.Dragging ? null : new TransactionInfo(inputType === InputType.Dragged ? TransactionType.Unique : TransactionInfo.getType(project.selectedGameObject.rotation, value), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "rotation"),
+            data => { data.gameObjects[project.selectedGameObjectKey].rotation = newRotation }
           )
         }} />
 
-        <LabeledNumberInput label={t("width")} value={project.activeGameObject.width} precision={2} onChange={(newWidth, inputType) => {
-          const oldWidth = project.data.gameObjects[project.activeGameObjectIndex].width
-          const oldHeight = project.data.gameObjects[project.activeGameObjectIndex].height
-          let newHeight = project.data.gameObjects[project.activeGameObjectIndex].height
+        <LabeledNumberInput label={t("width")} value={project.selectedGameObject.width} precision={2} onChange={(newWidth, inputType) => {
+          const oldWidth = project.selectedGameObject.width
+          const oldHeight = project.selectedGameObject.height
+          let newHeight = project.selectedGameObject.height
 
            if (linkedScalingEnabled) {
             if (oldWidth == 0) newHeight = newWidth * (1 / aspectRatioCache)
@@ -97,10 +94,10 @@ export default function GameObjectsPane() {
           }
 
           project.updateData(
-            inputType === InputType.Dragging ? null : new TransactionInfo(TransactionInfo.getType(oldWidth, newWidth), TransactionCategory.GameObjectProperty, project.activeGameObject.id, "width", inputType === InputType.Dragged),
+            inputType === InputType.Dragging ? null : new TransactionInfo(inputType === InputType.Dragged ? TransactionType.Unique : TransactionInfo.getType(oldWidth, newWidth), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "width"),
             data => {
-              data.gameObjects[project.activeGameObjectIndex].width = newWidth
-              if (linkedScalingEnabled) data.gameObjects[project.activeGameObjectIndex].height = newHeight
+              data.gameObjects[project.selectedGameObjectKey].width = newWidth
+              if (linkedScalingEnabled) data.gameObjects[project.selectedGameObjectKey].height = newHeight
             }
           )
         }} />
@@ -109,10 +106,10 @@ export default function GameObjectsPane() {
           <Icon iconId={linkedScalingEnabled ? "link" : "link_off"} />
         </div>
 
-        <LabeledNumberInput label={t("height")} value={project.activeGameObject.height} precision={2} onChange={(newHeight, inputType) => {
-          const oldHeight = project.data.gameObjects[project.activeGameObjectIndex].height
-          const oldWidth = project.data.gameObjects[project.activeGameObjectIndex].width
-          let newWidth = project.data.gameObjects[project.activeGameObjectIndex].width
+        <LabeledNumberInput label={t("height")} value={project.selectedGameObject.height} precision={2} onChange={(newHeight, inputType) => {
+          const oldHeight = project.selectedGameObject.height
+          const oldWidth = project.selectedGameObject.width
+          let newWidth = project.selectedGameObject.width
 
           if (linkedScalingEnabled) {
             if (oldHeight == 0) newWidth = newHeight * aspectRatioCache
@@ -124,10 +121,10 @@ export default function GameObjectsPane() {
           }
 
           project.updateData(
-            inputType === InputType.Dragging ? null : new TransactionInfo(TransactionInfo.getType(oldHeight, newHeight), TransactionCategory.GameObjectProperty, project.activeGameObject.id, "height", inputType === InputType.Dragged),
+            inputType === InputType.Dragging ? null : new TransactionInfo(inputType === InputType.Dragged ? TransactionType.Unique : TransactionInfo.getType(oldHeight, newHeight), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "height"),
             data => {
-              data.gameObjects[project.activeGameObjectIndex].height = newHeight
-              if (linkedScalingEnabled) data.gameObjects[project.activeGameObjectIndex].width = newWidth
+              data.gameObjects[project.selectedGameObjectKey].height = newHeight
+              if (linkedScalingEnabled) data.gameObjects[project.selectedGameObjectKey].width = newWidth
             }
           )
         }} />
@@ -135,8 +132,8 @@ export default function GameObjectsPane() {
         <div id={styles.resetScale} onClick={() => {
           const sprite = new Image()
           sprite.src = project.data.sprites[
-            project.data.gameObjects[project.activeGameObjectIndex]
-              .sprites[project.data.gameObjects[project.activeGameObjectIndex].activeSprite]
+            project.selectedGameObject
+              .sprites[project.selectedGameObject.activeSprite]
           ]
 
           const [newWidth, newHeight] = [
@@ -150,11 +147,11 @@ export default function GameObjectsPane() {
             new TransactionInfo(
               TransactionType.Update, 
               TransactionCategory.GameObjectProperty, 
-              project.activeGameObject.id, "reset-scale"
+              project.selectedGameObjectKey, "reset-scale"
             ),
             data => {
-              data.gameObjects[project.activeGameObjectIndex].width = newWidth
-              data.gameObjects[project.activeGameObjectIndex].height = newHeight
+              data.gameObjects[project.selectedGameObjectKey].width = newWidth
+              data.gameObjects[project.selectedGameObjectKey].height = newHeight
             }
           )
         }}>
@@ -163,22 +160,27 @@ export default function GameObjectsPane() {
       </div>
       
       <DraggableLayout.Root id={styles.gameObjectList}>
-        { project.data.gameObjects.map((gameObject, index) => (
-          <DraggableLayout.Item key={gameObject.id} onDraggedClassName={namedSpriteListItemStyles.dragging} onDragged={targetIndex => project.updateData(
-            new TransactionInfo(TransactionType.Update, TransactionCategory.GameObjectList, gameObject.id, "reorder"),
+        { Object.entries(project.data.gameObjects).map(([gameObjectKey, gameObject]) => (
+          <DraggableLayout.Item key={gameObjectKey} onDraggedClassName={namedSpriteListItemStyles.dragging} onDragged={targetIndex => project.updateData(
+            new TransactionInfo(TransactionType.Update, TransactionCategory.GameObjectList, gameObjectKey, "reorder"),
             data => {
-              const temp = data.gameObjects.splice(index, 1)[0]
-              data.gameObjects.splice(targetIndex, 0, temp)
+              const entries = Object.entries(data.gameObjects)
+              const index = entries.findIndex(([key, _]) => key === gameObjectKey)
+
+              const targetEntry = entries.splice(index, 1)[0]
+              entries.splice(targetIndex, 0, targetEntry)
+
+              data.gameObjects = Object.fromEntries(entries)
             }
           )}>
             <NamedSpriteListItem
               label={gameObject.id}
               src={project.data.sprites[gameObject.sprites[gameObject.activeSprite]] ?? BLANK_IMAGE}
               onClick={() => project.updateData(
-                new TransactionInfo(TransactionType.Update, TransactionCategory.GameObjectList, gameObject.id, "select"),
-                data => { data.workspace.selectedGameObjectId = gameObject.id }
+                new TransactionInfo(TransactionType.Update, TransactionCategory.GameObjectList, gameObjectKey, "select"),
+                data => { data.workspace.selectedGameObjectKey = gameObjectKey }
               )}
-              isFocused={project.data.workspace.selectedGameObjectId === gameObject.id}
+              isFocused={project.data.workspace.selectedGameObjectKey === gameObjectKey}
               onDelete={() => showDialog({
                 id: "delete-game-object-dialog",
                 title: t("delete-game-object-dialog.title"),
@@ -198,13 +200,17 @@ export default function GameObjectsPane() {
                         new TransactionInfo(
                           TransactionType.Remove,
                           TransactionCategory.GameObjectList,
-                          gameObject.id, "delete"
+                          gameObjectKey, "delete"
                         ),
                         data => {
-                          data.gameObjects.splice(index, 1)
-                          data.workspace.selectedGameObjectId = data.gameObjects[index]?.id 
-                            ?? data.gameObjects[index - 1]?.id 
-                            ?? data.gameObjects[0]?.id
+                          const gameObjectKeys = Object.keys(data.gameObjects)
+                          const selectionIndex = gameObjectKeys.indexOf(gameObjectKey)
+
+                          delete data.gameObjects[gameObjectKey]
+                          data.workspace.selectedGameObjectKey = gameObjectKeys[selectionIndex] ?? 
+                            gameObjectKeys[selectionIndex - 1] ?? 
+                            gameObjectKeys[0] 
+                            ?? null
                         }
                       )
                     }
@@ -226,21 +232,22 @@ function CreateGameObjectButton({ t, project }: {
   project: Project
 }) {
   const createNewGameObject = () => {
+    const newGameObjectKey = project.getNewGameObjectKey()
     const newGameObject = DEFAULT_GAME_OBJECT
     newGameObject.id = IdHelper.generateId(
       t("default-game-object-id"),
-      project.data.gameObjects.map(gameObject => gameObject.id)
+      Object.values(project.data.gameObjects).map(gameObject => gameObject.id)
     )
 
     project.updateData(
       new TransactionInfo(
         TransactionType.Add,
         TransactionCategory.GameObjectList,
-        newGameObject.id, "create"
+        newGameObjectKey, "create"
       ),
       data => {
-        data.gameObjects.push(newGameObject)
-        data.workspace.selectedGameObjectId = newGameObject.id
+        data.gameObjects[newGameObjectKey] = newGameObject
+        data.workspace.selectedGameObjectKey = newGameObjectKey
       }
     )
   }

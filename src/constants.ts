@@ -1,6 +1,8 @@
+import { GameObjectData } from "./types/ProjectData"
+
 export const BLANK_IMAGE = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
 export const DEFAULT_GAME_OBJECT_SIZE = 32
-export const DEFAULT_GAME_OBJECT = {
+export const DEFAULT_GAME_OBJECT: GameObjectData = {
   id: "",
   visible: true,
   x: 0,

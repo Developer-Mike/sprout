@@ -17,35 +17,35 @@ export default function SpritesTab() {
 
   useEffect(() => {
     setIsSpriteLibraryVisible(false)
-  }, [project, project.activeGameObjectIndex])
+  }, [project, project.selectedGameObjectKey])
 
   return (
     <div id={styles.spritesTab}>
       <DraggableLayout.Root id={styles.gameObjectSprites} className={styles.spritesGrid}>
-        { project.activeGameObject.sprites.map((sprite, index) => (
+        { project.selectedGameObject.sprites.map((sprite, index) => (
           <DraggableLayout.Item key={index} onDraggedClassName={namedSpriteListItemStyles.dragging} onDragged={targetIndex => project.updateData(
-            new TransactionInfo(TransactionType.Update, TransactionCategory.GameObjectProperty, project.activeGameObject.id, "reorder-sprites", true),
+            new TransactionInfo(TransactionType.Unique, TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "reorder-sprites"),
             data => {
-              const temp = data.gameObjects[project.activeGameObjectIndex].sprites.splice(index, 1)[0]
-              data.gameObjects[project.activeGameObjectIndex].sprites.splice(targetIndex, 0, temp)
+              const temp = data.gameObjects[project.selectedGameObjectKey].sprites.splice(index, 1)[0]
+              data.gameObjects[project.selectedGameObjectKey].sprites.splice(targetIndex, 0, temp)
             }
           )}>
             <NamedSpriteListItem
               label={sprite}
               src={project.data.sprites[sprite]}
               onClick={() => project.updateData(
-                new TransactionInfo(TransactionType.Update, TransactionCategory.GameObjectProperty, project.activeGameObject.id, "active-sprite"),
-                data => data.gameObjects[project.activeGameObjectIndex].activeSprite = index
+                new TransactionInfo(TransactionType.Update, TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "active-sprite"),
+                data => data.gameObjects[project.selectedGameObjectKey].activeSprite = index
               )}
-              isFocused={project.activeGameObject.activeSprite === index}
+              isFocused={project.selectedGameObject.activeSprite === index}
               onDelete={() => project.updateData(
-                new TransactionInfo(TransactionType.Remove, TransactionCategory.GameObjectProperty, project.activeGameObject.id, "remove-sprite", true),
+                new TransactionInfo(TransactionType.Unique, TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "remove-sprite"),
                 data => {
-                  data.gameObjects[project.activeGameObjectIndex].sprites.splice(index, 1)
+                  data.gameObjects[project.selectedGameObjectKey].sprites.splice(index, 1)
 
                   // If the last sprite was removed, set the active sprite to the last one
-                  if (data.gameObjects[project.activeGameObjectIndex].activeSprite >= data.gameObjects[project.activeGameObjectIndex].sprites.length) {
-                    data.gameObjects[project.activeGameObjectIndex].activeSprite = data.gameObjects[project.activeGameObjectIndex].sprites.length - 1
+                  if (data.gameObjects[project.selectedGameObjectKey].activeSprite >= data.gameObjects[project.selectedGameObjectKey].sprites.length) {
+                    data.gameObjects[project.selectedGameObjectKey].activeSprite = data.gameObjects[project.selectedGameObjectKey].sprites.length - 1
                   }
                 }
               )}
@@ -65,8 +65,8 @@ export default function SpritesTab() {
           setIsSpriteLibraryVisible(false)
 
           project.updateData(
-            new TransactionInfo(TransactionType.Update, TransactionCategory.GameObjectProperty, project.activeGameObject.id, "add-sprite", true),
-            data => data.gameObjects[project.activeGameObjectIndex].sprites.push(sprite)
+            new TransactionInfo(TransactionType.Unique, TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "add-sprite"),
+            data => data.gameObjects[project.selectedGameObjectKey].sprites.push(sprite)
           )
         }}
         onCancel={() => setIsSpriteLibraryVisible(false)}

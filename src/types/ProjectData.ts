@@ -5,12 +5,12 @@ export interface ProjectData {
   sprites: { [id: string]: string }
 
   stage: StageData
-  gameObjects: GameObjectData[]
+  gameObjects: { [key: string]: GameObjectData }
 }
 
 export interface WorkspaceData {
-  selectedGameObjectId: string
-  selectedLibrarySpriteId: string | null
+  selectedGameObjectKey: string
+  selectedLibrarySpriteKey: string | null
 
   advanced?: boolean
 }

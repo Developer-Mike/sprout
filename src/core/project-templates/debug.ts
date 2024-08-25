@@ -3,8 +3,8 @@ import { ProjectData } from "@/types/ProjectData"
 const project: ProjectData = {
   title: "Debug Project",
   workspace: {
-    selectedGameObjectId: "player",
-    selectedLibrarySpriteId: null,
+    selectedGameObjectKey: "player",
+    selectedLibrarySpriteKey: null,
     advanced: true
   },
   sprites: {
