@@ -63,6 +63,7 @@ npm run dev
 - [ ] Rework game object scaling (width and factor for height) -> Fix different scaling for different sprites
 - [ ] Add absolute identifiers to project paths -> Fix project with same filename not visible in the projects overview
 - [ ] Fix rotation of game objects causing other game objects to move
+- [ ] Fix deletion of all game objects causing null value of selected object key
 - [ ] Create the Lexer and the Parser for the programming language
   - [ ] Add implemented functions to the engine
   - [ ] Add documentation for the programming language

@@ -15,3 +15,5 @@ export const DEFAULT_GAME_OBJECT: GameObjectData = {
   activeSprite: 0,
   code: ""
 }
+
+export const SPROUT_LANGUAGE_KEY = "javascript"
