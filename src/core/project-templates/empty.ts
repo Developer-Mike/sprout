@@ -3,7 +3,7 @@ import { ProjectData } from "@/types/ProjectData"
 const project: ProjectData = {
   title: "New Project",
   workspace: {
-    selectedGameObjectKey: "player",
+    selectedGameObjectKey: "be3f9532-5c1c-4a54-b97e-667e8a19bd91",
     selectedLibrarySpriteKey: null
   },
   sprites: {
@@ -13,8 +13,8 @@ const project: ProjectData = {
     width: 1920,
     height: 1080
   },
-  gameObjects: [
-    {
+  gameObjects: {
+    "be3f9532-5c1c-4a54-b97e-667e8a19bd91": {
       id: "player",
       visible: true,
       x: 960,
@@ -29,7 +29,7 @@ const project: ProjectData = {
       activeSprite: 0,
       code: ""
     }
-  ]
+  }
 }
 
 export default project
