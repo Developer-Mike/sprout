@@ -59,11 +59,6 @@ npm run dev
 - [x] Only add LabeledNumberInput change to history after the user stops dragging
 - [x] Add undo/redo to the navbar
 - [x] Always save project before rerouting
-- [ ] Add warning if not using Chrome
-- [ ] Rework game object scaling (width and factor for height) -> Fix different scaling for different sprites
-- [ ] Add absolute identifiers to project paths -> Fix project with same filename not visible in the projects overview
-- [ ] Fix rotation of game objects causing other game objects to move
-- [ ] Fix deletion of all game objects causing null value of selected object key
 - [ ] Create the Lexer and the Parser for the programming language
   - [ ] Add implemented functions to the engine
   - [ ] Add documentation for the programming language
@@ -72,6 +67,12 @@ npm run dev
   - [ ] (If time allows) Add error messages and explanations
 - [ ] Create some example games
   - [ ] Add the ability to add information text to the documentation sidebar
+- [ ] Add warning if not using Chrome
+- [ ] Bugfixes
+  - [ ] Rework game object scaling (width and factor for height) -> Fix different scaling for different sprites
+  - [ ] Add absolute identifiers to project paths -> Fix project with same filename not visible in the projects overview
+  - [ ] Fix rotation of game objects causing other game objects to move
+  - [ ] Fix deletion of all game objects causing null value of selected object key
 - [ ] (If time allows) Add the ability to add plugins (security risk)
 - [ ] (If time allows) Add export of the games to standalone websites
 - [ ] (Out of scope) Create tool for simple image editing of sprites
