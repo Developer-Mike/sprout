@@ -24,18 +24,21 @@ export default function ProjectsOverview() {
     setRecentProjects(recentProjects)
   })() }, [])
 
-  const openRecentProject = async (path: string) => {
-    const hasPermission = await Project.refreshPermissionOfRecentProject(path)
-    if (hasPermission) return router.push(`/builder?project=${encodeURI(path)}`)
-
-    // TODO: Show a dialog that the user cancelled the permission request
+  const openRecentProject = async (id: string) => {
+    const hasPermission = await Project.refreshPermissionOfRecentProject(id)
+    if (!hasPermission) {
+      // TODO: Show a dialog that the user cancelled the permission request
+      return
+    }
+      
+    router.push(`/builder?project=${encodeURI(id)}`)
   }
 
   const openProjectFromFS = async () => {
-    const path = await Project.addToRecent()
-    if (!path) return
+    const id = await DBHelper.addToRecentFromFS()
+    if (!id) return
 
-    router.push(`/builder?project=${path}`)
+    router.push(`/builder?project=${encodeURI(id)}`)
   }
 
   return (
@@ -52,7 +55,7 @@ export default function ProjectsOverview() {
 
           <div className={styles.projectsGrid}>
             { recentProjects.map(project => (
-              <div key={project.path} className={styles.projectCard} onClick={() => openRecentProject(project.path)}>
+              <div key={project.id} className={styles.projectCard} onClick={() => openRecentProject(project.id)}>
                 <img className={styles.projectThumbnail} src={project.thumbnail} />
                 <h2 className={styles.projectTitle}>{project.title}</h2>
               </div>

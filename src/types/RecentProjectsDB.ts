@@ -4,7 +4,7 @@ export interface RecentProjectsDB extends DBSchema {
   projects: {
     key: string
     value: {
-      path: string
+      id: string
       title: string
       thumbnail: string
       lastEdited: number

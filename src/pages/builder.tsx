@@ -47,10 +47,10 @@ export default function Builder() {
   useEffect(() => { (async () => {
     if (!router.isReady) return
 
-    const projectPath = router.query.project as string | undefined
+    const projectId = router.query.project as string | undefined
     const projectTemplate = router.query.template as string | undefined
 
-    if (!projectPath && !projectTemplate) {
+    if (!projectId && !projectTemplate) {
       router.push("/projects-overview")
       return
     }
@@ -60,11 +60,11 @@ export default function Builder() {
       if (!project) project = Project.loadFromTemplate("empty")
 
       _setProject(project)
-    } else if (projectPath) {
+    } else if (projectId) {
       // TODO: Show dialog for user gesture if the project was directly opened by the link without visiting the projects overview page
       // TODO: Show invalid project dialog if the file isn't a valid project
       // TODO: Redirect back if the project doesn't exist
-      const project = await Project.loadFromRecent(projectPath)
+      const project = await Project.loadFromRecent(projectId)
       
       if (project) _setProject(project)
       else router.push("/projects-overview") // TODO: showInvalidProjectDialog(projectPath)

@@ -106,27 +106,16 @@ export default class Project {
   //#endregion
 
   //#region Static factory methods
-  static async addToRecent(): Promise<string | null> {
-    const fileHandle = await FSHelper.openFile(window, [FSHelper.SPROUT_PROJECT_TYPE])
-    if (!fileHandle) return null
-
-    const file = await fileHandle.getFile()
-    const data = JSON.parse(await file.text())
-
-    DBHelper.addRecentProject(fileHandle.name, data.title, fileHandle)
-    return fileHandle.name
-  }
-
-  static async refreshPermissionOfRecentProject(path: string): Promise<Boolean> {
-    const fileHandle = await DBHelper.getHandlerForRecentProject(path)
+  static async refreshPermissionOfRecentProject(id: string): Promise<Boolean> {
+    const fileHandle = await DBHelper.getHandlerForRecentProject(id)
     if (!fileHandle) return false
     
     const permissionStatus = await (fileHandle as ExtendedFileHandle).requestPermission({ mode: "readwrite" })
     return permissionStatus === "granted"
   }
 
-  static async loadFromRecent(path: string): Promise<Project | null> {
-    const fileHandle = await DBHelper.getHandlerForRecentProject(path)
+  static async loadFromRecent(projectId: string): Promise<Project | null> {
+    const fileHandle = await DBHelper.getHandlerForRecentProject(projectId)
     if (!fileHandle) return null
 
     let data: ProjectData
@@ -138,7 +127,7 @@ export default class Project {
       return null
     }
 
-    return new Project(data, fileHandle)
+    return new Project(data, projectId, fileHandle)
   }
 
   static loadFromTemplate(id: keyof typeof PROJECT_TEMPLATES): Project | null {
@@ -149,8 +138,9 @@ export default class Project {
   }
   //#endregion
 
-  constructor(data: ProjectData, fileHandler: FileSystemFileHandle | null = null) {
+  constructor(data: ProjectData, projectId: string | null = null, fileHandler: FileSystemFileHandle | null = null) {
     // Create link to fs file and copy data
+    this.projectId = projectId
     this.fileHandler = fileHandler
     this.setUnsavedChanges(!this.fileHandler)
 
@@ -271,6 +261,7 @@ export default class Project {
   //#endregion
 
   //#region Save and export methods
+  projectId: string | null = null
   fileHandler: FileSystemFileHandle | null = null
 
   createAutosaveInterval(canvasRef: React.MutableRefObject<HTMLCanvasElement | null>) {
@@ -285,24 +276,21 @@ export default class Project {
     return () => clearInterval(interval)
   }
 
-  async updateRecentProjectEntry(canvas: HTMLCanvasElement | null) {
-    if (!this.fileHandler) return
-    await DBHelper.updateRecentProject(this.fileHandler.name, this.data.title, canvas?.toDataURL() ?? null)
-  }
-
   async saveToFS(canvas: HTMLCanvasElement | null, isAutosave: boolean = false) {
     // If fileHandler is null and this is not an autosave, prompt user to save
     if (!this.fileHandler && !isAutosave) {
       this.fileHandler = await FSHelper.saveFile(window, this.data.title, [FSHelper.SPROUT_PROJECT_TYPE])
 
       if (!this.fileHandler) return
-      DBHelper.addRecentProject(this.fileHandler.name, this.data.title, this.fileHandler)
-    } else {
-      if (!this.fileHandler) return // FileHandler is still null
-
+      DBHelper.addRecentProject(this.data.title, this.fileHandler).then(id => this.projectId = id)
+    } else if (this.fileHandler) {
       // Update recent project entry
-      await this.updateRecentProjectEntry(canvas)
+      if (!this.projectId) return
+      DBHelper.updateRecentProject(this.projectId, this.data.title, canvas?.toDataURL() ?? null)
     }
+
+    // If autosave and no fileHandler, don't save
+    if (!this.fileHandler) return
 
     // fileHandler is now guaranteed to be non-null
     this.setIsSaving(true)

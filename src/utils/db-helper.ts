@@ -1,5 +1,6 @@
 import { RecentProjectsDB } from "@/types/RecentProjectsDB"
 import { IDBPDatabase, openDB, StoreValue } from "idb"
+import FSHelper from "./fs-helper"
 
 const EMPTY_THUMBNAIL = "/empty-thumbnail.svg"
 
@@ -12,7 +13,7 @@ export default class DBHelper {
       upgrade(db) {
         if (!db.objectStoreNames.contains("projects")) {
           const store = db.createObjectStore("projects", {
-            keyPath: "path"
+            keyPath: "id"
           })
           
           // Create an index on the lastEdited property
@@ -29,17 +30,17 @@ export default class DBHelper {
     return projects.reverse()
   }
 
-  static async getHandlerForRecentProject(path: string): Promise<FileSystemFileHandle | null> {
+  static async getHandlerForRecentProject(id: string): Promise<FileSystemFileHandle | null> {
     const db = await this.openRecentProjectsDB()
-    const project = await db.get("projects", path)
+    const project = await db.get("projects", id)
 
     return project?.fileHandle ?? null
   }
 
   // Update project's title, thumbnail and lastEdited
-  static async updateRecentProject(path: string, title: string, thumbnail: string | null) {
+  static async updateRecentProject(id: string, title: string, thumbnail: string | null) {
     const db = await this.openRecentProjectsDB()
-    const project = await db.get("projects", path)
+    const project = await db.get("projects", id)
 
     if (project) {
       project.title = title
@@ -48,20 +49,34 @@ export default class DBHelper {
       db.put("projects", project)
     }
   }
+  
+  static async addToRecentFromFS(): Promise<string | null> {
+    const fileHandle = await FSHelper.openFile(window, [FSHelper.SPROUT_PROJECT_TYPE])
+    if (!fileHandle) return null
 
-  static async addRecentProject(path: string, title: string, fileHandle: FileSystemFileHandle) {
+    const file = await fileHandle.getFile()
+    const data = JSON.parse(await file.text())
+
+    return DBHelper.addRecentProject(data.title, fileHandle)
+  }
+
+  static async addRecentProject(title: string, fileHandle: FileSystemFileHandle): Promise<string> {
+    const id = crypto.randomUUID()
+
     const db = await this.openRecentProjectsDB()
-    db.put("projects", { 
-      path, 
+    await db.put("projects", { 
+      id, 
       title, 
       thumbnail: EMPTY_THUMBNAIL, 
       lastEdited: Date.now(), 
       fileHandle 
     })
+
+    return id
   }
 
-  static async removeRecentProject(path: string) {
+  static async removeRecentProject(id: string) {
     const db = await this.openRecentProjectsDB()
-    db.delete("projects", path)
+    db.delete("projects", id)
   }
 }
