@@ -67,7 +67,7 @@ npm run dev
   - [ ] (If time allows) Add error messages and explanations
 - [ ] Create some example games
   - [ ] Add the ability to add information text to the documentation sidebar
-- [ ] Add warning if not using Chrome
+- [x] Add warning if not using Chrome
 - [ ] Bugfixes
   - [ ] Rework game object scaling (width and factor for height) -> Fix different scaling for different sprites
   - [ ] Add absolute identifiers to project paths -> Fix project with same filename not visible in the projects overview
