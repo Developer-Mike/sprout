@@ -72,7 +72,7 @@ npm run dev
   - [ ] Rework game object scaling (width and factor for height) -> Fix different scaling for different sprites
   - [ ] Add absolute identifiers to project paths -> Fix project with same filename not visible in the projects overview
   - [ ] Fix rotation of game objects causing other game objects to move
-  - [ ] Fix deletion of all game objects causing null value of selected object key
+  - [x] Fix deletion of all game objects causing null value of selected object key
 - [ ] (If time allows) Add the ability to add plugins (security risk)
 - [ ] (If time allows) Add export of the games to standalone websites
 - [ ] (Out of scope) Create tool for simple image editing of sprites

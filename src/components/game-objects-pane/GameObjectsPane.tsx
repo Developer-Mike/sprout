@@ -3,14 +3,13 @@ import useTranslation from "next-translate/useTranslation"
 import { Translate } from "next-translate"
 import styles from "@/components/game-objects-pane/GameObjectsPane.module.scss"
 import namedSpriteListItemStyles from "@/components/named-sprite-list-item/NamedSpriteListItem.module.scss"
-import React, { useContext, useEffect, useState } from "react"
+import React, { useCallback, useContext, useEffect, useState } from "react"
 import LabeledTextInput from "../labeled-input/LabeledTextInput"
 import Icon from "../Icon"
 import { BLANK_IMAGE, DEFAULT_GAME_OBJECT, DEFAULT_GAME_OBJECT_SIZE } from "@/constants"
 import LabeledBooleanInput from "../labeled-input/LabeledBooleanInput"
 import LabeledNumberInput, { InputType } from "../labeled-input/LabeledNumberInput"
 import { DialogContext } from "../dialog/Dialog"
-import Project from "@/core/Project"
 import TransactionInfo, { TransactionCategory, TransactionType } from "@/types/TransactionInfo"
 import NamedSpriteListItem from "../named-sprite-list-item/NamedSpriteListItem"
 import DraggableLayout from "../DraggableLayout"
@@ -23,6 +22,28 @@ export default function GameObjectsPane() {
 
   const [linkedScalingEnabled, setLinkedScalingEnabled] = useState(true)
   const [aspectRatioCache, setAspectRatioCache] = useState(1)
+
+  const createNewGameObject = async () => {
+    const newGameObjectKey = project.getNewGameObjectKey()
+
+    await project.updateData(
+      new TransactionInfo(
+        TransactionType.Add,
+        TransactionCategory.GameObjectList,
+        newGameObjectKey, "create"
+      ),
+      data => {
+        const newGameObject = DEFAULT_GAME_OBJECT
+        newGameObject.id = IdHelper.generateId(
+          t("default-game-object-id"),
+          Object.values(data.gameObjects).map(gameObject => gameObject.id)
+        )
+
+        data.gameObjects[newGameObjectKey] = newGameObject
+        data.workspace.selectedGameObjectKey = newGameObjectKey
+      }
+    )
+  }
 
   useEffect(() => {
     setAspectRatioCache(project.selectedGameObject.width / Math.max(1, project.selectedGameObject.height))
@@ -193,8 +214,11 @@ export default function GameObjectsPane() {
                   },
                   {
                     element: <button className="danger">{t("delete")}</button>,
-                    onClick: hide => {
+                    onClick: async hide => {
                       hide()
+
+                      // Ensure there is always at least one game object
+                      if (Object.entries(project.data.gameObjects).length === 1) await createNewGameObject()
 
                       project.updateData(
                         new TransactionInfo(
@@ -205,12 +229,16 @@ export default function GameObjectsPane() {
                         data => {
                           const gameObjectKeys = Object.keys(data.gameObjects)
                           const selectionIndex = gameObjectKeys.indexOf(gameObjectKey)
+                          gameObjectKeys.splice(selectionIndex, 1)
 
                           delete data.gameObjects[gameObjectKey]
-                          data.workspace.selectedGameObjectKey = gameObjectKeys[selectionIndex] ?? 
-                            gameObjectKeys[selectionIndex - 1] ?? 
-                            gameObjectKeys[0] 
-                            ?? null
+
+                          if (data.workspace.selectedGameObjectKey === gameObjectKey) {
+                            data.workspace.selectedGameObjectKey = gameObjectKeys[selectionIndex] ?? 
+                              gameObjectKeys[selectionIndex - 1] ?? 
+                              gameObjectKeys[0] 
+                              ?? null
+                          }
                         }
                       )
                     }
@@ -221,40 +249,10 @@ export default function GameObjectsPane() {
           </DraggableLayout.Item>
         )) }
 
-        <CreateGameObjectButton t={t} project={project} />
+        <div id={styles.addGameObject} className={namedSpriteListItemStyles.listItem} onClick={() => createNewGameObject()}>
+          <Icon iconId="add" />
+        </div>
       </DraggableLayout.Root>
     </>
-  )
-}
-
-function CreateGameObjectButton({ t, project }: {
-  t: Translate,
-  project: Project
-}) {
-  const createNewGameObject = () => {
-    const newGameObjectKey = project.getNewGameObjectKey()
-    const newGameObject = DEFAULT_GAME_OBJECT
-    newGameObject.id = IdHelper.generateId(
-      t("default-game-object-id"),
-      Object.values(project.data.gameObjects).map(gameObject => gameObject.id)
-    )
-
-    project.updateData(
-      new TransactionInfo(
-        TransactionType.Add,
-        TransactionCategory.GameObjectList,
-        newGameObjectKey, "create"
-      ),
-      data => {
-        data.gameObjects[newGameObjectKey] = newGameObject
-        data.workspace.selectedGameObjectKey = newGameObjectKey
-      }
-    )
-  }
-
-  return (
-    <div id={styles.addGameObject} className={namedSpriteListItemStyles.listItem} onClick={() => createNewGameObject()}>
-      <Icon iconId="add" />
-    </div>
   )
 }

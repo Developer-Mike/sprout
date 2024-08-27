@@ -23,7 +23,7 @@ export default class IdHelper {
 
   static isValidId(id: string, otherIds: string[]): boolean {
     return id.trim().length > 0 &&
-      otherIds.find(otherId => otherId.trim() === id.trim()) === undefined && 
+      !otherIds.some(otherId => otherId.trim() == id.trim()) && 
       id.match(/^[a-z_][a-z0-9_]*$/) !== null
   }
 }
