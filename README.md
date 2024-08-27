@@ -74,6 +74,9 @@ npm run dev
   - [ ] Fix rotation of game objects causing other game objects to move
   - [x] Fix deletion of all game objects causing null value of selected object key
 - [ ] (If time allows) Add the ability to add plugins (security risk)
+- [ ] (If time allows) Add the ability to duplicate game objects
+- [ ] (If time allows) Add the ability to export and import game objects individually
+- [ ] (If time allows) Add the ability to add sounds
 - [ ] (If time allows) Add export of the games to standalone websites
 - [ ] (Out of scope) Create tool for simple image editing of sprites
 - [ ] (Out of scope) Add tooltips
