@@ -71,7 +71,7 @@ npm run dev
 - [ ] Bugfixes
   - [ ] Rework game object scaling (width and factor for height) -> Fix different scaling for different sprites
   - [x] Add absolute identifiers to project paths -> Fix project with same filename not visible in the projects overview
-  - [ ] Fix rotation of game objects causing other game objects to move
+  - [x] Fix rotation of game objects causing other game objects to move
   - [x] Fix deletion of all game objects causing null value of selected object key
 - [ ] (If time allows) Add the ability to add plugins (security risk)
 - [ ] (If time allows) Add the ability to duplicate game objects

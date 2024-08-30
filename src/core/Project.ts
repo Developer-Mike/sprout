@@ -246,7 +246,7 @@ export default class Project {
     
     const instanceId = Math.random().toString(36).substring(7)
     await this.setRunningInstanceId(instanceId)
-
+    
     SproutEngine.run(this.data, () => this.runningInstanceId === instanceId, canvas)
   }
 
@@ -305,7 +305,7 @@ export default class Project {
   }
 
   exportAsHTML() {
-    const html = SproutEngine.generateExportableHTMLCode(this.data)
+    const html = "" //TODO: SproutEngine.generateExportableHTMLCode(this.data)
     const blob = new Blob([html], { type: "text/html" })
     const url = URL.createObjectURL(blob)
 

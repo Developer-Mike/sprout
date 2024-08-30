@@ -12,6 +12,7 @@ import StagePane from "@/components/stage-pane/StagePane"
 import TabView from "@/components/tab-view/TabView"
 import Project from "@/core/Project"
 import styles from "@/styles/Builder.module.scss"
+import { ExtendedWindow } from "@/types/ExtendedWindow"
 import useTranslation from "next-translate/useTranslation"
 import { useRouter } from "next/router"
 import { useContext, useEffect, useRef, useState } from "react"
@@ -73,7 +74,7 @@ export default function Builder() {
 
   useEffect(() => {
     // Allow access to project from the browser console
-    (window as any).project = project
+    (window as ExtendedWindow).project = project
 
     // Set up autosave interval
     const uninstallAutosave = project?.createAutosaveInterval(canvasRef)
