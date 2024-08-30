@@ -59,10 +59,13 @@ npm run dev
 - [x] Only add LabeledNumberInput change to history after the user stops dragging
 - [x] Add undo/redo to the navbar
 - [x] Always save project before rerouting
-- [ ] Create the Lexer and the Parser for the programming language
+- [ ] Create the programming language for Sprout
+  - [x] Remove the usage of large strings and eval in the SproutEngine
+  - [ ] Create Lexer (Code -> Tokens)
+  - [ ] Create Parser (Tokens -> AST)
+  - [ ] Create AST compiler function (AST -> JavaScript)
   - [ ] Add implemented functions to the engine
   - [ ] Add documentation for the programming language
-  - [ ] Remove the usage of large strings and eval in the SproutEngine
   - [ ] (If time allows) Add syntax highlighting
   - [ ] (If time allows) Add error messages and explanations
 - [ ] Create some example games
