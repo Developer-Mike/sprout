@@ -1,4 +1,5 @@
 import { GameObjectData, ProjectData } from "../types/ProjectData"
+import Compiler from "./compiler/compiler"
 import * as InbuiltFunctions from "./InbuiltFunctions"
 
 export default class SproutEngine {
@@ -30,6 +31,9 @@ export default class SproutEngine {
     getIsRunning = getIsRunning
     canvas = canvas
 
+    // Create compiler instance
+    const compiler = new Compiler()
+
     eval(`
       // Initialize data
       const runningCache = {
@@ -38,7 +42,7 @@ export default class SproutEngine {
         gameObjects: ${JSON.stringify(compiledGameObjects)}
       }
 
-      // TODO: Add inbuilt functions
+      // Add inbuilt functions
       ${ Object.values(InbuiltFunctions).map(value => (
         value.toString()
       )).join("\n") }
@@ -49,7 +53,7 @@ export default class SproutEngine {
           const that = runningCache.gameObjects["${gameObject.id}"]
           let deltaTime = 0
 
-          ${gameObject.code}
+          ${compiler.compile(gameObject.code)}
         })()
       `)).join("\n") }
 

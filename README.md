@@ -61,12 +61,19 @@ npm run dev
 - [x] Always save project before rerouting
 - [ ] Create the programming language for Sprout
   - [x] Remove the usage of large strings and eval in the SproutEngine
+  - [ ] Create programming language concepts
+    - [ ] Variables
+    - [ ] Functions
+    - [ ] Loops (for, while)
+    - [ ] Conditions (if, else)
+    - [x] Comments
   - [ ] Create Lexer (Code -> Tokens)
   - [ ] Create Parser (Tokens -> AST)
   - [ ] Create AST compiler function (AST -> JavaScript)
+  - [ ] Create error handling (Compilation & Runtime)
   - [ ] Add implemented functions to the engine
   - [ ] Add documentation for the programming language
-  - [ ] (If time allows) Add syntax highlighting
+  - [ ] (If time allows) Add syntax highlighting (and maybe autocompletion)
   - [ ] (If time allows) Add error messages and explanations
 - [ ] Create some example games
   - [ ] Add the ability to add information text to the documentation sidebar
