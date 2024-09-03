@@ -10,6 +10,7 @@ import Navbar from "@/components/navbar/Navbar"
 import SpritesTab from "@/components/sprites-tab/SpritesTab"
 import StagePane from "@/components/stage-pane/StagePane"
 import TabView from "@/components/tab-view/TabView"
+import { DEBUG_BYPASS_SAVE_ALERT } from "@/constants"
 import Project from "@/core/Project"
 import styles from "@/styles/Builder.module.scss"
 import { ExtendedWindow } from "@/types/ExtendedWindow"
@@ -23,6 +24,9 @@ export default function Builder() {
 
   const dialog = useContext(DialogContext)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  const [debugInfo, _setDebugInfo] = useState<{ [key: string]: any }>({})
+  const setDebugInfo = (key: string, value: any) => _setDebugInfo({ ...debugInfo, [key]: value })
 
   Project.registerHooks()
   const [project, _setProject] = useState<Project | null>(null)
@@ -82,7 +86,7 @@ export default function Builder() {
     // Warn user about unsaved changes (except in development mode)
     window.onbeforeunload = () => {
       if (!project?.unsavedChanges) return
-      if (process.env.NODE_ENV === "development") return
+      if (DEBUG_BYPASS_SAVE_ALERT) return
 
       return t("unsaved-changes-warning")
     }
@@ -94,7 +98,7 @@ export default function Builder() {
     <>
       <DefaultHead title={t("common:builder")} />
 
-      { project?.data && <ProjectContext.Provider value={{ project }}>
+      { project?.data && <ProjectContext.Provider value={{ project, debugInfo, setDebugInfo }}>
         <KeyboardShortcut ctrl keyName="z" action={() => project.undo()} />
         <KeyboardShortcut ctrl keyName="y" action={() => project.redo()} />
         <KeyboardShortcut ctrl keyName="s" action={() => project.saveToFS(canvasRef.current)} />
@@ -136,7 +140,7 @@ export default function Builder() {
               },
               {
                 element: <div
-                  onClick={() => { project.run(canvasRef.current) }}
+                  onClick={() => { project.run(canvasRef.current, setDebugInfo) }}
                   className={project.isRunning ? styles.running : ""}
                 ><Icon iconId={project.isRunning ? "resume" : "play_arrow"} /></div>,
                 align: "end"

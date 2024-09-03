@@ -16,3 +16,27 @@
     pointer-events: none;
   }
 }
+
+.token-identifiers {
+  background-color: rgba(255, 0, 255, 0.1);
+}
+
+.token-keywords {
+  background-color: rgba(0, 0, 255, 0.1);
+}
+
+.token-brackets {
+  background-color: rgba(0, 255, 0, 0.1);
+}
+
+.token-operators {
+  background-color: rgba(255, 0, 0, 0.1);
+}
+
+.token-literals {
+  background-color: rgba(0, 255, 255, 0.1);
+}
+
+.token-others {
+  background-color: rgba(255, 255, 0, 0.1);
+}

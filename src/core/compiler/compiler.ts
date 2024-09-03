@@ -11,13 +11,15 @@ export default class Compiler {
     this.parser = new Parser()
   }
 
-  compile(source: string): string | CompileException {
+  compile(source: string, setDebugInfo?: (key: string, value: any) => void): string | CompileException {
     const tokens = this.lexer.lex(source)
-    
-    // DEBUG
-    tokens.forEach(token => console.log(token.toString()))
-
     const ast = this.parser.parse(tokens)
+
+    setDebugInfo?.("compiler", {
+      tokens,
+      ast
+    })
+
     return ast.map(node => node.toJavaScript()).join("\n")
   }
 }

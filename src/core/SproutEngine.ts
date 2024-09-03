@@ -7,7 +7,7 @@ export default class SproutEngine {
     InbuiltFunctions.render(data, canvas)
   }
 
-  static async run(data: ProjectData, getIsRunning: () => boolean, canvas: HTMLCanvasElement) {
+  static async run(data: ProjectData, getIsRunning: () => boolean, canvas: HTMLCanvasElement, setDebugInfo?: (key: string, value: any) => void) {
     // Optimize sprites
     const optimizedSprites = Object.fromEntries(
       Object.entries(data.sprites)
@@ -49,11 +49,13 @@ export default class SproutEngine {
 
       // Run objects' code
       ${ Object.values(compiledGameObjects).map(gameObject => (`
+        // TODO: Global object properties
+
         ;(async () => {
-          const that = runningCache.gameObjects["${gameObject.id}"]
+          const go = runningCache.gameObjects["${gameObject.id}"]
           let deltaTime = 0
 
-          ${compiler.compile(gameObject.code)}
+          ${compiler.compile(gameObject.code, Object.entries(data.gameObjects).find(([key, _]) => key === data.workspace.selectedGameObjectKey)![1].id === gameObject.id ? setDebugInfo : undefined)}
         })()
       `)).join("\n") }
 

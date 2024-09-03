@@ -1,17 +1,42 @@
 import { ProjectContext } from "@/ProjectContext"
 import styles from "@/components/code-editor/CodeEditor.module.scss"
-import { SPROUT_LANGUAGE_KEY } from "@/constants"
+import { DEBUG_HIGHLIGHT_TOKENS, SPROUT_LANGUAGE_KEY } from "@/constants"
+import Token from "@/core/compiler/token"
 import { Editor, useMonaco } from "@monaco-editor/react"
 import { useContext, useEffect } from "react"
 
 export default function CodeEditor() {
-  const { project } = useContext(ProjectContext)
+  const { project, debugInfo } = useContext(ProjectContext)
 
   const monaco = useMonaco()
   useEffect(() => {
     if (!monaco) return
     setTheme(monaco)
   }, [monaco])
+
+  useEffect(() => {
+    if (!DEBUG_HIGHLIGHT_TOKENS) return
+    if (!monaco) return
+
+    if (!debugInfo.compiler.tokens) return
+
+    const editor = monaco.editor.getModels()[0]
+    if (!editor) return
+
+    // Clear previous decorations
+    const oldDecorations = editor.getAllDecorations().map(decoration => decoration.id)
+    editor.deltaDecorations(oldDecorations, [])
+
+    for (const token of debugInfo.compiler.tokens as Token[]) {
+      const startPos = editor.getPositionAt(token.location.start)
+      const endPos = editor.getPositionAt(token.location.end)
+
+      editor.deltaDecorations([], [{
+        range: new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column),
+        options: { className: styles[`token-${token.getDebugCategory()}`] }
+      }])
+    }
+  }, [debugInfo])
 
   return (
     <div id={styles.codeEditorContainer}>

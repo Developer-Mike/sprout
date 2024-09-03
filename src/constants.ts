@@ -1,5 +1,9 @@
 import { GameObjectData } from "./types/ProjectData"
 
+export const DEBUG = process.env.NODE_ENV === "development"
+export const DEBUG_BYPASS_SAVE_ALERT = DEBUG && true
+export const DEBUG_HIGHLIGHT_TOKENS = DEBUG && true
+
 export const BLANK_IMAGE = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
 export const DEFAULT_GAME_OBJECT_SIZE = 32
 export const DEFAULT_GAME_OBJECT: GameObjectData = {
