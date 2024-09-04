@@ -1,10 +1,10 @@
 import { GameObjectData, ProjectData } from "../types/ProjectData"
 import Compiler from "./compiler/compiler"
-import * as InbuiltFunctions from "./InbuiltFunctions"
+import * as EngineFunctions from "./EngineFunctions"
 
 export default class SproutEngine {
   static render(data: ProjectData, canvas: HTMLCanvasElement) {
-    InbuiltFunctions.render(data, canvas)
+    EngineFunctions.render(data, canvas)
   }
 
   static async run(data: ProjectData, getIsRunning: () => boolean, canvas: HTMLCanvasElement, setDebugInfo?: (key: string, value: any) => void) {
@@ -43,9 +43,11 @@ export default class SproutEngine {
       }
 
       // Add inbuilt functions
-      ${ Object.values(InbuiltFunctions).map(value => (
+      ${ Object.values(EngineFunctions).map(value => (
         value.toString()
       )).join("\n") }
+
+      ${ compiler.compile(data) }
 
       // Run objects' code
       ${ Object.values(compiledGameObjects).map(gameObject => (`
@@ -63,7 +65,7 @@ export default class SproutEngine {
       ;(async () => {
         while (true) {
           render(runningCache, canvas)
-          await frame()
+          await wait_frame()
         }
       })()
     `)

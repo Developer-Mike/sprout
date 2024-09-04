@@ -53,7 +53,7 @@ export async function tick() {
   return (end - start) / 1000
 }
 
-export async function frame() {
+export async function wait_frame() {
   await new Promise((resolve, reject) => {
     requestAnimationFrame(() => (
       getIsRunning() ? resolve(null) : reject("Game stopped")

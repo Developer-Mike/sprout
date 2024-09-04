@@ -18,7 +18,7 @@ export default function CodeEditor() {
     if (!DEBUG_HIGHLIGHT_TOKENS) return
     if (!monaco) return
 
-    if (!debugInfo.compiler?.tokens) return
+    if (!debugInfo.compiler?.tokens?.[project.selectedGameObject.id]) return
 
     const editor = monaco.editor.getModels()[0]
     if (!editor) return
@@ -36,7 +36,7 @@ export default function CodeEditor() {
         options: { className: styles[`token-${token.getDebugCategory()}`] }
       }])
     }
-  }, [debugInfo])
+  }, [monaco, debugInfo, project.selectedGameObject.id])
 
   return (
     <div id={styles.codeEditorContainer}>
