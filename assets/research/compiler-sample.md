@@ -7,17 +7,17 @@ log(y + "ing")
 var nothing = null
 
 fun foo = () {
-    log("foo")
+	log("foo")
 }
 
 foo()
 
 on (true) {
-    log("Tick")
-    
-    if (input.keyboard.esc.is_pressed) {
-        log("ESC pressed")
-    }
+	log("Tick")
+	
+	if (input.keyboard.esc.is_pressed) {
+		log("ESC pressed")
+	}
 }
 
 on (frame) {
@@ -26,12 +26,12 @@ on (frame) {
   
 
 on (timer % 2 == 0) {
-    log("2s Elapsed")
+	log("2s Elapsed")
 
-    foo()
-    game_objects.terminal.buzz()
+	foo()
+	game_objects.terminal.buzz()
 
-    game_object.sprite += 1
+	game_object.sprite += 1
 }
 ```
 
@@ -60,9 +60,9 @@ const game_objects = {
 function log(message) { console.log(message) }
 async function sleep(ms) {
   await new Promise((resolve, reject) => {
-    setTimeout(() => (
-      getIsRunning() ? resolve(null) : reject("Game stopped")
-    ), ms)
+	setTimeout(() => (
+	  getIsRunning() ? resolve(null) : reject("Game stopped")
+	), ms)
   })
 }
 
@@ -86,9 +86,9 @@ async function tick() {
 }
 async function wait_frame() {
   await new Promise((resolve, reject) => {
-    requestAnimationFrame(() => (
-      getIsRunning() ? resolve(null) : reject("Game stopped")
-    ))
+	requestAnimationFrame(() => (
+	  getIsRunning() ? resolve(null) : reject("Game stopped")
+	))
   })
 }
 
@@ -116,9 +116,9 @@ async function wait_frame() {
 			get condition() { return true },
 			callback: () => {
 				log("Tick")
-			    if (input.keyboard.esc.is_pressed) {
-			        log("ESC pressed")
-			    }
+				if (input.keyboard.esc.is_pressed) {
+					log("ESC pressed")
+				}
 			}
 		},
 		{
@@ -130,10 +130,10 @@ async function wait_frame() {
 		{
 			get condition() { return time.timer % 2 === 0 },
 			callback: () => {
-			    log("2s Elapsed")
-			    foo()
-			    game_objects.terminal.buzz()
-			    game_object.sprite += 1
+				log("2s Elapsed")
+				foo()
+				game_objects.terminal.buzz()
+				game_object.sprite += 1
 			}
 		}
 	]
@@ -160,7 +160,7 @@ async function wait_frame() {
 })()
 
 ;(async () => {
-    while (getIsRunning()) {
+	while (getIsRunning()) {
 		for (game_object of Object.values(game_objects)) {
 			for (on_listener of game_object.on) {
 				if (on_listener.condition) on_listener.callback()
