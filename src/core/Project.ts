@@ -247,7 +247,7 @@ export default class Project {
     const instanceId = Math.random().toString(36).substring(7)
     await this.setRunningInstanceId(instanceId)
     
-    SproutEngine.run(this.data, () => this.runningInstanceId === instanceId, canvas, setDebugInfo)
+    SproutEngine.run(this.data, () => this.runningInstanceId !== instanceId, canvas, setDebugInfo)
   }
 
   async stop(canvas?: HTMLCanvasElement | null) {

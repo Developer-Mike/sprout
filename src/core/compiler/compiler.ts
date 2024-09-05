@@ -1,6 +1,7 @@
-import CompileException from "./compile-exception"
+import { ProgramAST } from "./ast"
 import Lexer from "./lexer"
 import Parser from "./parser"
+import * as InbuiltFunctions from "./inbuilt-functions"
 
 export default class Compiler {
   lexer: Lexer
@@ -11,15 +12,12 @@ export default class Compiler {
     this.parser = new Parser()
   }
 
-  compile(source: string, setDebugInfo?: (key: string, value: any) => void): string | CompileException {
+  compile(source: string): ProgramAST {
     const tokens = this.lexer.lex(source)
     const ast = this.parser.parse(tokens)
 
-    setDebugInfo?.("compiler", {
-      tokens,
-      ast
-    })
-
-    return ast.map(node => node.toJavaScript()).join("\n")
+    return ast
   }
+
+  static getInbuiltFunctions() { return InbuiltFunctions }
 }

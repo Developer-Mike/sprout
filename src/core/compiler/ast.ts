@@ -1,4 +1,5 @@
 import SourceLocation from "./source-location"
+import Token from "./token"
 
 export abstract class AST {
   abstract value: any
@@ -6,18 +7,25 @@ export abstract class AST {
   abstract toJavaScript(): string
 }
 
+export interface Declaration {
+  name: string
+  readonly: boolean
+}
+
 export class ProgramAST {
-  nodes: AST[]
+  tokens: Token[] = [] // For debugging
+  nodes: AST[] = []
 
-  getGlobalDeclarations(): string[] {
-    // return a list of global declarations
-    /* in future, add them to global object
-      Object.defineProperty(game_objects["id"], 'variableName', {
-        get: () => value
-        set: (newValue) => value = newValue // TODO: Is settable?
-      })
-    */
+  constructor(nodes: AST[], tokens: Token[]) {    
+    this.nodes = nodes
+    this.tokens = tokens
+  }
 
+  toJavaScript(): string {
+    return this.nodes.map(node => node.toJavaScript()).join("\n")
+  }
+
+  getGlobalDeclarations(): Declaration[] {
     return []
   }
 }

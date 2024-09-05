@@ -1,73 +1,91 @@
-import { GameObjectData, ProjectData } from "../types/ProjectData"
+import { GameObjectData, ProjectData, RuntimeGameObjectData } from "../types/ProjectData"
 import Compiler from "./compiler/compiler"
-import * as EngineFunctions from "./EngineFunctions"
+import * as EngineDefinitions from "./engine/engine-definitions"
+import * as EngineRunner from "./engine/engine-runner"
 
 export default class SproutEngine {
   static render(data: ProjectData, canvas: HTMLCanvasElement) {
-    EngineFunctions.render(data, canvas)
+    EngineDefinitions.render(data, canvas)
   }
 
-  static async run(data: ProjectData, getIsRunning: () => boolean, canvas: HTMLCanvasElement, setDebugInfo?: (key: string, value: any) => void) {
+  static async run(data: ProjectData, isStopped: () => boolean, canvas: HTMLCanvasElement, setDebugInfo?: (key: string, value: any) => void) {
     // Optimize sprites
     const optimizedSprites = Object.fromEntries(
       Object.entries(data.sprites)
         .filter(([key, _value]) => Object.values(data.gameObjects).some(gameObject => gameObject.sprites.includes(key)))
     )
 
-    // Compile game objects' code
-    const compiledGameObjects = Object.values(data.gameObjects).reduce((acc, gameObject) => {
-      // TODO: Compilation error handling
-
-      acc[gameObject.id] = {
-        ...gameObject,
-        code: gameObject.code // TODO: Compile code
-      }
-
-      return acc
-    }, {} as Record<string, GameObjectData>)
-
-
-    // Useless but for good for TSLint (Values are required in the eval)
-    getIsRunning = getIsRunning
-    canvas = canvas
-
     // Create compiler instance
     const compiler = new Compiler()
 
-    eval(`
-      // Initialize data
-      const runningCache = {
-        sprites: ${JSON.stringify(optimizedSprites)},
-        stage: ${JSON.stringify(data.stage)},
-        gameObjects: ${JSON.stringify(compiledGameObjects)}
+    // Compile game objects' code
+    const compiledGameObjects = Object.values(data.gameObjects).reduce((acc, gameObject) => {
+      // TODO: Compilation error handling
+      const compiledCode = compiler.compile(gameObject.code)
+
+      // Set debug info
+      if (setDebugInfo) setDebugInfo(gameObject.id, compiledCode)
+
+      acc[gameObject.id] = {
+        ...gameObject,
+        code: compiledCode
       }
 
-      // Add inbuilt functions
-      ${ Object.values(EngineFunctions).map(value => (
+      return acc
+    }, {} as Record<string, RuntimeGameObjectData>)
+
+    // Useless, but for good for TSLint (Values are required in the eval)
+    isStopped = isStopped
+    canvas = canvas
+
+    // TODO: Change to eval
+    console.log(`
+      // Inbuilt language functions
+       ${ Object.values(Compiler.getInbuiltFunctions()).map(value => (
         value.toString()
       )).join("\n") }
 
-      ${ compiler.compile(data) }
+      // Initialize data
+      const _sprites = ${JSON.stringify(optimizedSprites)}
+      const _stage = ${JSON.stringify(data.stage)}
+      const game_objects = ${JSON.stringify(compiledGameObjects)}
 
-      // Run objects' code
-      ${ Object.values(compiledGameObjects).map(gameObject => (`
-        // TODO: Global object properties
+      // Inbuilt engine definitions
+      ${ Object.values(EngineDefinitions).map(value => (
+        value.toString()
+      )).join("\n") }
 
-        ;(async () => {
-          const go = runningCache.gameObjects["${gameObject.id}"]
-          let deltaTime = 0
+      // Initialize game objects
+      ${ Object.values(compiledGameObjects).map(value => (`
+      ;(() => {
+        const game_object = game_objects["${value.id}"]
 
-          ${compiler.compile(gameObject.code, Object.entries(data.gameObjects).find(([key, _]) => key === data.workspace.selectedGameObjectKey)![1].id === gameObject.id ? setDebugInfo : undefined)}
-        })()
+        ${ /* TODO
+          // Link inbuilt engine functions to game_object
+          // Mappings in InbuiltEngineFunctions:
+          // { "transform.rotate_to": rotate_to }
+          Object.defineProperty(game_objects["id"]["transform"], 'rotate_to', {
+            get: (...params) => rotate_to(game_objects["id"], ...params)
+          })*/ ""
+        }
+
+        // Compiled code
+        ${value.code}
+
+        // Register global scope vars/functions
+        ${ value.code.getGlobalDeclarations().map(declaration => (`
+        Object.defineProperty(game_object, '${declaration.name}', {
+          get: () => ${declaration.name},
+          ${ declaration.readonly ? "" : `set: (value) => ${declaration.name} = value` }
+        })
+        `)).join("\n") }
+      })()
       `)).join("\n") }
 
-      // Add main loop
-      ;(async () => {
-        while (true) {
-          render(runningCache, canvas)
-          await wait_frame()
-        }
-      })()
+      // Engine runner
+      ${ Object.values(EngineRunner).map(value => (
+        `;(${value.toString()})()`
+      )).join("\n") }
     `)
   }
 }

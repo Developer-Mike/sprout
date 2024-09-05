@@ -1,23 +1,33 @@
-import { ProjectData } from "@/types/ProjectData"
+import { GameObjectData, StageData } from "@/types/ProjectData"
+import { sleep } from "../compiler/inbuilt-functions"
 
-function getIsRunning() { return true }
+// Only to suppress the error
+const isStopped = () => false
 
-export function render(data: ProjectData, canvas: HTMLCanvasElement) {
+export let frame = false
+export let time = {
+  frame_time: 1, // Default to 1
+  start_timestamp: Date.now(),
+  get timestamp() { return Date.now() },
+  get timer() { return this.timestamp - this.start_timestamp }
+}
+
+export function render(gameObjects: { [key: string]: GameObjectData }, sprites: { [key: string]: string }, stage: StageData, canvas: HTMLCanvasElement) {
   const ctx = canvas.getContext("2d")
   if (!ctx) return
 
   // Set matrix
   ctx.resetTransform()
-  ctx.scale(canvas.width / data.stage.width, canvas.height / data.stage.height)
+  ctx.scale(canvas.width / stage.width, canvas.height / stage.height)
   ctx.save()
 
   // Clear canvas
-  ctx.clearRect(0, 0, data.stage.width, data.stage.height)
+  ctx.clearRect(0, 0, stage.width, stage.height)
 
-  const gameObjects = Object.values(data.gameObjects)
+  const orderedGameObjects = Object.values(gameObjects)
     .sort((a, b) => a.layer - b.layer)
 
-  for (const gameObject of gameObjects) {
+  for (const gameObject of orderedGameObjects) {
     if (!gameObject.visible) continue
 
     // Skip if no sprite or index out of bounds
@@ -36,7 +46,7 @@ export function render(data: ProjectData, canvas: HTMLCanvasElement) {
 
     // Draw sprite
     const sprite = new Image()
-    sprite.src = data.sprites[gameObject.sprites[gameObject.activeSprite]]
+    sprite.src = sprites[gameObject.sprites[gameObject.activeSprite]]
     ctx.drawImage(sprite, x, y, gameObject.width, gameObject.height)
 
     // Reset matrix
@@ -53,18 +63,10 @@ export async function tick() {
   return (end - start) / 1000
 }
 
-export async function wait_frame() {
+export async function await_frame() {
   await new Promise((resolve, reject) => {
     requestAnimationFrame(() => (
-      getIsRunning() ? resolve(null) : reject("Game stopped")
+      isStopped() ? reject("Stopped") : resolve(null)
     ))
-  })
-}
-
-export async function sleep(ms: number) {
-  await new Promise((resolve, reject) => {
-    setTimeout(() => (
-      getIsRunning() ? resolve(null) : reject("Game stopped")
-    ), ms)
   })
 }

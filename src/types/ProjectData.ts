@@ -1,3 +1,5 @@
+import { ProgramAST } from "@/core/compiler/ast"
+
 export interface ProjectData {
   title: string
   workspace: WorkspaceData
@@ -35,4 +37,8 @@ export interface GameObjectData {
   activeSprite: number
 
   code: string
+}
+
+export interface RuntimeGameObjectData extends Omit<GameObjectData, "code"> {
+  code: ProgramAST
 }

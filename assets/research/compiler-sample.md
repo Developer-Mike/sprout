@@ -153,7 +153,7 @@ async function wait_frame() {
 })()
 
 ;(async () => {
-	while (true) {
+	while (getIsRunning()) {
 		await wait_frame()
 		frame = true
 	}
