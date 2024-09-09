@@ -1,11 +1,13 @@
+import ExecutionHelper from "@/utils/execution-helper"
 import { GameObjectData, ProjectData, RuntimeGameObjectData } from "../types/ProjectData"
 import Compiler from "./compiler/compiler"
 import * as EngineDefinitions from "./engine/engine-definitions"
 import * as EngineRunner from "./engine/engine-runner"
+import * as GameObjectFunctions from "./engine/game-object-functions"
 
 export default class SproutEngine {
   static render(data: ProjectData, canvas: HTMLCanvasElement) {
-    EngineDefinitions.render(data, canvas)
+    EngineDefinitions.render(data.gameObjects, data.sprites, data.stage, canvas)
   }
 
   static async run(data: ProjectData, isStopped: () => boolean, canvas: HTMLCanvasElement, setDebugInfo?: (key: string, value: any) => void) {
@@ -34,14 +36,15 @@ export default class SproutEngine {
       return acc
     }, {} as Record<string, RuntimeGameObjectData>)
 
-    // Useless, but for good for TSLint (Values are required in the eval)
-    isStopped = isStopped
-    canvas = canvas
+    // Execution relevant code starts here ------------------------------------------------
+    const executionContext = {
+      isStopped,
+      canvas,
+    }
 
-    // TODO: Change to eval
-    console.log(`
+    ExecutionHelper.scopedEval(`
       // Inbuilt language functions
-       ${ Object.values(Compiler.getInbuiltFunctions()).map(value => (
+      ${ Object.values(Compiler.getInbuiltFunctions()).map(value => (
         value.toString()
       )).join("\n") }
 
@@ -55,19 +58,27 @@ export default class SproutEngine {
         value.toString()
       )).join("\n") }
 
+      // Inbuilt game object functions
+      ${ Object.values(GameObjectFunctions).map(value => (
+        value.toString()
+      )).join("\n") }
+
       // Initialize game objects
       ${ Object.values(compiledGameObjects).map(value => (`
       ;(() => {
         const game_object = game_objects["${value.id}"]
 
-        ${ /* TODO
-          // Link inbuilt engine functions to game_object
-          // Mappings in InbuiltEngineFunctions:
-          // { "transform.rotate_to": rotate_to }
-          Object.defineProperty(game_objects["id"]["transform"], 'rotate_to', {
-            get: (...params) => rotate_to(game_objects["id"], ...params)
-          })*/ ""
-        }
+        // Link inbuilt engine functions to game_object
+        // Mappings in InbuiltEngineFunctions:
+        // { "transform.rotate_to": rotate_to }
+        ${ Object.keys(GameObjectFunctions.FUNCTION_MAP).map(path => {
+          const splitPath = path.split(".")
+          const last = splitPath.pop() as string
+
+          return `Object.defineProperty(game_object${splitPath.map(segment => `[${segment}]`)}, '${last}', {
+            get: (...params) => ${last}(game_object, ...params)
+          })`
+        }).join("\n") }
 
         // Compiled code
         ${value.code}
@@ -86,6 +97,6 @@ export default class SproutEngine {
       ${ Object.values(EngineRunner).map(value => (
         `;(${value.toString()})()`
       )).join("\n") }
-    `)
+    `, executionContext)
   }
 }
