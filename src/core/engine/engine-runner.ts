@@ -2,7 +2,7 @@ import { StageData } from '@/types/ProjectData'
 import { tick } from './engine-definitions'
 import { render } from './engine-definitions'
 
-// Only to suppress the error
+// Only to suppress errors
 const isStopped = () => false
 const canvas = null as unknown as HTMLCanvasElement
 const _sprites = {}
@@ -20,13 +20,9 @@ export const renderer = async () => {
 }
 
 export const mainloop = async () => {
+  // Handle input
+
   while (!isStopped()) {
-    for (const game_object of Object.values(game_objects)) {
-      for (const on_listener of game_object.on) {
-        if (on_listener.condition) on_listener.callback()
-      }
-    }
-  
     if (frame) frame = false
     await tick()
   }

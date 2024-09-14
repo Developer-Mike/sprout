@@ -1,18 +1,7 @@
-import SourceLocation from "./source-location"
-import Token from "./token"
+import Token from "../token"
+import AST from "./ast"
 
-export abstract class AST {
-  abstract value: any
-  abstract sourceLocation: SourceLocation
-  abstract toJavaScript(): string
-}
-
-export interface Declaration {
-  name: string
-  readonly: boolean
-}
-
-export class ProgramAST {
+export default class ProgramAST {
   tokens: Token[] = [] // For debugging
   nodes: AST[] = []
 
@@ -28,4 +17,9 @@ export class ProgramAST {
   getGlobalDeclarations(): Declaration[] {
     return []
   }
+}
+
+export interface Declaration {
+  name: string
+  readonly: boolean
 }

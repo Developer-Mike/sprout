@@ -1,4 +1,4 @@
-import { ProgramAST } from "./ast"
+import { ProgramAST } from "./ast/on-expr-ast"
 import Lexer from "./lexer"
 import Parser from "./parser"
 import * as InbuiltFunctions from "./inbuilt-functions"

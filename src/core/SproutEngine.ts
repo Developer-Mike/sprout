@@ -1,5 +1,5 @@
 import ExecutionHelper from "@/utils/execution-helper"
-import { GameObjectData, ProjectData, RuntimeGameObjectData } from "../types/ProjectData"
+import { ProjectData, RuntimeGameObjectData } from "../types/ProjectData"
 import Compiler from "./compiler/compiler"
 import * as EngineDefinitions from "./engine/engine-definitions"
 import * as EngineRunner from "./engine/engine-runner"

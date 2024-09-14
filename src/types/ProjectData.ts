@@ -1,4 +1,4 @@
-import { ProgramAST } from "@/core/compiler/ast"
+import ProgramAST from "@/core/compiler/ast/program-ast"
 
 export interface ProjectData {
   title: string
@@ -25,16 +25,18 @@ export interface StageData {
 export interface GameObjectData {
   id: string
 
-  visible: boolean
-  x: number
-  y: number
-  layer: number
-  rotation: number
-  width: number
-  height: number
+  transform: {
+    x: number
+    y: number
+    rotation: number
+    width: number
+    height_scale: number
+  }
 
+  visible: boolean
+  layer: number
   sprites: string[]
-  activeSprite: number
+  active_sprite: number
 
   code: string
 }

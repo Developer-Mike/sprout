@@ -28,7 +28,6 @@ export default class Token {
 }
 
 export enum TokenType {
-  EOF,
   EOL,
   INVALID,
 
