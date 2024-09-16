@@ -55,7 +55,7 @@ export default class Lexer {
         this.consumeChar() // Eat EOL
       } while (this.currentChar === "\n" || this.currentChar === "\r")
 
-      return new Token(TokenType.EOL, null, this.currentLocation, 0)
+      return this.getNextToken()
     }
 
     // Handle comments - Skip comment and return next token

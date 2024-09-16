@@ -1,4 +1,4 @@
-import ProgramAST from "@/core/compiler/ast/program-ast"
+import ProgramAST, { Declaration } from "@/core/compiler/ast/program-ast"
 
 export interface ProjectData {
   title: string
@@ -41,6 +41,4 @@ export interface GameObjectData {
   code: string
 }
 
-export interface RuntimeGameObjectData extends Omit<GameObjectData, "code"> {
-  code: ProgramAST
-}
+export interface RuntimeGameObjectData extends Omit<GameObjectData, "code"> { }

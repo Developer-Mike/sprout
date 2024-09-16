@@ -63,9 +63,6 @@ export default class Parser {
       case TokenType.KEYWORD_VAR:
       case TokenType.KEYWORD_CONST:
         return this.parseVariableDeclaration()
-      case TokenType.EOL:
-      case TokenType.INVALID:
-        return this.consumeToken()
       default:
         return this.parseExpression()
     }
@@ -269,15 +266,20 @@ export default class Parser {
 
     this.consumeToken() // consume '{'
 
-    const body = this.parseExpression()
-    if (body === null) return null
+    let body: ExpressionAST | null = null
+    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    if (this.currentToken.type !== TokenType.CURLY_CLOSE) {
+      body = this.parseExpression()
+      if (body === null) return null
+    }
 
+    const bodyEndLocation = this.currentToken.location.end
     // @ts-ignore TS doesn't know that consumeToken changes the current token
     if (this.currentToken.type !== TokenType.CURLY_CLOSE)
       return this.logError("Expected '}' after function body", this.currentToken.location)
 
     this.consumeToken() // consume '}'
 
-    return new FunctionDefinitionAST(proto, body, { start: proto.sourceLocation.start, end: body.sourceLocation.end })
+    return new FunctionDefinitionAST(proto, body, { start: proto.sourceLocation.start, end: bodyEndLocation })
   }
 }

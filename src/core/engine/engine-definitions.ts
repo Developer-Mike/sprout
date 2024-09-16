@@ -31,23 +31,26 @@ export function render(gameObjects: { [key: string]: GameObjectData }, sprites: 
     if (!gameObject.visible) continue
 
     // Skip if no sprite or index out of bounds
-    if (gameObject.sprites.length === 0 || gameObject.activeSprite < 0 || gameObject.activeSprite >= gameObject.sprites.length)
+    if (gameObject.sprites.length === 0 || gameObject.active_sprite < 0 || gameObject.active_sprite >= gameObject.sprites.length)
       return
 
-    const x = -gameObject.width / 2
-    const y = -gameObject.height / 2
+    // TODO: Calculate height correctly
+    const height = gameObject.transform.width * gameObject.transform.height_scale
+
+    const x = -gameObject.transform.width / 2
+    const y = -height / 2
 
     // Set matrix
-    ctx.translate(gameObject.x, gameObject.y)
-    ctx.rotate(gameObject.rotation * Math.PI / 180)
+    ctx.translate(gameObject.transform.x, gameObject.transform.y)
+    ctx.rotate(gameObject.transform.rotation * Math.PI / 180)
 
-    if (gameObject.width < 0) ctx.scale(-1, 1)
-    if (gameObject.height < 0) ctx.scale(1, -1)
+    if (gameObject.transform.width < 0) ctx.scale(-1, 1)
+    if (gameObject.transform.height_scale < 0) ctx.scale(1, -1)
 
     // Draw sprite
     const sprite = new Image()
-    sprite.src = sprites[gameObject.sprites[gameObject.activeSprite]]
-    ctx.drawImage(sprite, x, y, gameObject.width, gameObject.height)
+    sprite.src = sprites[gameObject.sprites[gameObject.active_sprite]]
+    ctx.drawImage(sprite, x, y, gameObject.transform.width, height)
 
     // Reset matrix
     ctx.restore()

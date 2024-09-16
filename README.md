@@ -69,10 +69,14 @@ npm run dev
     - [x] Comments
   - [x] Create Lexer (Code -> Tokens)
   - [ ] Create Parser (Tokens -> AST)
+    - [ ] Add support for mutable variables
+    - [ ] Add support for if, while, for and on statements
+    - [ ] Add support for lists
+    - [ ] Add support for objects
+    - [ ] (If time allows) Add support for unary operators
   - [ ] Create AST compiler function (AST -> JavaScript)
   - [ ] Create error handling (Compilation & Runtime)
   - [ ] Add implemented functions to the engine
-  - [ ] Add documentation for the programming language
   - [ ] (If time allows) Add syntax highlighting (and maybe autocompletion)
   - [ ] (If time allows) Add error messages and explanations
 - [ ] Create some example games
