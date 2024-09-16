@@ -1,17 +1,16 @@
 import SourceLocation from "../source-location"
 import AST from "./ast"
 import ExpressionAST from "./expression-ast"
-import PrototypeAST from "./prototype-ast"
 
-export default class FunctionAST extends AST {
+export default class VariableDeclarationAST extends AST {
   constructor(
+    public constant: boolean,
     public name: string, 
-    public proto: PrototypeAST,
-    public body: ExpressionAST, 
+    public value: ExpressionAST | null,
     public override sourceLocation: SourceLocation
   ) { super() }
 
   toJavaScript(): string {
-    return `function ${this.name}(${this.proto.toJavaScript()}) { ${this.body.toJavaScript()} }`
+    return `${this.constant ? 'const' : 'let'} ${this.name} = ${this.value?.toJavaScript() ?? 'null'}`
   }
 }

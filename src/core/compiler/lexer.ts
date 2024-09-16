@@ -18,8 +18,10 @@ export default class Lexer {
 
     const tokens: Token[] = []
 
-    while (this.currentChar !== undefined) {
-      tokens.push(this.getNextToken())
+    let currentToken: Token | null = null
+    while (currentToken?.type !== TokenType.EOF) {
+      currentToken = this.getNextToken()
+      tokens.push(currentToken)
     }
 
     return tokens
@@ -37,6 +39,11 @@ export default class Lexer {
   }
 
   private getNextToken(): Token {
+    // Check for EOF
+    if (this.currentChar === undefined) {
+      return new Token(TokenType.EOF, null, this.currentLocation)
+    }
+
     // Ignore spaces
     while (this.currentChar === " " || this.currentChar === "\t" || this.currentChar === "\v" || this.currentChar === "\f") {
       this.consumeChar()

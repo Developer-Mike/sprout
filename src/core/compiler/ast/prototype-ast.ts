@@ -9,6 +9,6 @@ export default class PrototypeAST extends AST {
   ) { super() }
 
   toJavaScript(): string {
-    return `function ${this.name}(${this.args.join(", ")})`
+    return `${this.name}(${this.args.join(", ")})`
   }
 }

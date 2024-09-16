@@ -8,6 +8,11 @@ import SourceLocation from "./source-location"
 import VariableExprAST from "./ast/variable-expr-ast"
 import CallExprAST from "./ast/call-expr-ast"
 import BinaryExprAST from "./ast/binary-expr-ast"
+import PrototypeAST from "./ast/prototype-ast"
+import FunctionDefinitionAST from "./ast/function-definition-ast"
+import VariableDeclarationAST from "./ast/variable-declaration-ast"
+import StringExprAST from "./ast/string-expr-ast"
+import NullExprAST from "./ast/null-expr-ast"
 
 export default class Parser {
   readonly precedence: { [operator: string]: number } = {
@@ -33,16 +38,16 @@ export default class Parser {
   }
 
   parse(tokens: Token[]): ProgramAST {
-    this.tokens = tokens
+    this.tokens = [...tokens]
 
     const astNodes: AST[] = []
 
-    while (this.currentToken !== undefined) {
+    while (this.currentToken.type !== TokenType.EOF) {
       const astNode = this.getNextASTNode()
       if (astNode !== null) astNodes.push(astNode)
     }
 
-    return new ProgramAST(astNodes, tokens)
+    return new ProgramAST(astNodes, this.errors, tokens)
   }
 
   private logError(message: string, location: SourceLocation) {
@@ -50,22 +55,37 @@ export default class Parser {
     return null
   }
 
-  /*private getNextASTNode(): AST | null {
-    return ({
-      // [TokenType.KEYWORD_FUN]: this.parseFunction,
-      // [TokenType.KEYWORD_VAR]: this.parseVariableDeclaration,
-      [TokenType.EOL]: this.consumeToken,
-    })[this.currentToken.type]?.call(this)
-      ?? this.parseExpression()
-  }*/
+  private getNextASTNode(): AST | null {
+
+    switch (this.currentToken?.type) {
+      case TokenType.KEYWORD_FUN:
+        return this.parseFunctionDefinition()
+      case TokenType.KEYWORD_VAR:
+      case TokenType.KEYWORD_CONST:
+        return this.parseVariableDeclaration()
+      case TokenType.EOL:
+      case TokenType.INVALID:
+        return this.consumeToken()
+      default:
+        return this.parseExpression()
+    }
+  }
 
   private parsePrimaryExpression(): ExpressionAST | null {
-    return ({
-      [TokenType.LITERAL_NUMBER]: this.parseNumberExpression,
-      [TokenType.IDENTIFIER]: this.parseIdentifierExpression,
-      [TokenType.PAREN_OPEN]: this.parseParenExpression,
-    })[this.currentToken.type]?.call(this)
-      ?? this.logError("Expected primary expression", this.currentToken.location)
+    switch (this.currentToken.type) {
+      case TokenType.LITERAL_NUMBER:
+        return this.parseNumberExpression()
+      case TokenType.LITERAL_STRING:
+        return this.parseStringExpression()
+      case TokenType.LITERAL_NULL:
+        return this.parseNullExpression()
+      case TokenType.IDENTIFIER:
+        return this.parseIdentifierExpression()
+      case TokenType.PAREN_OPEN:
+        return this.parseParenExpression()
+      default:
+        return this.logError("Expected primary expression", this.currentToken.location)
+    }
   }
 
   private parseNumberExpression(): NumberExprAST {
@@ -76,6 +96,21 @@ export default class Parser {
 
     this.consumeToken() // consume number token
     return ast
+  }
+
+  private parseStringExpression(): StringExprAST {
+    const ast = new StringExprAST(
+      this.currentToken.value!, 
+      this.currentToken.location
+    )
+
+    this.consumeToken() // consume string token
+    return ast
+  }
+
+  private parseNullExpression(): ExpressionAST {
+    this.consumeToken() // consume 'null' token
+    return new NullExprAST(this.currentToken.location)
   }
 
   private parseParenExpression(): ExpressionAST | null {
@@ -159,15 +194,90 @@ export default class Parser {
     }
   }
 
-  /*private parseVariableDeclaration(): AST {
-    // TODO
+  private parseVariableDeclaration(): VariableExprAST | null {
+    const isConstant = this.currentToken.type === TokenType.KEYWORD_CONST
+    this.consumeToken() // consume 'var'
+
+    if (this.currentToken.type !== TokenType.IDENTIFIER)
+      return this.logError("Expected variable name", this.currentToken.location)
+
+    const variableName = this.currentToken.value
+    const variableDeclarationStartLocation = this.currentToken.location.start
+
+    this.consumeToken() // consume variable name
+
+    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    if (this.currentToken.type !== TokenType.ASSIGNMENT)
+      return this.logError("Expected '=' after variable name", this.currentToken.location)
+
+    this.consumeToken() // consume '='
+
+    const variableValue = this.parseExpression()
+    if (variableValue === null) return null
+
+    return new VariableDeclarationAST(isConstant, variableName!, variableValue, { start: variableDeclarationStartLocation, end: variableValue.sourceLocation.end })
   }
 
-  private parsePrototype(): AST {
-    // TODO
+  private parsePrototype(): PrototypeAST | null {
+    if (this.currentToken.type !== TokenType.IDENTIFIER)
+      return this.logError("Expected function name", this.currentToken.location)
+
+    const functionName = this.currentToken.value
+    const functionStartLocation = this.currentToken.location.start
+
+    this.consumeToken() // consume function name
+
+    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    if (this.currentToken.type !== TokenType.ASSIGNMENT)
+      return this.logError("Expected '=' after function name", this.currentToken.location)
+
+    this.consumeToken() // consume '='
+
+    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    if (this.currentToken.type !== TokenType.PAREN_OPEN)
+      return this.logError("Expected '(' after '='", this.currentToken.location)
+
+    this.consumeToken() // consume '('
+
+    const args: string[] = []
+    while (this.currentToken.type === TokenType.IDENTIFIER) {
+      args.push(this.currentToken.value!)
+      this.consumeToken() // consume argument name
+
+      if (this.currentToken.type === TokenType.SEPARATOR) {
+        this.consumeToken() // consume ','
+      }
+    }
+
+    if (this.currentToken.type !== TokenType.PAREN_CLOSE)
+      return this.logError("Expected ')' after function arguments", this.currentToken.location)
+
+    const functionEndLocation = this.currentToken.location.end
+    this.consumeToken() // consume ')'
+
+    return new PrototypeAST(functionName!, args, { start: functionStartLocation, end: functionEndLocation })
   }
 
-  private parseFunction(): AST {
-    // TODO
-  }*/
+  private parseFunctionDefinition(): FunctionDefinitionAST | null {
+    this.consumeToken() // consume 'fun'
+
+    const proto = this.parsePrototype()
+    if (proto === null) return null
+
+    if (this.currentToken.type !== TokenType.CURLY_OPEN)
+      return this.logError("Expected '{' after function prototype", this.currentToken.location)
+
+    this.consumeToken() // consume '{'
+
+    const body = this.parseExpression()
+    if (body === null) return null
+
+    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    if (this.currentToken.type !== TokenType.CURLY_CLOSE)
+      return this.logError("Expected '}' after function body", this.currentToken.location)
+
+    this.consumeToken() // consume '}'
+
+    return new FunctionDefinitionAST(proto, body, { start: proto.sourceLocation.start, end: body.sourceLocation.end })
+  }
 }

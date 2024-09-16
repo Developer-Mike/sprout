@@ -28,6 +28,7 @@ export default class Token {
 }
 
 export enum TokenType {
+  EOF,
   EOL,
   INVALID,
 
@@ -44,7 +45,9 @@ export enum TokenType {
   SQUARE_CLOSE,
 
   KEYWORD_VAR,
+  KEYWORD_CONST,
   KEYWORD_FUN,
+
   KEYWORD_RETURN,
   KEYWORD_ON,
   KEYWORD_WHILE,
@@ -73,6 +76,7 @@ export const BRACKETS_MAP = {
 
 export const KEYWORDS_MAP = {
   "var": TokenType.KEYWORD_VAR,
+  "const": TokenType.KEYWORD_CONST,
   "fun": TokenType.KEYWORD_FUN,
   "return": TokenType.KEYWORD_RETURN,
   "on": TokenType.KEYWORD_ON,
