@@ -1,7 +1,7 @@
-import { ProgramAST } from "./ast/on-expr-ast"
 import Lexer from "./lexer"
 import Parser from "./parser"
 import * as InbuiltFunctions from "./inbuilt-functions"
+import ProgramAST from "./ast/program-ast"
 
 export default class Compiler {
   lexer: Lexer
@@ -15,6 +15,9 @@ export default class Compiler {
   compile(source: string): ProgramAST {
     const tokens = this.lexer.lex(source)
     const ast = this.parser.parse(tokens)
+
+    // TODO: Debug
+    console.log(JSON.stringify(ast, null, 2))
 
     return ast
   }

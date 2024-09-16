@@ -1,13 +1,12 @@
 import SourceLocation from "../source-location"
 import ExpressionAST from "./expression-ast"
 
-export default class NumberExprAST extends ExpressionAST {
+export default class BreakExprAST extends ExpressionAST {
   constructor(
-    public value: string, 
     public override sourceLocation: SourceLocation
   ) { super() }
 
   toJavaScript(): string {
-    return this.value
+    return "break"
   }
 }

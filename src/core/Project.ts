@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import SproutEngine from "./SproutEngine"
+import ProjectRunner from "./ProjectRunner"
 import { GameObjectData, ProjectData } from "../types/ProjectData"
 import FSHelper, { ExtendedFileHandle } from "@/utils/fs-helper"
 import DBHelper from "@/utils/db-helper"
@@ -237,7 +237,7 @@ export default class Project {
   //#endregion
 
   //#region SproutEngine integration
-  render(canvas: HTMLCanvasElement) { SproutEngine.render(this.data, canvas) }
+  render(canvas: HTMLCanvasElement) { ProjectRunner.render(this.data, canvas) }
 
   // TODO: Return errors
   async run(canvas?: HTMLCanvasElement | null, setDebugInfo?: (key: string, value: any) => void) {
@@ -247,7 +247,7 @@ export default class Project {
     const instanceId = Math.random().toString(36).substring(7)
     await this.setRunningInstanceId(instanceId)
     
-    SproutEngine.run(this.data, () => this.runningInstanceId !== instanceId, canvas, setDebugInfo)
+    ProjectRunner.run(this.data, () => this.runningInstanceId !== instanceId, canvas, setDebugInfo)
   }
 
   async stop(canvas?: HTMLCanvasElement | null) {

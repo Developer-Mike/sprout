@@ -36,8 +36,8 @@ export enum TokenType {
   ARGUMENTS,
   SEPARATOR,
 
-  BRACKET_OPEN,
-  BRACKET_CLOSE,
+  PAREN_OPEN,
+  PAREN_CLOSE,
   CURLY_OPEN,
   CURLY_CLOSE,
   SQUARE_OPEN,
@@ -63,8 +63,8 @@ export enum TokenType {
 }
 
 export const BRACKETS_MAP = {
-  "(": TokenType.BRACKET_OPEN,
-  ")": TokenType.BRACKET_CLOSE,
+  "(": TokenType.PAREN_OPEN,
+  ")": TokenType.PAREN_CLOSE,
   "{": TokenType.CURLY_OPEN,
   "}": TokenType.CURLY_CLOSE,
   "[": TokenType.SQUARE_OPEN,

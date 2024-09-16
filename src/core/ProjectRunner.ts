@@ -5,7 +5,7 @@ import * as EngineDefinitions from "./engine/engine-definitions"
 import * as EngineRunner from "./engine/engine-runner"
 import * as GameObjectFunctions from "./engine/game-object-functions"
 
-export default class SproutEngine {
+export default class ProjectRunner {
   static render(data: ProjectData, canvas: HTMLCanvasElement) {
     EngineDefinitions.render(data.gameObjects, data.sprites, data.stage, canvas)
   }
@@ -81,7 +81,7 @@ export default class SproutEngine {
         }).join("\n") }
 
         // Compiled code
-        ${value.code}
+        ${value.code.toJavaScript()}
 
         // Register global scope vars/functions
         ${ value.code.getGlobalDeclarations().map(declaration => (`

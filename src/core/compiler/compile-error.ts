@@ -1,6 +1,6 @@
 import SourceLocation from "./source-location"
 
-export default class CompileException extends Error {
+export default class CompileError extends Error {
   constructor(message: string, public sourceLocation: SourceLocation) {
     super(message)
   }
