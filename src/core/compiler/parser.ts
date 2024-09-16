@@ -7,13 +7,24 @@ import CompileError from "./compile-error"
 import SourceLocation from "./source-location"
 import VariableExprAST from "./ast/variable-expr-ast"
 import CallExprAST from "./ast/call-expr-ast"
+import BinaryExprAST from "./ast/binary-expr-ast"
 
 export default class Parser {
+  readonly precedence: { [operator: string]: number } = {
+    "<": 10, ">": 10, "<=": 10, ">=": 10, "==": 10, "!=": 10,
+    "+": 20, "-": 20, 
+    "*": 40, "/": 40, "%": 40,
+  }
+
   tokens: Token[] = []
   errors: CompileError[] = []
 
   private get currentToken() {
     return this.tokens[0]
+  }
+
+  private get currentTokenPrecedence() {
+    return this.precedence[this.currentToken.value ?? ''] ?? -1
   }
 
   private consumeToken() {
@@ -47,10 +58,6 @@ export default class Parser {
     })[this.currentToken.type]?.call(this)
       ?? this.parseExpression()
   }*/
-
-  private parseExpression(): ExpressionAST | null {
-    return this.parsePrimaryExpression()
-  }
 
   private parsePrimaryExpression(): ExpressionAST | null {
     return ({
@@ -118,11 +125,38 @@ export default class Parser {
     return new CallExprAST(identifierValue!, args, identifierLocation)
   }
 
-  // Binary operator precedence parsing (https://llvm.org/docs/tutorial/MyFirstLanguageFrontend/LangImpl02.html#binary-expression-parsing)
-  readonly precedence = {
-    "<": 10, ">": 10, "<=": 10, ">=": 10, "==": 10, "!=": 10,
-    "+": 20, "-": 20, 
-    "*": 40, "/": 40, "%": 40,
+  private parseExpression(): ExpressionAST | null {
+    let lhs = this.parsePrimaryExpression()
+    if (lhs === null) return null
+
+    return this.parseBinOpRHS(0, lhs)
+  }
+
+  private parseBinOpRHS(exprPrecedence: number, lhs: ExpressionAST): ExpressionAST | null {
+    // If it's a binary operator, find its precedence
+    while (true) {
+      const tokenPrecedence = this.currentTokenPrecedence
+
+      // If it's not a binary operator, or it has lower precedence, return
+      if (tokenPrecedence < exprPrecedence) return lhs
+
+      // It's a binary operator, so consume it
+      const binOp = this.currentToken.value
+      this.consumeToken() // Eat e.g. '+'
+
+      // Parse the expression on the right side of the operator
+      let rhs = this.parsePrimaryExpression()
+      if (rhs === null) return null
+
+      // If the operator after the RHS has higher precedence, let the pending operator treat the RHS as its LHS
+      if (tokenPrecedence < this.currentTokenPrecedence) {
+        rhs = this.parseBinOpRHS(tokenPrecedence + 1, rhs)
+        if (rhs === null) return null
+      }
+
+      // Create a new binary expression node
+      lhs = new BinaryExprAST(binOp!, lhs, rhs, { start: lhs.sourceLocation.start, end: rhs.sourceLocation.end })
+    }
   }
 
   /*private parseVariableDeclaration(): AST {

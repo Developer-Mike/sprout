@@ -3,13 +3,13 @@ import ExpressionAST from "./expression-ast"
 
 export default class BinaryExprAST extends ExpressionAST {
   constructor(
-    public left: ExpressionAST, 
-    public value: string, 
-    public right: ExpressionAST, 
+    public operator: string, 
+    public lhs: ExpressionAST, 
+    public rhs: ExpressionAST, 
     public override sourceLocation: SourceLocation
   ) { super() }
 
   toJavaScript(): string {
-    return `(${this.left.toJavaScript()} ${this.value} ${this.right.toJavaScript()})`
+    return `(${this.lhs.toJavaScript()} ${this.operator} ${this.rhs.toJavaScript()})`
   }
 }
