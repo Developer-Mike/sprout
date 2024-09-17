@@ -18,9 +18,9 @@ export default class Token {
 
   getDebugCategory(): string {
     if ([TokenType.IDENTIFIER].includes(this.type)) return "identifiers"
+    if ([TokenType.ASSIGNMENT, TokenType.SEPARATOR, TokenType.PUNCTUATOR, TokenType.BIN_OP].includes(this.type)) return "punctuators"
     if (Object.values(KEYWORDS_MAP).includes(this.type)) return "keywords"
     if (Object.values(BRACKETS_MAP).includes(this.type)) return "brackets"
-    if ([TokenType.BIN_OP].includes(this.type)) return "operators"
     if ([TokenType.LITERAL_NUMBER, TokenType.LITERAL_STRING, TokenType.LITERAL_BOOLEAN, TokenType.LITERAL_NULL].includes(this.type)) return "literals"
 
     return "others"
@@ -33,8 +33,8 @@ export enum TokenType {
 
   IDENTIFIER,
   ASSIGNMENT,
-  ARGUMENTS,
   SEPARATOR,
+  PUNCTUATOR,
 
   PAREN_OPEN,
   PAREN_CLOSE,

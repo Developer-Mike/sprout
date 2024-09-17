@@ -1,10 +1,12 @@
-import SourceLocation from "../source-location"
+import SourceLocation from "../../source-location"
+import IdentifierAST from "../identifier-ast"
 import ExpressionAST from "./expression-ast"
+import MemberExprAST from "./member-expr-ast"
 
 export default class CallExprAST extends ExpressionAST {
   constructor(
-    public callee: string, 
-    public args: ExpressionAST[], 
+    public callee: IdentifierAST | MemberExprAST,
+    public args: ExpressionAST[],
     public override sourceLocation: SourceLocation
   ) { super() }
 

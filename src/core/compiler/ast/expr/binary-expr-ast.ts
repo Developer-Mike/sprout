@@ -1,4 +1,4 @@
-import SourceLocation from "../source-location"
+import SourceLocation from "../../source-location"
 import ExpressionAST from "./expression-ast"
 
 export default class BinaryExprAST extends ExpressionAST {

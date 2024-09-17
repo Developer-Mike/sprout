@@ -1,12 +1,13 @@
-import SourceLocation from "../source-location"
+import SourceLocation from "../../source-location"
 import ExpressionAST from "./expression-ast"
 
-export default class ContinueExprAST extends ExpressionAST {
+export default class NumberExprAST extends ExpressionAST {
   constructor(
+    public value: string, 
     public override sourceLocation: SourceLocation
   ) { super() }
 
   toJavaScript(): string {
-    return "continue"
+    return this.value
   }
 }

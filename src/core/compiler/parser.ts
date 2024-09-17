@@ -1,18 +1,19 @@
 import AST from "./ast/ast"
-import ExpressionAST from "./ast/expression-ast"
-import NumberExprAST from "./ast/number-expr-ast"
+import ExpressionAST from "./ast/expr/expression-ast"
+import NumberExprAST from "./ast/expr/number-expr-ast"
 import ProgramAST from "./ast/program-ast"
 import Token, { TokenType } from "./token"
 import CompileError from "./compile-error"
 import SourceLocation from "./source-location"
-import VariableExprAST from "./ast/variable-expr-ast"
-import CallExprAST from "./ast/call-expr-ast"
-import BinaryExprAST from "./ast/binary-expr-ast"
+import IdentifierAST from "./ast/identifier-ast"
+import CallExprAST from "./ast/expr/call-expr-ast"
+import BinaryExprAST from "./ast/expr/binary-expr-ast"
 import PrototypeAST from "./ast/prototype-ast"
 import FunctionDefinitionAST from "./ast/function-definition-ast"
 import VariableDeclarationAST from "./ast/variable-declaration-ast"
-import StringExprAST from "./ast/string-expr-ast"
-import NullExprAST from "./ast/null-expr-ast"
+import StringExprAST from "./ast/expr/string-expr-ast"
+import NullExprAST from "./ast/expr/null-expr-ast"
+import BlockStatementAST from "./ast/block-statement"
 
 export default class Parser {
   readonly precedence: { [operator: string]: number } = {
@@ -40,14 +41,15 @@ export default class Parser {
   parse(tokens: Token[]): ProgramAST {
     this.tokens = [...tokens]
 
-    const astNodes: AST[] = []
+    const nodes: AST[] = []
 
     while (this.currentToken.type !== TokenType.EOF) {
-      const astNode = this.getNextASTNode()
-      if (astNode !== null) astNodes.push(astNode)
+      const node = this.getNextASTNode()
+      if (node !== null) nodes.push(node)
     }
 
-    return new ProgramAST(astNodes, this.errors, tokens)
+    const body = new BlockStatementAST(nodes, { start: 0, end: tokens[tokens.length - 1].location.end })
+    return new ProgramAST(body, this.errors, tokens)
   }
 
   private logError(message: string, location: SourceLocation) {
@@ -56,7 +58,6 @@ export default class Parser {
   }
 
   private getNextASTNode(): AST | null {
-
     switch (this.currentToken?.type) {
       case TokenType.KEYWORD_FUN:
         return this.parseFunctionDefinition()
@@ -86,13 +87,26 @@ export default class Parser {
   }
 
   private parseNumberExpression(): NumberExprAST {
-    const ast = new NumberExprAST(
-      this.currentToken.value!, 
-      this.currentToken.location
-    )
-
+    let value = this.currentToken.value ?? ""
+    const location = this.currentToken.location
     this.consumeToken() // consume number token
-    return ast
+
+    if (this.currentToken.type === TokenType.PUNCTUATOR) {
+      value += "."
+      location.end = this.currentToken.location.end
+
+      this.consumeToken() // consume '.'
+
+      // @ts-ignore TS doesn't know that consumeToken changes the current token
+      if (this.currentToken.type === TokenType.LITERAL_NUMBER) {
+        value += this.currentToken.value
+        location.end = this.currentToken.location.end
+
+        this.consumeToken() // consume number token
+      }
+    }
+
+    return new NumberExprAST(value, location)
   }
 
   private parseStringExpression(): StringExprAST {
@@ -131,9 +145,27 @@ export default class Parser {
 
     this.consumeToken() // consume identifier token
 
+    /* TODO
+    while (this.currentToken.type === TokenType.PUNCTUATOR) {
+      const member = this.currentToken.value
+      this.consumeToken() // consume '.'
+
+      if (this.currentToken.type !== TokenType.IDENTIFIER)
+        return this.logError("Expected member name after '.'", this.currentToken.location)
+
+      const memberName = this.currentToken.value
+      const memberLocation = this.currentToken.location
+
+      this.consumeToken() // consume member name
+
+      identifierLocation.end = memberLocation.end
+      identifierValue += `.${memberName}`
+    } */
+
     // If not a function call, return a variable expression
-    if (this.currentToken.type !== TokenType.PAREN_OPEN)
-      return new VariableExprAST(identifierValue!, identifierLocation)
+    if (this.currentToken.type !== TokenType.PAREN_OPEN) {
+      return new IdentifierAST(identifierValue!, identifierLocation)
+    }
 
     // Parse function call
     this.consumeToken() // consume '('
@@ -191,7 +223,7 @@ export default class Parser {
     }
   }
 
-  private parseVariableDeclaration(): VariableExprAST | null {
+  private parseVariableDeclaration(): IdentifierAST | null {
     const isConstant = this.currentToken.type === TokenType.KEYWORD_CONST
     this.consumeToken() // consume 'var'
 

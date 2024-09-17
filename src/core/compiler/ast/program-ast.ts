@@ -1,26 +1,27 @@
 import CompileError from "../compile-error"
 import Token from "../token"
-import AST from "./ast"
+import BlockStatementAST from "./block-statement"
 import FunctionDefinitionAST from "./function-definition-ast"
+import IdentifierAST from "./identifier-ast"
 import VariableDeclarationAST from "./variable-declaration-ast"
 
 export default class ProgramAST {
-  nodes: AST[] = []
-  errors: CompileError[] = []
-  tokens: Token[] = [] // For debugging
+  body: BlockStatementAST
+  errors: CompileError[]
+  tokens: Token[] // For debugging
 
-  constructor(nodes: AST[], errors: CompileError[], tokens: Token[]) {    
-    this.nodes = nodes
+  constructor(body: BlockStatementAST, errors: CompileError[], tokens: Token[]) {    
+    this.body = body
     this.errors = errors
     this.tokens = tokens
   }
 
   toJavaScript(): string {
-    return this.nodes.map(node => node.toJavaScript()).join("\n")
+    return `;(async () => { ${this.body.toJavaScript()} })()`
   }
 
   getGlobalDeclarations(): Declaration[] {
-    return this.nodes.map(node => {
+    return this.body.body.map(node => {
       if (node instanceof VariableDeclarationAST) return { readonly: node.constant, name: node.name }
       if (node instanceof FunctionDefinitionAST) return { readonly: true, name: node.proto.name }
 
@@ -31,5 +32,5 @@ export default class ProgramAST {
 
 export interface Declaration {
   readonly: boolean
-  name: string
+  name: IdentifierAST
 }

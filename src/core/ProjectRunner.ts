@@ -94,7 +94,7 @@ export default class ProjectRunner {
         // Register global scope vars/functions
         ${ compiledCodes[value.id].getGlobalDeclarations().map(declaration => (`
         Object.defineProperty(game_object, '${declaration.name}', {
-          get: () => ${declaration.name},
+          get: () => ${declaration.name.toJavaScript()},
           ${ declaration.readonly ? "" : `set: (value) => ${declaration.name} = value` }
         })
         `)).join("\n") }

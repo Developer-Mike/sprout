@@ -58,7 +58,7 @@ export default function CodeEditor() {
       <img id={styles.gameObjectPreview} 
         src={project.data.sprites[
           project.selectedGameObject.sprites[
-            project.selectedGameObject.activeSprite
+            project.selectedGameObject.active_sprite
           ]
         ]}
       />
