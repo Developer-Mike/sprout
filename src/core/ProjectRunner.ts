@@ -44,6 +44,12 @@ export default class ProjectRunner {
       return acc
     }, {} as Record<string, RuntimeGameObjectData>)
 
+    // DEBUG
+    for (const compiledCode of Object.values(compiledCodes)) {
+      console.log(compiledCode.toJavaScript())
+    }
+    return
+
     // Execution relevant code starts here ------------------------------------------------
     const executionContext = {
       isStopped,

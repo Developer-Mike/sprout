@@ -101,6 +101,12 @@ export default class Lexer {
       return new Token(TokenType.SEPARATOR, null, this.currentLocation)
     }
 
+    // Check for optional chaining
+    if (this.currentChar === "?" && this.nextChar === ".") {
+      this.consumeChar()
+      return new Token(TokenType.OPTIONAL_OPERATOR, null, this.currentLocation)
+    }
+
     // Check for punctuator
     if (this.currentChar === ".") {
       this.consumeChar()

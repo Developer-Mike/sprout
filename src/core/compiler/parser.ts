@@ -134,7 +134,13 @@ export default class Parser {
 
     // Parse member expressions
     // @ts-ignore TS doesn't know that the current token changes
-    while (this.currentToken.type === TokenType.PUNCTUATOR) {
+    while (this.currentToken.type === TokenType.OPTIONAL_OPERATOR || this.currentToken.type === TokenType.PUNCTUATOR) {
+      const optional = this.currentToken.type === TokenType.OPTIONAL_OPERATOR
+      if (optional) this.consumeToken() // consume '?'
+
+      if (this.currentToken.type !== TokenType.PUNCTUATOR)
+        return this.logError("Expected '.' after '?'", this.currentToken.location)
+
       this.consumeToken() // consume '.'
 
       // @ts-ignore TS doesn't know that consumeToken changes the current token
@@ -145,7 +151,7 @@ export default class Parser {
       if (memberIdentifier === null) return null
 
       // Create a new member expression node
-      objectExpr = new MemberExprAST(objectExpr, memberIdentifier, { start: objectExpr.sourceLocation.start, end: memberIdentifier.sourceLocation.end })
+      objectExpr = new MemberExprAST(objectExpr, memberIdentifier, optional, { start: objectExpr.sourceLocation.start, end: memberIdentifier.sourceLocation.end })
 
       this.consumeToken() // consume member name
     }
@@ -283,7 +289,6 @@ export default class Parser {
       return this.logError("Expected variable name", this.currentToken.location)
 
     const variableIdentifier = new IdentifierExprAST(this.currentToken.value!, this.currentToken.location)
-
     this.consumeToken() // consume variable name
 
     // @ts-ignore TS doesn't know that consumeToken changes the current token
@@ -303,6 +308,7 @@ export default class Parser {
       return this.logError("Expected function name", this.currentToken.location)
 
     const functionIdentifier = new IdentifierExprAST(this.currentToken.value!, this.currentToken.location)
+    this.consumeToken() // consume function name
 
     // @ts-ignore TS doesn't know that consumeToken changes the current token
     if (this.currentToken.type !== TokenType.ASSIGNMENT)
@@ -319,6 +325,8 @@ export default class Parser {
     const args: IdentifierExprAST[] = []
     while (this.currentToken.type === TokenType.IDENTIFIER) {
       const arg = new IdentifierExprAST(this.currentToken.value!, this.currentToken.location)
+      this.consumeToken() // consume argument name
+
       args.push(arg)
 
       if (this.currentToken.type === TokenType.SEPARATOR)
@@ -335,6 +343,9 @@ export default class Parser {
   }
 
   private parseFunctionDefinition(): FunctionDefinitionAST | null {
+    if (this.currentToken.type !== TokenType.KEYWORD_FUN)
+      return this.logError("Expected keyword 'fun'", this.currentToken.location)
+
     this.consumeToken() // consume 'fun'
 
     const proto = this.parsePrototype()

@@ -11,6 +11,6 @@ export default class CallExprAST extends ExpressionAST {
   ) { super() }
 
   toJavaScript(): string {
-    return `${this.callee}(${this.args.map(arg => arg.toJavaScript()).join(", ")})`
+    return `${this.callee.toJavaScript()}(${this.args.map(arg => arg.toJavaScript()).join(", ")})`
   }
 }
