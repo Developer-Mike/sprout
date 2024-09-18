@@ -8,6 +8,7 @@ export default class StringExprAST extends ExpressionAST {
   ) { super() }
   
   toJavaScript(): string {
-    return `"${this.value}"`
+    // Wrap the string in quotes to allow calling methods on it
+    return `("${this.value}")`
   }
 }

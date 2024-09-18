@@ -8,6 +8,7 @@ export default class NumberExprAST extends ExpressionAST {
   ) { super() }
 
   toJavaScript(): string {
-    return this.value
+    // Wrap the number in quotes to allow calling methods on it
+    return `(${this.value})`
   }
 }
