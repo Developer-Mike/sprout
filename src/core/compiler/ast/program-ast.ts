@@ -1,8 +1,8 @@
 import CompileError from "../compile-error"
 import Token from "../token"
-import BlockStatementAST from "./block-statement"
+import BlockStatementAST from "./block-statement-ast"
 import FunctionDefinitionAST from "./function-definition-ast"
-import IdentifierAST from "./identifier-ast"
+import IdentifierExprAST from "./expr/identifier-expr-ast"
 import VariableDeclarationAST from "./variable-declaration-ast"
 
 export default class ProgramAST {
@@ -32,5 +32,5 @@ export default class ProgramAST {
 
 export interface Declaration {
   readonly: boolean
-  name: IdentifierAST
+  name: IdentifierExprAST
 }

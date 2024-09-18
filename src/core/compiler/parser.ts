@@ -5,7 +5,7 @@ import ProgramAST from "./ast/program-ast"
 import Token, { TokenType } from "./token"
 import CompileError from "./compile-error"
 import SourceLocation from "./source-location"
-import IdentifierAST from "./ast/identifier-ast"
+import IdentifierExprAST from "./ast/expr/identifier-expr-ast"
 import CallExprAST from "./ast/expr/call-expr-ast"
 import BinaryExprAST from "./ast/expr/binary-expr-ast"
 import PrototypeAST from "./ast/prototype-ast"
@@ -13,7 +13,8 @@ import FunctionDefinitionAST from "./ast/function-definition-ast"
 import VariableDeclarationAST from "./ast/variable-declaration-ast"
 import StringExprAST from "./ast/expr/string-expr-ast"
 import NullExprAST from "./ast/expr/null-expr-ast"
-import BlockStatementAST from "./ast/block-statement"
+import BlockStatementAST from "./ast/block-statement-ast"
+import MemberExprAST from "./ast/expr/member-expr-ast"
 
 export default class Parser {
   readonly precedence: { [operator: string]: number } = {
@@ -44,7 +45,7 @@ export default class Parser {
     const nodes: AST[] = []
 
     while (this.currentToken.type !== TokenType.EOF) {
-      const node = this.getNextASTNode()
+      const node = this.parseStatement()
       if (node !== null) nodes.push(node)
     }
 
@@ -57,7 +58,7 @@ export default class Parser {
     return null
   }
 
-  private getNextASTNode(): AST | null {
+  private parseStatement(): AST | null {
     switch (this.currentToken?.type) {
       case TokenType.KEYWORD_FUN:
         return this.parseFunctionDefinition()
@@ -67,6 +68,40 @@ export default class Parser {
       default:
         return this.parseExpression()
     }
+  }
+  
+  private parseBlockStatement(): BlockStatementAST | null {
+    // If it's embraced, parse the embraced block statement
+    if (this.currentToken.type === TokenType.CURLY_OPEN)
+      return this.parseEmbracedBlockStatement()
+
+    // Otherwise, parse a single expression
+    const expression = this.parseExpression()
+    if (expression === null) return null
+
+    return new BlockStatementAST([expression], expression.sourceLocation)
+  }
+
+  private parseEmbracedBlockStatement(): BlockStatementAST | null {
+    if (this.currentToken.type !== TokenType.CURLY_OPEN)
+      return this.logError("Expected '{'", this.currentToken.location)
+
+    const bodyStartLocation = this.currentToken.location.start
+    this.consumeToken() // consume '{'
+
+    const body: AST[] = []
+    // @ts-ignore TS doesn't know that this loop changes the current token
+    while (this.currentToken.type !== TokenType.CURLY_CLOSE) {
+      const statement = this.parseStatement()
+      if (statement === null) return null
+
+      body.push(statement)
+    }
+
+    const bodyEndLocation = this.currentToken.location.end
+    this.consumeToken() // consume '}'
+
+    return new BlockStatementAST(body, { start: bodyStartLocation, end: bodyEndLocation })
   }
 
   private parsePrimaryExpression(): ExpressionAST | null {
@@ -78,7 +113,7 @@ export default class Parser {
       case TokenType.LITERAL_NULL:
         return this.parseNullExpression()
       case TokenType.IDENTIFIER:
-        return this.parseIdentifierExpression()
+        return this.parseMemberExpression()
       case TokenType.PAREN_OPEN:
         return this.parseParenExpression()
       default:
@@ -139,33 +174,40 @@ export default class Parser {
     return ast
   }
 
-  private parseIdentifierExpression(): ExpressionAST | null {
-    const identifierValue = this.currentToken.value
-    const identifierLocation = this.currentToken.location
+  private parseIdentifierExpression(): IdentifierExprAST | null {
+    if (this.currentToken.type !== TokenType.IDENTIFIER)
+      return this.logError("Expected identifier", this.currentToken.location)
 
+    const ast = new IdentifierExprAST(this.currentToken.value!, this.currentToken.location)
     this.consumeToken() // consume identifier token
 
-    /* TODO
+    return ast
+  }
+
+  private parseMemberExpression(): ExpressionAST | null {
+    let baseIdentifier = this.parseIdentifierExpression()
+    if (baseIdentifier === null) return null
+
+    let expressionAst: ExpressionAST = baseIdentifier
     while (this.currentToken.type === TokenType.PUNCTUATOR) {
-      const member = this.currentToken.value
       this.consumeToken() // consume '.'
 
+      // @ts-ignore TS doesn't know that consumeToken changes the current token
       if (this.currentToken.type !== TokenType.IDENTIFIER)
         return this.logError("Expected member name after '.'", this.currentToken.location)
 
-      const memberName = this.currentToken.value
-      const memberLocation = this.currentToken.location
+      const memberIdentifier = this.parseIdentifierExpression()
+      if (memberIdentifier === null) return null
+
+      // Create a new member expression node
+      expressionAst = new MemberExprAST(expressionAst, memberIdentifier, { start: expressionAst.sourceLocation.start, end: memberIdentifier.sourceLocation.end })
 
       this.consumeToken() // consume member name
-
-      identifierLocation.end = memberLocation.end
-      identifierValue += `.${memberName}`
-    } */
+    }
 
     // If not a function call, return a variable expression
-    if (this.currentToken.type !== TokenType.PAREN_OPEN) {
-      return new IdentifierAST(identifierValue!, identifierLocation)
-    }
+    if (this.currentToken.type !== TokenType.PAREN_OPEN)
+      return expressionAst
 
     // Parse function call
     this.consumeToken() // consume '('
@@ -184,9 +226,10 @@ export default class Parser {
         this.consumeToken() // consume ','
     }
 
+    const callEndLocation = this.currentToken.location.end
     this.consumeToken() // consume ')'
 
-    return new CallExprAST(identifierValue!, args, identifierLocation)
+    return new CallExprAST(expressionAst, args, { start: expressionAst.sourceLocation.start, end: callEndLocation })
   }
 
   private parseExpression(): ExpressionAST | null {
@@ -223,15 +266,14 @@ export default class Parser {
     }
   }
 
-  private parseVariableDeclaration(): IdentifierAST | null {
+  private parseVariableDeclaration(): VariableDeclarationAST | null {
     const isConstant = this.currentToken.type === TokenType.KEYWORD_CONST
     this.consumeToken() // consume 'var'
 
     if (this.currentToken.type !== TokenType.IDENTIFIER)
       return this.logError("Expected variable name", this.currentToken.location)
 
-    const variableName = this.currentToken.value
-    const variableDeclarationStartLocation = this.currentToken.location.start
+    const variableIdentifier = new IdentifierExprAST(this.currentToken.value!, this.currentToken.location)
 
     this.consumeToken() // consume variable name
 
@@ -244,15 +286,14 @@ export default class Parser {
     const variableValue = this.parseExpression()
     if (variableValue === null) return null
 
-    return new VariableDeclarationAST(isConstant, variableName!, variableValue, { start: variableDeclarationStartLocation, end: variableValue.sourceLocation.end })
+    return new VariableDeclarationAST(isConstant, variableIdentifier, variableValue, { start: variableIdentifier.sourceLocation.start, end: variableValue.sourceLocation.end })
   }
 
   private parsePrototype(): PrototypeAST | null {
     if (this.currentToken.type !== TokenType.IDENTIFIER)
       return this.logError("Expected function name", this.currentToken.location)
 
-    const functionName = this.currentToken.value
-    const functionStartLocation = this.currentToken.location.start
+    const functionIdentifier = new IdentifierExprAST(this.currentToken.value!, this.currentToken.location)
 
     this.consumeToken() // consume function name
 
@@ -268,10 +309,12 @@ export default class Parser {
 
     this.consumeToken() // consume '('
 
-    const args: string[] = []
+    const args: IdentifierExprAST[] = []
     while (this.currentToken.type === TokenType.IDENTIFIER) {
-      args.push(this.currentToken.value!)
-      this.consumeToken() // consume argument name
+      const arg = this.parseIdentifierExpression()
+      if (arg === null) return null
+
+      args.push(arg)
 
       if (this.currentToken.type === TokenType.SEPARATOR) {
         this.consumeToken() // consume ','
@@ -284,7 +327,7 @@ export default class Parser {
     const functionEndLocation = this.currentToken.location.end
     this.consumeToken() // consume ')'
 
-    return new PrototypeAST(functionName!, args, { start: functionStartLocation, end: functionEndLocation })
+    return new PrototypeAST(functionIdentifier, args, { start: functionIdentifier.sourceLocation.start, end: functionEndLocation })
   }
 
   private parseFunctionDefinition(): FunctionDefinitionAST | null {
@@ -293,25 +336,14 @@ export default class Parser {
     const proto = this.parsePrototype()
     if (proto === null) return null
 
-    if (this.currentToken.type !== TokenType.CURLY_OPEN)
-      return this.logError("Expected '{' after function prototype", this.currentToken.location)
+    if (this.currentToken.type !== TokenType.ASSIGNMENT)
+      return this.logError("Expected '=' after function prototype", this.currentToken.location)
 
-    this.consumeToken() // consume '{'
+    this.consumeToken() // consume '='
 
-    let body: ExpressionAST | null = null
-    // @ts-ignore TS doesn't know that consumeToken changes the current token
-    if (this.currentToken.type !== TokenType.CURLY_CLOSE) {
-      body = this.parseExpression()
-      if (body === null) return null
-    }
+    const body = this.parseBlockStatement()
+    if (body === null) return null
 
-    const bodyEndLocation = this.currentToken.location.end
-    // @ts-ignore TS doesn't know that consumeToken changes the current token
-    if (this.currentToken.type !== TokenType.CURLY_CLOSE)
-      return this.logError("Expected '}' after function body", this.currentToken.location)
-
-    this.consumeToken() // consume '}'
-
-    return new FunctionDefinitionAST(proto, body, { start: proto.sourceLocation.start, end: bodyEndLocation })
+    return new FunctionDefinitionAST(proto, body, { start: proto.sourceLocation.start, end: body.sourceLocation.end })
   }
 }

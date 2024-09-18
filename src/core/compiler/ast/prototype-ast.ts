@@ -1,11 +1,11 @@
 import SourceLocation from "../source-location";
 import AST from "./ast";
-import IdentifierAST from "./identifier-ast";
+import IdentifierExprAST from "./expr/identifier-expr-ast";
 
 export default class PrototypeAST extends AST {
   constructor(
-    public name: IdentifierAST, 
-    public args: IdentifierAST[], 
+    public name: IdentifierExprAST, 
+    public args: IdentifierExprAST[], 
     public override sourceLocation: SourceLocation
   ) { super() }
 

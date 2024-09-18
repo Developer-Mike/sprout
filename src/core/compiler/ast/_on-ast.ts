@@ -1,6 +1,6 @@
 import SourceLocation from "../source-location"
 import AST from "./ast"
-import BlockStatementAST from "./block-statement"
+import BlockStatementAST from "./block-statement-ast"
 import ExpressionAST from "./expr/expression-ast"
 
 export default class OnExprAST extends AST {

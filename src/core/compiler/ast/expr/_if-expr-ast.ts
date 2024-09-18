@@ -1,5 +1,5 @@
 import SourceLocation from "../../source-location"
-import BlockStatementAST from "../block-statement"
+import BlockStatementAST from "../block-statement-ast"
 import ExpressionAST from "./expression-ast"
 
 export default class IfExprAST extends ExpressionAST {

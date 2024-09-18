@@ -1,7 +1,7 @@
-import SourceLocation from "../source-location"
-import AST from "./ast"
+import SourceLocation from "../../source-location"
+import ExpressionAST from "./expression-ast"
 
-export default class IdentifierAST extends AST {
+export default class IdentifierExprAST extends ExpressionAST {
   constructor(
     public name: string, 
     public override sourceLocation: SourceLocation

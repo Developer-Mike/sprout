@@ -1,6 +1,6 @@
 import SourceLocation from "../source-location"
 import AST from "./ast"
-import BlockStatementAST from "./block-statement"
+import BlockStatementAST from "./block-statement-ast"
 import PrototypeAST from "./prototype-ast"
 
 export default class FunctionDefinitionAST extends AST {
