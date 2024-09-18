@@ -16,6 +16,7 @@ import NullExprAST from "./ast/expr/null-expr-ast"
 import BlockStatementAST from "./ast/block-statement-ast"
 import MemberExprAST from "./ast/expr/member-expr-ast"
 import AssignmentExprAST from "./ast/expr/assignment-expr-ast"
+import BooleanExprAST from "./ast/expr/boolean-expr-ast"
 
 export default class Parser {
   readonly precedence: { [operator: string]: number } = {
@@ -65,13 +66,18 @@ export default class Parser {
       case TokenType.KEYWORD_VAR:
       case TokenType.KEYWORD_CONST:
         return this.parseVariableDeclaration()
-      // handle TokenType.KEYWORD_IF
-      // handle TokenType.KEYWORD_WHILE
-      // handle TokenType.KEYWORD_FOR
-      // handle TokenType.KEYWORD_ON
-      // handle TokenType.KEYWORD_BREAK
-      // handle TokenType.KEYWORD_RETURN
-      // handle TokenType.KEYWORD_CONTINUE
+      case TokenType.KEYWORD_WHILE:
+        return this.parseWhileStatement()
+      case TokenType.KEYWORD_FOR:
+        return this.parseForStatement()
+      case TokenType.KEYWORD_ON:
+        return this.parseOnStatement()
+      case TokenType.KEYWORD_RETURN:
+        return this.parseReturnStatement()
+      case TokenType.KEYWORD_BREAK:
+        return this.parseBreakStatement()
+      case TokenType.KEYWORD_CONTINUE:
+        return this.parseContinueStatement()
       default:
         return this.parseExpression()
     }
@@ -120,11 +126,17 @@ export default class Parser {
       case TokenType.LITERAL_STRING:
         objectExpr = this.parseStringExpression()
         break
+      case TokenType.LITERAL_BOOLEAN:
+        objectExpr = this.parseBooleanExpression()
+        break
       case TokenType.LITERAL_NULL:
         objectExpr = this.parseNullExpression()
         break
       case TokenType.IDENTIFIER:
         objectExpr = this.parseIdentifierExpression()
+        break
+      case TokenType.KEYWORD_IF:
+        objectExpr = this.parseIfExpression()
         break
       case TokenType.PAREN_OPEN:
         objectExpr = this.parseParenExpression()
@@ -160,26 +172,13 @@ export default class Parser {
   }
 
   private parseNumberExpression(): NumberExprAST {
-    let value = this.currentToken.value ?? ""
-    const location = this.currentToken.location
+    const ast = new NumberExprAST(
+      this.currentToken.value!, 
+      this.currentToken.location
+    )
+
     this.consumeToken() // consume number token
-
-    if (this.currentToken.type === TokenType.PUNCTUATOR) {
-      value += "."
-      location.end = this.currentToken.location.end
-
-      this.consumeToken() // consume '.'
-
-      // @ts-ignore TS doesn't know that consumeToken changes the current token
-      if (this.currentToken.type === TokenType.LITERAL_NUMBER) {
-        value += this.currentToken.value
-        location.end = this.currentToken.location.end
-
-        this.consumeToken() // consume number token
-      }
-    }
-
-    return new NumberExprAST(value, location)
+    return ast
   }
 
   private parseStringExpression(): StringExprAST {
@@ -192,10 +191,26 @@ export default class Parser {
     return ast
   }
 
-  private parseNullExpression(): ExpressionAST {
-    this.consumeToken() // consume 'null' token
-    return new NullExprAST(this.currentToken.location)
+  private parseBooleanExpression(): ExpressionAST {
+    const ast = new BooleanExprAST(
+      this.currentToken.value!, 
+      this.currentToken.location
+    )
+
+    this.consumeToken() // consume boolean token
+    return ast
   }
+
+  private parseNullExpression(): ExpressionAST {
+    const ast = new NullExprAST(
+      this.currentToken.location
+    )
+
+    this.consumeToken() // consume null token
+    return ast
+  }
+
+  private parseIfExpression(): ExpressionAST | null { return null } // TODO: Implement
 
   private parseParenExpression(): ExpressionAST | null {
     this.consumeToken() // consume '('
@@ -367,4 +382,11 @@ export default class Parser {
 
     return new FunctionDefinitionAST(proto, body, { start: proto.sourceLocation.start, end: body.sourceLocation.end })
   }
+
+  private parseWhileStatement(): AST | null { return null } // TODO: Implement
+  private parseForStatement(): AST | null { return null } // TODO: Implement
+  private parseOnStatement(): AST | null { return null } // TODO: Implement
+  private parseReturnStatement(): AST | null { return null } // TODO: Implement
+  private parseBreakStatement(): AST | null { return null } // TODO: Implement
+  private parseContinueStatement(): AST | null { return null } // TODO: Implement
 }

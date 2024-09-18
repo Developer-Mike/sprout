@@ -21,6 +21,19 @@ var ok = 1
 ok = (2 + ok / 3) * 4
 test()
   `,
+  `
+var test = 1
+test += 1
+test++
+
+if (test == 2) {
+  test = 3
+} else if (test >= 3) {
+  test = 4
+} else {
+  test = 5
+}
+  `,
 ]
 
 export default function CompilerDebug() {

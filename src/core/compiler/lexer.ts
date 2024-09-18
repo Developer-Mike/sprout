@@ -93,24 +93,6 @@ export default class Lexer {
       return new Token(bracketType, null, this.currentLocation)
     }
 
-    // Check for separator
-    if (this.currentChar === ",") {
-      this.consumeChar()
-      return new Token(TokenType.SEPARATOR, null, this.currentLocation)
-    }
-
-    // Check for optional chaining
-    if (this.currentChar === "?" && this.nextChar === ".") {
-      this.consumeChar()
-      return new Token(TokenType.OPTIONAL_OPERATOR, null, this.currentLocation)
-    }
-
-    // Check for punctuator
-    if (this.currentChar === ".") {
-      this.consumeChar()
-      return new Token(TokenType.PUNCTUATOR, null, this.currentLocation)
-    }
-
     // Check for identifier
     if (this.currentChar?.match(/[a-zA-Z_]/)) {
       let identifier = ""
@@ -157,15 +139,33 @@ export default class Lexer {
     }
 
     // Check for number
-    if (this.currentChar?.match(/[0-9]/)) {
+    if ((this.currentChar === "." && this.nextChar?.match(/[0-9]/)) || this.currentChar.match(/[0-9]/)) {
       let number = ""
 
       do {
         number += this.currentChar
         this.consumeChar()
-      } while (this.currentChar?.match(/[0-9]/))
+      } while (this.currentChar?.match(/[0-9]/) || (this.currentChar === "." && this.nextChar?.match(/[0-9]/)))
 
       return new Token(TokenType.LITERAL_NUMBER, number, this.currentLocation, number.length)
+    }
+
+    // Check for separator
+    if (this.currentChar === ",") {
+      this.consumeChar()
+      return new Token(TokenType.SEPARATOR, null, this.currentLocation)
+    }
+
+    // Check for optional chaining
+    if (this.currentChar === "?" && this.nextChar === ".") {
+      this.consumeChar()
+      return new Token(TokenType.OPTIONAL_OPERATOR, null, this.currentLocation)
+    }
+
+    // Check for punctuator
+    if (this.currentChar === ".") {
+      this.consumeChar()
+      return new Token(TokenType.PUNCTUATOR, null, this.currentLocation)
     }
 
     // Check for equality check or assignment
