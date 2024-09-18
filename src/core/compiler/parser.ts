@@ -15,6 +15,7 @@ import StringExprAST from "./ast/expr/string-expr-ast"
 import NullExprAST from "./ast/expr/null-expr-ast"
 import BlockStatementAST from "./ast/block-statement-ast"
 import MemberExprAST from "./ast/expr/member-expr-ast"
+import AssignmentExprAST from "./ast/expr/assignment-expr-ast"
 
 export default class Parser {
   readonly precedence: { [operator: string]: number } = {
@@ -53,6 +54,7 @@ export default class Parser {
 
   private logError(message: string, location: SourceLocation) {
     this.errors.push(new CompileError(message, location))
+    this.consumeToken() // consume the token to avoid infinite loop
     return null
   }
 
@@ -152,8 +154,6 @@ export default class Parser {
 
       // Create a new member expression node
       objectExpr = new MemberExprAST(objectExpr, memberIdentifier, optional, { start: objectExpr.sourceLocation.start, end: memberIdentifier.sourceLocation.end })
-
-      this.consumeToken() // consume member name
     }
 
     return objectExpr
@@ -219,32 +219,43 @@ export default class Parser {
     const identifier = new IdentifierExprAST(this.currentToken.value!, this.currentToken.location)
     this.consumeToken() // consume identifier token
 
-    // If not a function call, return a variable expression
+    // If it's a function call, parse it
     // @ts-ignore TS doesn't know that consumeToken changes the current token
-    if (this.currentToken.type !== TokenType.PAREN_OPEN)
-      return identifier
+    if (this.currentToken.type === TokenType.PAREN_OPEN) {
+      this.consumeToken() // consume '('
 
-    // Parse function call
-    this.consumeToken() // consume '('
-
-    // parse arguments
-    const args: ExpressionAST[] = []
-    // @ts-ignore TS doesn't know that this loop changes the current token
-    while (this.currentToken.type !== TokenType.PAREN_CLOSE) {
-      const arg = this.parseExpression()
-      if (arg === null) return null
-
-      args.push(arg)
-
+      // parse arguments
+      const args: ExpressionAST[] = []
       // @ts-ignore TS doesn't know that this loop changes the current token
-      if (this.currentToken.type === TokenType.SEPARATOR)
-        this.consumeToken() // consume ','
+      while (this.currentToken.type !== TokenType.PAREN_CLOSE) {
+        const arg = this.parseExpression()
+        if (arg === null) return null
+
+        args.push(arg)
+
+        // @ts-ignore TS doesn't know that this loop changes the current token
+        if (this.currentToken.type === TokenType.SEPARATOR)
+          this.consumeToken() // consume ','
+      }
+
+      const callEndLocation = this.currentToken.location.end
+      this.consumeToken() // consume ')'
+
+      return new CallExprAST(identifier, args, { start: identifier.sourceLocation.start, end: callEndLocation })
     }
 
-    const callEndLocation = this.currentToken.location.end
-    this.consumeToken() // consume ')'
+    // If it's an assignment, parse it
+    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    if (this.currentToken.type === TokenType.ASSIGNMENT) {
+      this.consumeToken() // consume '='
 
-    return new CallExprAST(identifier, args, { start: identifier.sourceLocation.start, end: callEndLocation })
+      const value = this.parseExpression()
+      if (value === null) return null
+
+      return new AssignmentExprAST(identifier, value, { start: identifier.sourceLocation.start, end: value.sourceLocation.end })
+    }
+
+    return identifier
   }
 
   private parseExpression(): ExpressionAST | null {

@@ -45,16 +45,14 @@ export default class Lexer {
     }
 
     // Ignore spaces
-    while (this.currentChar === " " || this.currentChar === "\t" || this.currentChar === "\v" || this.currentChar === "\f") {
+    if (this.currentChar === " " || this.currentChar === "\t" || this.currentChar === "\v" || this.currentChar === "\f") {
       this.consumeChar()
+      return this.getNextToken()
     }
 
     // Check for unix/DOS EOL -> Ignore multiple line breaks
     if (this.currentChar === "\n" || this.currentChar === "\r") {
-      do {
-        this.consumeChar() // Eat EOL
-      } while (this.currentChar === "\n" || this.currentChar === "\r")
-
+      this.consumeChar() // Eat EOL
       return this.getNextToken()
     }
 
@@ -205,6 +203,7 @@ export default class Lexer {
 
     // If not identified
     const invalidChar = this.currentChar
+    console.error(`Invalid character: ${invalidChar}`)
     this.consumeChar()
     return new Token(TokenType.INVALID, invalidChar, this.currentLocation)
   }

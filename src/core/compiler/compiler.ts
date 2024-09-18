@@ -16,9 +16,6 @@ export default class Compiler {
     const tokens = this.lexer.lex(source)
     const ast = this.parser.parse(tokens)
 
-    // TODO: Debug
-    console.log(JSON.stringify(ast, null, 2))
-
     return ast
   }
 
