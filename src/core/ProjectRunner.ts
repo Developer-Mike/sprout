@@ -1,17 +1,18 @@
 import ExecutionHelper from "@/utils/execution-helper"
-import { GameObjectData, ProjectData, RuntimeGameObjectData } from "../types/ProjectData"
+import { ProjectData, RuntimeGameObjectData } from "../types/ProjectData"
 import Compiler from "./compiler/compiler"
 import * as EngineDefinitions from "./engine/engine-definitions"
 import * as EngineRunner from "./engine/engine-runner"
 import * as GameObjectFunctions from "./engine/game-object-functions"
 import ProgramAST from "./compiler/ast/program-ast"
+import Project from "./Project"
 
 export default class ProjectRunner {
   static render(data: ProjectData, canvas: HTMLCanvasElement) {
     EngineDefinitions.render(data.gameObjects, data.sprites, data.stage, canvas)
   }
 
-  static async run(data: ProjectData, isStopped: () => boolean, canvas: HTMLCanvasElement, setDebugInfo?: (key: string, value: any) => void) {
+  static async run(data: ProjectData, isStopped: () => boolean, canvas: HTMLCanvasElement, project?: Project) {
     // Optimize sprites
     const optimizedSprites = Object.fromEntries(
       Object.entries(data.sprites)
@@ -24,13 +25,13 @@ export default class ProjectRunner {
       // TODO: Handle errors
       const compiledCode = compiler.compile(gameObject.code)
 
-      // Set debug info
-      if (setDebugInfo) setDebugInfo(gameObject.id, compiledCode)
-
       acc[gameObject.id] = compiledCode
 
       return acc
     }, {} as Record<string, ProgramAST>)
+
+    // Update debug data
+    if (project) project.updateDebugData(data => data.ast = compiledCodes)
 
     // Compile game objects' code
     const runtimeGameObjects = Object.values(data.gameObjects).reduce((acc, gameObject) => {

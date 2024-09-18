@@ -25,9 +25,6 @@ export default function Builder() {
   const dialog = useContext(DialogContext)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  const [debugInfo, _setDebugInfo] = useState<{ [key: string]: any }>({})
-  const setDebugInfo = (key: string, value: any) => _setDebugInfo({ ...debugInfo, [key]: value })
-
   Project.registerHooks()
   const [project, _setProject] = useState<Project | null>(null)
 
@@ -98,7 +95,7 @@ export default function Builder() {
     <>
       <DefaultHead title={t("common:builder")} />
 
-      { project?.data && <ProjectContext.Provider value={{ project, debugInfo, setDebugInfo }}>
+      { project?.data && <ProjectContext.Provider value={{ project }}>
         <KeyboardShortcut ctrl keyName="z" action={() => project.undo()} />
         <KeyboardShortcut ctrl keyName="y" action={() => project.redo()} />
         <KeyboardShortcut ctrl keyName="s" action={() => project.saveToFS(canvasRef.current)} />
@@ -140,7 +137,7 @@ export default function Builder() {
               },
               {
                 element: <div
-                  onClick={() => { project.run(canvasRef.current, setDebugInfo) }}
+                  onClick={() => { project.run(canvasRef.current) }}
                   className={project.isRunning ? styles.running : ""}
                 ><Icon iconId={project.isRunning ? "resume" : "play_arrow"} /></div>,
                 align: "end"

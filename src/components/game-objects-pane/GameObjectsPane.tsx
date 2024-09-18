@@ -6,7 +6,7 @@ import namedSpriteListItemStyles from "@/components/named-sprite-list-item/Named
 import React, { useCallback, useContext, useEffect, useState } from "react"
 import LabeledTextInput from "../labeled-input/LabeledTextInput"
 import Icon from "../Icon"
-import { BLANK_IMAGE, DEFAULT_GAME_OBJECT, DEFAULT_GAME_OBJECT_SIZE } from "@/constants"
+import { BLANK_IMAGE, DEFAULT_NEW_GAME_OBJECT, DEFAULT_GAME_OBJECT_SIZE } from "@/constants"
 import LabeledBooleanInput from "../labeled-input/LabeledBooleanInput"
 import LabeledNumberInput, { InputType } from "../labeled-input/LabeledNumberInput"
 import { DialogContext } from "../dialog/Dialog"
@@ -33,7 +33,7 @@ export default function GameObjectsPane() {
         newGameObjectKey, "create"
       ),
       data => {
-        const newGameObject = DEFAULT_GAME_OBJECT
+        const newGameObject = DEFAULT_NEW_GAME_OBJECT
         newGameObject.id = IdHelper.generateId(
           t("default-game-object-id"),
           Object.values(data.gameObjects).map(gameObject => gameObject.id)

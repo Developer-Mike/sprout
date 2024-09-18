@@ -257,14 +257,14 @@ export default class Project {
   render(canvas: HTMLCanvasElement) { ProjectRunner.render(this.data, canvas) }
 
   // TODO: Return errors
-  async run(canvas?: HTMLCanvasElement | null, setDebugInfo?: (key: string, value: any) => void) {
+  async run(canvas?: HTMLCanvasElement | null) {
     if (!canvas) return
     if (this.isRunning) await this.stop(canvas)
     
     const instanceId = Math.random().toString(36).substring(7)
     await this.setRunningInstanceId(instanceId)
     
-    ProjectRunner.run(this.data, () => this.runningInstanceId !== instanceId, canvas, setDebugInfo)
+    ProjectRunner.run(this.data, () => this.runningInstanceId !== instanceId, canvas)
   }
 
   async stop(canvas?: HTMLCanvasElement | null) {
