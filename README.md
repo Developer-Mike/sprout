@@ -89,6 +89,7 @@ npm run dev
 - [ ] Miscellaneous
   - [-] Add a clean way to handle debug information
   - [-] Rework game object scaling (width and factor for height) -> Fix different scaling for different sprites
+    - [ ] Add width and height info to the sprites in the sprites library
   - [ ] Solve all TODOs
   - [ ] Remove all DEBUGs
 - [ ] Create some example games
