@@ -1,5 +1,3 @@
-import ProgramAST, { Declaration } from "@/core/compiler/ast/program-ast"
-
 export interface ProjectData {
   title: string
   workspace: WorkspaceData

@@ -59,7 +59,7 @@ npm run dev
 - [x] Only add LabeledNumberInput change to history after the user stops dragging
 - [x] Add undo/redo to the navbar
 - [x] Always save project before rerouting
-- [ ] Create the programming language for Sprout
+- [-] Create the programming language for Sprout
   - [x] Remove the usage of large strings and eval in the SproutEngine
   - [x] Create programming language concepts
     - [x] Variables
@@ -68,30 +68,41 @@ npm run dev
     - [x] Conditions (if, else)
     - [x] Comments
   - [x] Create Lexer (Code -> Tokens)
-  - [ ] Create Parser (Tokens -> AST)
-    - [ ] Add support for mutable variables
-    - [ ] Add support for if, while, for and on statements
+  - [-] Create Parser (Tokens -> AST)
+    - [x] Add support for mutable variables
+    - [-] Add support for if, while, for and on statements
     - [ ] Add support for lists
-    - [ ] Add support for objects
-    - [ ] (If time allows) Add support for unary operators
-  - [ ] Create AST compiler function (AST -> JavaScript)
-  - [ ] Create error handling (Compilation & Runtime)
+    - [ ] (If time allows) Add support for objects
+    - [ ] (If time allows) Add support for +=, -=, *=, /=, ++, -- operators
+  - [x] Create AST compiler function (AST -> JavaScript)
+  - [x] Create error handling (Compilation & Runtime)
+  - [ ] Show errors in the code editor
+  - [ ] Fix the syntax highlighting and linting (Only basic syntax highlighting)
+  - [ ] Fix execution of the code
   - [ ] Add implemented functions to the engine
-  - [ ] (If time allows) Add syntax highlighting (and maybe autocompletion)
-  - [ ] (If time allows) Add error messages and explanations
+    - [ ] move, rotate (Handle frame_time)
+    - [ ] rotate_to
+    - [ ] collides_with, collides_with_box
+    - [ ] sleep
+  - [ ] (If time allows) Add autocomplete for some objects (e.g. game_objects, sprites)
+  - [ ] (If time allows) Add advanced explanations to error messages
+- [ ] Miscellaneous
+  - [-] Add a clean way to handle debug information
+  - [-] Rework game object scaling (width and factor for height) -> Fix different scaling for different sprites
+  - [ ] Solve all TODOs
+  - [ ] Remove all DEBUGs
 - [ ] Create some example games
   - [ ] Add the ability to add information text to the documentation sidebar
 - [x] Add warning if not using Chrome
-- [ ] Bugfixes
-  - [ ] Rework game object scaling (width and factor for height) -> Fix different scaling for different sprites
+- [x] Bugfixes
   - [x] Add absolute identifiers to project paths -> Fix project with same filename not visible in the projects overview
   - [x] Fix rotation of game objects causing other game objects to move
   - [x] Fix deletion of all game objects causing null value of selected object key
-- [ ] (If time allows) Add the ability to add plugins (security risk)
-- [ ] (If time allows) Add the ability to duplicate game objects
-- [ ] (If time allows) Add the ability to export and import game objects individually
-- [ ] (If time allows) Add the ability to add sounds
-- [ ] (If time allows) Add export of the games to standalone websites
+- [ ] (If time allows) Add the ability to add plugins (keep in mind: security risk)
+- [ ] (Out of scope) Add the ability to duplicate game objects
+- [ ] (Out of scope) Add the ability to export and import game objects individually
+- [ ] (Out of scope) Add export of the games to standalone websites
+- [ ] (Out of scope) Add the ability to add sounds and music
 - [ ] (Out of scope) Create tool for simple image editing of sprites
 - [ ] (Out of scope) Add tooltips
   - [ ] Unsaved changes

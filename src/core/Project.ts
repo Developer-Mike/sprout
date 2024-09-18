@@ -5,6 +5,7 @@ import FSHelper, { ExtendedFileHandle } from "@/utils/fs-helper"
 import DBHelper from "@/utils/db-helper"
 import PROJECT_TEMPLATES from "./project-templates/project-templates"
 import TransactionInfo, { TransactionCategory, TransactionType } from "@/types/TransactionInfo"
+import { DebugData } from "@/types/DebugData"
 
 export default class Project {
   //#region Static React States
@@ -21,6 +22,10 @@ export default class Project {
   private static setData: (data: ProjectData) => Promise<ProjectData>
   static updateData: (transaction: (data: ProjectData) => void) => Promise<ProjectData>
 
+  static debugData: DebugData
+  private static setDebugData: (data: DebugData) => void
+  static updateDebugData: (transaction: (data: DebugData) => void) => void
+
   static runningInstanceId: string | null
   private static setRunningInstanceId: (id: string | null) => Promise<string | null>
   
@@ -34,25 +39,34 @@ export default class Project {
     // Unsaved changes state
     ;[this.unsavedChanges, this.setUnsavedChanges] = useState(false)
 
-    // Data state
-    const [dataState, setDataState] = useState<ProjectData>(null as any)
+    // Project data state
+    const [projectDataState, setProjectDataState] = useState<ProjectData>(null as any)
     const projectDataCallbackRef = useRef<(data: ProjectData) => void>()
 
     useEffect(() => {
       if (!projectDataCallbackRef.current) return
-      projectDataCallbackRef.current(dataState)
-    }, [dataState])
+      projectDataCallbackRef.current(projectDataState)
+    }, [projectDataState])
 
-    this.data = dataState
+    this.data = projectDataState
     this.setData = (data: ProjectData) => new Promise(resolve => {
       projectDataCallbackRef.current = resolve
-      setDataState(data)
+      setProjectDataState(data)
     })
     this.updateData = async (transaction: (data: ProjectData) => void) => {
       const newData: ProjectData = JSON.parse(JSON.stringify(this.data))
       transaction(newData)
 
       return Project.setData(newData)
+    }
+
+    // Debug data state
+    ;[this.debugData, this.setDebugData] = useState<DebugData>(null as any)
+    this.updateDebugData = (transaction: (data: DebugData) => void) => {
+      const newDebugData = JSON.parse(JSON.stringify(this.debugData))
+      transaction(newDebugData)
+
+      this.setDebugData(newDebugData)
     }
 
     // Running instance
@@ -99,6 +113,9 @@ export default class Project {
   get selectedGameObject(): GameObjectData {
     return this.data.gameObjects[this.selectedGameObjectKey]
   }
+
+  get debugData() { return Project.debugData }
+  updateDebugData = Project.updateDebugData
 
   get runningInstanceId(): string | null { return Project.runningInstanceId }
   private setRunningInstanceId = Project.setRunningInstanceId
