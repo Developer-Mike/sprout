@@ -241,55 +241,6 @@ export default class Parser {
     return new CallExprAST(identifier, args, { start: identifier.sourceLocation.start, end: callEndLocation })
   }
 
-  // TODO: Move
-  private parseMemberExpression(): ExpressionAST | null {
-    let baseIdentifier = this.parseIdentifierExpression()
-    if (baseIdentifier === null) return null
-
-    let expressionAst: ExpressionAST = baseIdentifier
-    while (this.currentToken.type === TokenType.PUNCTUATOR) {
-      this.consumeToken() // consume '.'
-
-      // @ts-ignore TS doesn't know that consumeToken changes the current token
-      if (this.currentToken.type !== TokenType.IDENTIFIER)
-        return this.logError("Expected member name after '.'", this.currentToken.location)
-
-      const memberIdentifier = this.parseIdentifierExpression()
-      if (memberIdentifier === null) return null
-
-      // Create a new member expression node
-      expressionAst = new MemberExprAST(expressionAst, memberIdentifier, { start: expressionAst.sourceLocation.start, end: memberIdentifier.sourceLocation.end })
-
-      this.consumeToken() // consume member name
-    }
-
-    // If not a function call, return a variable expression
-    if (this.currentToken.type !== TokenType.PAREN_OPEN)
-      return expressionAst
-
-    // Parse function call
-    this.consumeToken() // consume '('
-
-    // parse arguments
-    const args: ExpressionAST[] = []
-    // @ts-ignore TS doesn't know that this loop changes the current token
-    while (this.currentToken.type !== TokenType.PAREN_CLOSE) {
-      const arg = this.parseExpression()
-      if (arg === null) return null
-
-      args.push(arg)
-
-      // @ts-ignore TS doesn't know that this loop changes the current token
-      if (this.currentToken.type === TokenType.SEPARATOR)
-        this.consumeToken() // consume ','
-    }
-
-    const callEndLocation = this.currentToken.location.end
-    this.consumeToken() // consume ')'
-
-    return new CallExprAST(expressionAst, args, { start: expressionAst.sourceLocation.start, end: callEndLocation })
-  }
-
   private parseExpression(): ExpressionAST | null {
     let lhs = this.parsePrimaryExpression()
     if (lhs === null) return null // TODO: Treat as a 0 for unary operators?
