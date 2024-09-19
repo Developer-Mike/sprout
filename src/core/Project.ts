@@ -5,7 +5,7 @@ import DBHelper from "@/utils/db-helper"
 import PROJECT_TEMPLATES from "./project-templates/project-templates"
 import TransactionInfo, { TransactionCategory, TransactionType } from "@/types/TransactionInfo"
 import { DebugData } from "@/types/DebugData"
-import * as EngineBuiltins from "./engine/engine-builtins"
+import EngineBuiltins from "./engine/engine-builtins"
 import { RuntimeGameObjectData, RuntimeProjectData } from "@/types/RuntimeProjectData"
 import Compiler from "./compiler/compiler"
 import ProgramAST from "./compiler/ast/program-ast"
@@ -258,8 +258,9 @@ export default class Project {
   //#endregion
 
   //#region SproutEngine integration
-  render(canvas: HTMLCanvasElement) { 
-    EngineBuiltins.GLOBAL_BUILTINS.render(this.data as any, canvas)
+  private engineBuiltins = new EngineBuiltins()
+  render(canvas: HTMLCanvasElement) {
+    this.engineBuiltins.render(this.data as any, canvas)
   }
 
   // TODO: Return errors
@@ -275,7 +276,7 @@ export default class Project {
     let runtimeData: RuntimeProjectData = {} as RuntimeProjectData
 
     // Copy stage data
-    runtimeData.stage = JSON.parse(JSON.stringify(this.data.stage))
+    runtimeData.stage = this.data.stage
 
     // Optimize sprites
     runtimeData.sprites = Object.fromEntries(

@@ -22,8 +22,8 @@ export default class ProgramAST {
 
   getGlobalDeclarations(): Declaration[] {
     return this.body.map(node => {
-      if (node instanceof VariableDeclarationAST) return { readonly: node.constant, name: node.name }
-      if (node instanceof FunctionDefinitionAST) return { readonly: true, name: node.proto.name }
+      if (node instanceof VariableDeclarationAST) return { readonly: node.constant, identifier: node.name }
+      if (node instanceof FunctionDefinitionAST) return { readonly: true, identifier: node.proto.name }
 
       return null
     }).filter(declaration => declaration !== null)
@@ -32,5 +32,5 @@ export default class ProgramAST {
 
 export interface Declaration {
   readonly: boolean
-  name: IdentifierExprAST
+  identifier: IdentifierExprAST
 }
