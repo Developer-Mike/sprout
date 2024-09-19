@@ -1,7 +1,7 @@
 import Lexer from "./lexer"
 import Parser from "./parser"
-import * as InbuiltFunctions from "./inbuilt-functions"
 import ProgramAST from "./ast/program-ast"
+import { LANGUAGE_BUILTINS } from "./language-builtins"
 
 export default class Compiler {
   lexer: Lexer
@@ -19,5 +19,5 @@ export default class Compiler {
     return ast
   }
 
-  static getInbuiltFunctions() { return InbuiltFunctions }
+  static getBuiltins() { return LANGUAGE_BUILTINS }
 }

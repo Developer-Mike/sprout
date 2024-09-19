@@ -1,30 +1,31 @@
-import { GameObjectData, StageData } from "@/types/ProjectData"
-import { sleep } from "../compiler/inbuilt-functions"
+import { RuntimeGameObjectData, RuntimeProjectData } from "@/types/RuntimeProjectData"
+import { LANGUAGE_BUILTINS } from "../compiler/language-builtins"
 
 // Only to suppress the error
 const isStopped = () => false
 
-export let frame = false
-export let time = {
+//#region Global Builtins
+let frame = false
+let time = {
   frame_time: 1, // Default to 1
   start_timestamp: Date.now(),
   get timestamp() { return Date.now() },
   get timer() { return this.timestamp - this.start_timestamp }
 }
 
-export function render(gameObjects: { [key: string]: GameObjectData }, sprites: { [key: string]: string }, stage: StageData, canvas: HTMLCanvasElement) {
+function render(data: RuntimeProjectData, canvas: HTMLCanvasElement) {
   const ctx = canvas.getContext("2d")
   if (!ctx) return
 
   // Set matrix
   ctx.resetTransform()
-  ctx.scale(canvas.width / stage.width, canvas.height / stage.height)
+  ctx.scale(canvas.width / data.stage.width, canvas.height / data.stage.height)
   ctx.save()
 
   // Clear canvas
-  ctx.clearRect(0, 0, stage.width, stage.height)
+  ctx.clearRect(0, 0, data.stage.width, data.stage.height)
 
-  const orderedGameObjects = Object.values(gameObjects)
+  const orderedGameObjects = Object.values(data.gameObjects)
     .sort((a, b) => a.layer - b.layer)
 
   for (const gameObject of orderedGameObjects) {
@@ -49,7 +50,7 @@ export function render(gameObjects: { [key: string]: GameObjectData }, sprites: 
 
     // Draw sprite
     const sprite = new Image()
-    sprite.src = sprites[gameObject.sprites[gameObject.active_sprite]]
+    sprite.src = data.sprites[gameObject.sprites[gameObject.active_sprite]]
     ctx.drawImage(sprite, x, y, gameObject.transform.width, height)
 
     // Reset matrix
@@ -58,18 +59,43 @@ export function render(gameObjects: { [key: string]: GameObjectData }, sprites: 
   }
 }
 
-export async function tick() {
+async function tick() {
   const start = performance.now()
-  await sleep(0)
+  await LANGUAGE_BUILTINS.sleep(0)
   const end = performance.now()
 
   return (end - start) / 1000
 }
 
-export async function await_frame() {
+async function await_frame() {
   await new Promise((resolve, reject) => {
     requestAnimationFrame(() => (
       isStopped() ? reject("Stopped") : resolve(null)
     ))
   })
 }
+
+export const GLOBAL_BUILTINS = {
+  get frame() { return frame },
+  get time() { return time },
+  render,
+  tick,
+  await_frame
+}
+//#endregion
+
+//#region Game Object Functions
+export const GAME_OBJECT_BUILTINS: { [path: string]: (...params: any) => any } = {
+  "transform.move": move,
+  "transform.rotate": rotate
+}
+
+function move(game_object: RuntimeGameObjectData, x: number, y: number) {
+  game_object.transform.x += x * time.frame_time
+  game_object.transform.y += y * time.frame_time
+}
+
+function rotate(game_object: RuntimeGameObjectData, angle: number) {
+  game_object.transform.rotation += angle * time.frame_time
+}
+//#endregion

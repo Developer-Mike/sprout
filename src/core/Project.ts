@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from "react"
-import ProjectRunner from "./ProjectRunner"
 import { GameObjectData, ProjectData } from "../types/ProjectData"
 import FSHelper, { ExtendedFileHandle } from "@/utils/fs-helper"
 import DBHelper from "@/utils/db-helper"
 import PROJECT_TEMPLATES from "./project-templates/project-templates"
 import TransactionInfo, { TransactionCategory, TransactionType } from "@/types/TransactionInfo"
 import { DebugData } from "@/types/DebugData"
+import * as EngineBuiltins from "./engine/engine-builtins"
+import { RuntimeGameObjectData, RuntimeProjectData } from "@/types/RuntimeProjectData"
+import Compiler from "./compiler/compiler"
+import ProgramAST from "./compiler/ast/program-ast"
+import EngineRunner from "./engine/engine-runner"
 
 export default class Project {
   //#region Static React States
@@ -254,17 +258,53 @@ export default class Project {
   //#endregion
 
   //#region SproutEngine integration
-  render(canvas: HTMLCanvasElement) { ProjectRunner.render(this.data, canvas) }
+  render(canvas: HTMLCanvasElement) { 
+    EngineBuiltins.GLOBAL_BUILTINS.render(this.data as any, canvas)
+  }
 
   // TODO: Return errors
   async run(canvas?: HTMLCanvasElement | null) {
     if (!canvas) return
     if (this.isRunning) await this.stop(canvas)
     
+    // Set running instance id
     const instanceId = Math.random().toString(36).substring(7)
     await this.setRunningInstanceId(instanceId)
+
+    // Create RuntimeProjectData
+    let runtimeData: RuntimeProjectData = {} as RuntimeProjectData
+
+    // Copy stage data
+    runtimeData.stage = JSON.parse(JSON.stringify(this.data.stage))
+
+    // Optimize sprites
+    runtimeData.sprites = Object.fromEntries(
+      Object.entries(this.data.sprites)
+        .filter(([key, _value]) => Object.values(this.data.gameObjects).some(gameObject => gameObject.sprites.includes(key)))
+    )
+
+    // Compile code
+    const compiler = new Compiler()
+    runtimeData.gameObjects = Object.values(this.data.gameObjects).reduce((acc, gameObject) => {
+      // TODO: Handle errors
+      const compiledCode = compiler.compile(gameObject.code)
+      
+      acc[gameObject.id] = {
+        ...gameObject,
+        code: compiledCode
+      }
+
+      return acc
+    }, {} as Record<string, RuntimeGameObjectData>)
+
+    // Update debug data
+    const debugASTData = Object.entries(runtimeData.gameObjects).reduce((acc, [gameObjectKey, gameObject]) => ({
+      ...acc,
+      [gameObjectKey]: gameObject.code
+    }), {} as Record<string, ProgramAST>)
+    this.updateDebugData(data => data.ast = debugASTData)
     
-    ProjectRunner.run(this.data, () => this.runningInstanceId !== instanceId, canvas)
+    EngineRunner.run(runtimeData, () => this.runningInstanceId !== instanceId, canvas)
   }
 
   async stop(canvas?: HTMLCanvasElement | null) {
@@ -319,17 +359,6 @@ export default class Project {
 
     this.setUnsavedChanges(false)
     this.setIsSaving(false)
-  }
-
-  exportAsHTML() {
-    const html = "" //TODO: SproutEngine.generateExportableHTMLCode(this.data)
-    const blob = new Blob([html], { type: "text/html" })
-    const url = URL.createObjectURL(blob)
-
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `${this.data.title}.html`
-    a.click()
   }
   //#endregion
 }

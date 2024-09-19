@@ -38,5 +38,3 @@ export interface GameObjectData {
 
   code: string
 }
-
-export interface RuntimeGameObjectData extends Omit<GameObjectData, "code"> { }
