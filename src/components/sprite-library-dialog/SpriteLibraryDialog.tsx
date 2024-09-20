@@ -9,7 +9,6 @@ import LabeledTextInput from "../labeled-input/LabeledTextInput"
 import IdHelper from "@/utils/id-helper"
 import TransactionInfo, { TransactionCategory, TransactionType } from "@/types/TransactionInfo"
 import { DialogContext } from "../dialog/Dialog"
-import { MAX_SPRITE_SIZE } from "@/constants"
 
 export default function SpriteLibraryDialog({ isVisible, onSelect, onCancel }: {
   isVisible: boolean
@@ -111,10 +110,18 @@ export default function SpriteLibraryDialog({ isVisible, onSelect, onCancel }: {
                     ),
                     data => {
                       if (!data.workspace.selectedLibrarySpriteKey) return
+                      const oldId = data.workspace.selectedLibrarySpriteKey
 
-                      data.sprites[newId] = data.sprites[data.workspace.selectedLibrarySpriteKey]
-                      delete data.sprites[data.workspace.selectedLibrarySpriteKey]
+                      // Update library sprite key
+                      data.sprites[newId] = data.sprites[oldId]
+                      delete data.sprites[oldId]
 
+                      // Update all references to the sprite
+                      for (const gameObject of Object.values(data.gameObjects)) {
+                        gameObject.sprites = gameObject.sprites.map(sprite => sprite === oldId ? newId : sprite)
+                      }
+
+                      // Update selected sprite key
                       data.workspace.selectedLibrarySpriteKey = newId
                     }
                   )

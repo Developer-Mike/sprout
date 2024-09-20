@@ -21,9 +21,26 @@ export default class EngineBuiltins {
     get timer() { return this.timestamp - this.start_timestamp }
   }
 
-  render(data: RuntimeProjectData, canvas: HTMLCanvasElement) {
+  private imageCache: { [src: string]: HTMLImageElement } = {}
+  async render(data: RuntimeProjectData, canvas: HTMLCanvasElement) {
     const ctx = canvas.getContext("2d")
     if (!ctx) return
+
+    // Update image cache
+    const newCache: { [src: string]: HTMLImageElement } = {}
+    for (const sprite of Object.values(data.sprites)) {
+      if (this.imageCache[sprite.src]) newCache[sprite.src] = this.imageCache[sprite.src]
+      else {
+        const image = new Image()
+        image.src = sprite.src
+        newCache[sprite.src] = image
+      }
+    }
+    await Promise.all(Object.values(newCache).map(image => new Promise(resolve => {
+      if (image.complete) resolve(void 0)
+      else image.onload = resolve
+    })))
+    this.imageCache = newCache
 
     // Set matrix
     ctx.resetTransform()
