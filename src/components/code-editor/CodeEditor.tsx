@@ -1,12 +1,14 @@
 import { ProjectContext } from "@/ProjectContext"
 import styles from "@/components/code-editor/CodeEditor.module.scss"
-import { DEBUG_HIGHLIGHT_TOKENS, SPROUT_LANGUAGE_KEY } from "@/constants"
+import { SPROUT_LANGUAGE_KEY } from "@/constants"
 import Token from "@/core/compiler/token"
 import { Editor, useMonaco } from "@monaco-editor/react"
+import { useRouter } from "next/router"
 import { useContext, useEffect } from "react"
 
 export default function CodeEditor() {
-  const { project, debugInfo } = useContext(ProjectContext)
+  const { project } = useContext(ProjectContext)
+  const router = useRouter()
 
   const monaco = useMonaco()
   useEffect(() => {
@@ -14,35 +16,36 @@ export default function CodeEditor() {
     setTheme(monaco)
   }, [monaco])
 
-  useEffect(() => {
-    if (!DEBUG_HIGHLIGHT_TOKENS) return
-    if (!monaco) return
+  if (router.query["tokens"]) {
+    useEffect(() => {
+      if (!monaco) return
 
-    const tokens = debugInfo.compiler?.[project.selectedGameObject.id]?.tokens as Token[] | undefined
-    if (!tokens) return
+      const tokens = project.debugData.ast?.[project.selectedGameObject.id]?.tokens as Token[] | undefined
+      if (!tokens) return
 
-    const editor = monaco.editor.getModels()[0]
-    if (!editor) return
+      const editor = monaco.editor.getModels()[0]
+      if (!editor) return
 
-    // Clear previous decorations
-    const oldDecorations = editor.getAllDecorations().map(decoration => decoration.id)
-    editor.deltaDecorations(oldDecorations, [])
+      // Clear previous decorations
+      const oldDecorations = editor.getAllDecorations().map(decoration => decoration.id)
+      editor.deltaDecorations(oldDecorations, [])
 
-    for (const token of tokens) {
-      const startPos = editor.getPositionAt(token.location.start)
-      const endPos = editor.getPositionAt(token.location.end)
+      for (const token of tokens) {
+        const startPos = editor.getPositionAt(token.location.start)
+        const endPos = editor.getPositionAt(token.location.end)
 
-      editor.deltaDecorations([], [{
-        range: new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column),
-        options: { className: styles[`token-${token.getDebugCategory()}`] }
-      }])
-    }
-  }, [monaco, debugInfo, project.selectedGameObject.id])
+        editor.deltaDecorations([], [{
+          range: new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column),
+          options: { className: styles[`token-${token.getDebugCategory()}`] }
+        }])
+      }
+    }, [monaco, project.debugData, project.selectedGameObject.id])
+  }
 
   return (
     <div id={styles.codeEditorContainer}>
       <Editor
-        theme="sproutTheme"
+        theme="sprout"
         language={SPROUT_LANGUAGE_KEY}
         options={{ 
           padding: { top: 10 },
@@ -55,13 +58,7 @@ export default function CodeEditor() {
         })}
       />
 
-      <img id={styles.gameObjectPreview} 
-        src={project.data.sprites[
-          project.selectedGameObject.sprites[
-            project.selectedGameObject.active_sprite
-          ]
-        ]}
-      />
+      <img id={styles.gameObjectPreview} src={project.getActiveSprite(project.selectedGameObject).src} />
     </div>
   )
 }
@@ -69,7 +66,7 @@ export default function CodeEditor() {
 function setTheme(monaco: any) {
   const cssVariable = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name)
 
-  monaco.editor.defineTheme("sproutTheme", {
+  monaco.editor.defineTheme("sprout", {
     base: "vs-dark",
     inherit: true,
     rules: [],
@@ -86,5 +83,5 @@ function setTheme(monaco: any) {
     }
   })
 
-  monaco.editor.setTheme("sproutTheme")
+  monaco.editor.setTheme("sprout")
 }

@@ -2,9 +2,8 @@ export interface ProjectData {
   title: string
   workspace: WorkspaceData
 
-  sprites: { [id: string]: string }
-
   stage: StageData
+  sprites: { [id: string]: SpriteData }
   gameObjects: { [key: string]: GameObjectData }
 }
 
@@ -20,6 +19,12 @@ export interface StageData {
   height: number
 }
 
+export interface SpriteData {
+  src: string
+  width: number
+  height: number
+}
+
 export interface GameObjectData {
   id: string
 
@@ -28,7 +33,7 @@ export interface GameObjectData {
     y: number
     rotation: number
     width: number
-    height_scale: number
+    height: number
   }
 
   visible: boolean

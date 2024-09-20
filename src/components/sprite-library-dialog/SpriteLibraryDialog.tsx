@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import styles from "./SpriteLibraryDialog.module.scss"
 import dialogStyles from "@/components/dialog/Dialog.module.scss"
 import { ProjectContext } from "@/ProjectContext"
@@ -9,6 +9,7 @@ import LabeledTextInput from "../labeled-input/LabeledTextInput"
 import IdHelper from "@/utils/id-helper"
 import TransactionInfo, { TransactionCategory, TransactionType } from "@/types/TransactionInfo"
 import { DialogContext } from "../dialog/Dialog"
+import { MAX_SPRITE_SIZE } from "@/constants"
 
 export default function SpriteLibraryDialog({ isVisible, onSelect, onCancel }: {
   isVisible: boolean
@@ -20,20 +21,16 @@ export default function SpriteLibraryDialog({ isVisible, onSelect, onCancel }: {
   const { project } = useContext(ProjectContext)
   const { showDialog } = useContext(DialogContext)
 
-  const [spriteInfo, setSpriteInfo] = useState<{ fileType: string, width: number, height: number, fileSize: number } | null>(null)
+  const [spriteInfo, setSpriteInfo] = useState<{ fileType: string, fileSize: number } | null>(null)
 
   useEffect(() => {
     if (!project.data.workspace.selectedLibrarySpriteKey) return
-      const base64 = project.data.sprites[project.data.workspace.selectedLibrarySpriteKey]
+      const base64 = project.data.sprites[project.data.workspace.selectedLibrarySpriteKey].src
 
-      const image = new Image()
-      image.onload = () => setSpriteInfo({ 
+      setSpriteInfo({
         fileType: base64.split(";")[0].split("/")[1],
-        width: image.width,
-        height: image.height,
         fileSize: Math.ceil((base64.length * (3 / 4)) - 1)
       })
-      image.src = base64
   }, [project, project.data.workspace.selectedLibrarySpriteKey])
 
   return (
@@ -46,7 +43,7 @@ export default function SpriteLibraryDialog({ isVisible, onSelect, onCancel }: {
             { Object.keys(project.data.sprites).map((sprite, index) => (
               <NamedSpriteListItem key={index}
                 label={sprite}
-                src={project.data.sprites[sprite]}
+                src={project.data.sprites[sprite].src}
                 onClick={() => project.updateData(null, data => { data.workspace.selectedLibrarySpriteKey = sprite })}
                 isFocused={project.data.workspace.selectedLibrarySpriteKey === sprite}
                 onDelete={() => showDialog({
@@ -75,14 +72,13 @@ export default function SpriteLibraryDialog({ isVisible, onSelect, onCancel }: {
                             delete data.sprites[data.workspace.selectedLibrarySpriteKey]
 
                             // Remove all references to the sprite
-                            for (const gameObjectKey in Object.keys(data.gameObjects)) {
-                              data.gameObjects[gameObjectKey].sprites
+                            for (const gameObject of Object.values(data.gameObjects)) {
+                              gameObject.sprites = gameObject.sprites
                                 .filter(sprite => sprite != data.workspace.selectedLibrarySpriteKey)
 
                               // If the last sprite was removed and active, set the active sprite to the last one
-                              if (data.gameObjects[gameObjectKey].activeSprite >= data.gameObjects[gameObjectKey].sprites.length) {
-                                data.gameObjects[gameObjectKey].activeSprite = data.gameObjects[gameObjectKey].sprites.length - 1
-                              }
+                              if (gameObject.active_sprite >= gameObject.sprites.length)
+                                gameObject.active_sprite = gameObject.sprites.length - 1
                             }
 
                             data.workspace.selectedLibrarySpriteKey = null
@@ -99,7 +95,7 @@ export default function SpriteLibraryDialog({ isVisible, onSelect, onCancel }: {
            <div id={styles.spritePreview}>
             { !project.data.workspace.selectedLibrarySpriteKey && <div id={styles.noSpriteSelected}>{t("sprite-library-dialog.no-sprite-selected")}</div> }
             { project.data.workspace.selectedLibrarySpriteKey && <div>
-              <img id={styles.image} src={project.data.sprites[project.data.workspace.selectedLibrarySpriteKey]} />
+              <img id={styles.image} src={project.data.sprites[project.data.workspace.selectedLibrarySpriteKey].src} />
               <LabeledTextInput label={t("id")} value={project.data.workspace.selectedLibrarySpriteKey}
                 makeValid={value => IdHelper.makeIdValid(value)}
                 isValidValue={value => IdHelper.isValidId(value, Object.keys(project.data.sprites).filter(id => project.data.workspace.selectedLibrarySpriteKey != id))}
@@ -127,7 +123,7 @@ export default function SpriteLibraryDialog({ isVisible, onSelect, onCancel }: {
 
               <div id={styles.spriteInfo}>
                 <div><span>{t("file-type")}</span><span>{spriteInfo?.fileType}</span></div>
-                <div><span>{t("resolution")}</span><span>{spriteInfo?.width}x{spriteInfo?.height}</span></div>
+                <div><span>{t("resolution")}</span><span>{project.data.sprites[project.data.workspace.selectedLibrarySpriteKey].width}x{project.data.sprites[project.data.workspace.selectedLibrarySpriteKey].height}</span></div>
                 <div><span>{t("file-size")}</span><span>~{spriteInfo?.fileSize} {t("size-unit.byte", { count: spriteInfo?.fileSize })}</span></div>
               </div>
             </div> }
@@ -145,14 +141,26 @@ export default function SpriteLibraryDialog({ isVisible, onSelect, onCancel }: {
               if (!file) return
 
               const reader = new FileReader()
-              reader.onload = () => project.updateData(null, data => {
-                // TODO: Resize image
-                
-                const spriteName = IdHelper.generateId(t("default-sprite-id"), Object.keys(data.sprites))
-                data.sprites[spriteName] = reader.result as string
+              reader.onload = () => {
+                const spriteName = IdHelper.generateId(t("default-sprite-id"), Object.keys(project.data.sprites))
 
-                project.updateData(null, data => { data.workspace.selectedLibrarySpriteKey = spriteName })
-              })
+                // Resize image
+                let image = new Image()
+                image.src = reader.result as string
+
+                image.onload = () => {
+                  project.updateData(null, data => {
+                    data.sprites[spriteName] = {
+                      src: image.src,
+                      width: image.width,
+                      height: image.height
+                    }
+
+                    // Select the new sprite
+                    data.workspace.selectedLibrarySpriteKey = spriteName
+                  })
+                }
+              }
               reader.readAsDataURL(file)
 
               e.target.value = ""

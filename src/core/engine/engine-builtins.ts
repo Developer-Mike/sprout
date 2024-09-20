@@ -40,13 +40,13 @@ export default class EngineBuiltins {
       if (!gameObject.visible) continue
 
       // Skip if no sprite or index out of bounds
-      if (gameObject.sprites.length === 0 || gameObject.active_sprite < 0 || gameObject.active_sprite >= gameObject.sprites.length)
-        return
+      const sprite = data.sprites[gameObject.sprites[gameObject.active_sprite]]
+      if (!sprite) return
 
-      // TODO: Calculate height correctly
-      const height = gameObject.transform.width * gameObject.transform.height_scale
+      const width = gameObject.transform.width * sprite.width
+      const height = gameObject.transform.height * sprite.height
 
-      const x = -gameObject.transform.width / 2
+      const x = -width / 2
       const y = -height / 2
 
       // Set matrix
@@ -54,12 +54,12 @@ export default class EngineBuiltins {
       ctx.rotate(gameObject.transform.rotation * Math.PI / 180)
 
       if (gameObject.transform.width < 0) ctx.scale(-1, 1)
-      if (gameObject.transform.height_scale < 0) ctx.scale(1, -1)
+      if (gameObject.transform.height < 0) ctx.scale(1, -1)
 
       // Draw sprite
-      const sprite = new Image()
-      sprite.src = data.sprites[gameObject.sprites[gameObject.active_sprite]]
-      ctx.drawImage(sprite, x, y, gameObject.transform.width, height)
+      const image = new Image() // TODO: Cache images
+      image.src = sprite.src
+      ctx.drawImage(image, x, y, width, height)
 
       // Reset matrix
       ctx.restore()

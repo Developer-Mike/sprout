@@ -10,6 +10,7 @@ import { RuntimeGameObjectData, RuntimeProjectData } from "@/types/RuntimeProjec
 import Compiler from "./compiler/compiler"
 import ProgramAST from "./compiler/ast/program-ast"
 import EngineRunner from "./engine/engine-runner"
+import { BLANK_IMAGE } from "@/constants"
 
 export default class Project {
   //#region Static React States
@@ -190,6 +191,14 @@ export default class Project {
     }
 
     return key
+  }
+
+  getActiveSprite(gameObject: GameObjectData) {
+    return this.data.sprites[gameObject.sprites[gameObject.active_sprite]] ?? {
+      src: BLANK_IMAGE,
+      width: 1,
+      height: 1
+    }
   }
 
   //#region History methods

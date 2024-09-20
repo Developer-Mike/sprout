@@ -1,9 +1,9 @@
 import ProgramAST from "@/core/compiler/ast/program-ast"
-import { GameObjectData, StageData } from "./ProjectData"
+import { GameObjectData, SpriteData, StageData } from "./ProjectData"
 
 export interface RuntimeProjectData {
-  sprites: { [id: string]: string }
   stage: StageData
+  sprites: { [id: string]: SpriteData }
   gameObjects: { [key: string]: RuntimeGameObjectData }
 }
 

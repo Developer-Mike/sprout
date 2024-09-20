@@ -35,11 +35,16 @@ export default function StagePane({ canvasRef }: {
     const highlighter = document.getElementById(styles.gameObjectSelectionHighlighter) as HTMLDivElement
     if (!highlighter) return
 
-    const activeGameObject = project.selectedGameObject
+    const scale = canvas.width / project.data.stage.width
 
-    const scale = project.data.stage.width / canvas.width
-    const [width, height] = [activeGameObject.width / scale, activeGameObject.height / scale]
-    const [x, y] = [activeGameObject.x / scale - width / 2, activeGameObject.y / scale - height / 2]
+    const activeGameObject = project.selectedGameObject
+    const sprite = project.getActiveSprite(activeGameObject)
+
+    const width = activeGameObject.transform.width * sprite.width * scale
+    const height = activeGameObject.transform.height * sprite.height * scale
+
+    const x = activeGameObject.transform.x * scale - width / 2
+    const y = activeGameObject.transform.y * scale - height / 2
 
     highlighter.style.top = `${y}px`
     highlighter.style.left = `${x}px`
@@ -61,11 +66,15 @@ export default function StagePane({ canvasRef }: {
     const clickedGameObjectKey = Object.entries(project.data.gameObjects)
       .sort(([_, gameObject]) => gameObject.layer)
       .find(([_, gameObject]) => {
+        const sprite = project.getActiveSprite(gameObject)
+        const width = gameObject.transform.width * sprite.width
+        const height = gameObject.transform.height * sprite.height
+
         const bounds = {
-          minX: gameObject.x - gameObject.width / 2,
-          minY: gameObject.y - gameObject.height / 2,
-          maxX: gameObject.x + gameObject.width / 2,
-          maxY: gameObject.y + gameObject.height / 2
+          minX: gameObject.transform.x - width / 2,
+          minY: gameObject.transform.y - height / 2,
+          maxX: gameObject.transform.x + width / 2,
+          maxY: gameObject.transform.y + height / 2
         }
 
         return mouseX >= bounds.minX && mouseX <= bounds.maxX && mouseY >= bounds.minY && mouseY <= bounds.maxY

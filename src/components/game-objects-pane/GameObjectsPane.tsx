@@ -1,9 +1,8 @@
 import { ProjectContext } from "@/ProjectContext"
 import useTranslation from "next-translate/useTranslation"
-import { Translate } from "next-translate"
 import styles from "@/components/game-objects-pane/GameObjectsPane.module.scss"
 import namedSpriteListItemStyles from "@/components/named-sprite-list-item/NamedSpriteListItem.module.scss"
-import React, { useCallback, useContext, useEffect, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import LabeledTextInput from "../labeled-input/LabeledTextInput"
 import Icon from "../Icon"
 import { BLANK_IMAGE, DEFAULT_NEW_GAME_OBJECT, DEFAULT_GAME_OBJECT_SIZE } from "@/constants"
@@ -46,7 +45,7 @@ export default function GameObjectsPane() {
   }
 
   useEffect(() => {
-    setAspectRatioCache(project.selectedGameObject.width / Math.max(1, project.selectedGameObject.height))
+    setAspectRatioCache(project.selectedGameObject.transform.width / Math.max(1, project.selectedGameObject.transform.height))
   }, [project.data.workspace.selectedGameObjectKey])
 
   return (
@@ -80,30 +79,30 @@ export default function GameObjectsPane() {
           data => { data.gameObjects[project.selectedGameObjectKey].visible = newIsVisible }
         )} />
 
-        <LabeledNumberInput label={t("x")} value={project.selectedGameObject.x} precision={0} onChange={(newX, inputType) => project.updateData(
-          inputType === InputType.Dragging ? null : new TransactionInfo(inputType === InputType.Dragged ? TransactionType.Unique : TransactionInfo.getType(project.selectedGameObject.x, newX), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "x"),
-          data => { data.gameObjects[project.selectedGameObjectKey].x = newX }
+        <LabeledNumberInput label={t("x")} value={project.selectedGameObject.transform.x} precision={0} onChange={(newX, inputType) => project.updateData(
+          inputType === InputType.Dragging ? null : new TransactionInfo(inputType === InputType.Dragged ? TransactionType.Unique : TransactionInfo.getType(project.selectedGameObject.transform.x, newX), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "x"),
+          data => { data.gameObjects[project.selectedGameObjectKey].transform.x = newX }
         )} />
 
-        <LabeledNumberInput label={t("y")} value={project.selectedGameObject.y} precision={0} onChange={(newY, inputType) => project.updateData(
-          inputType === InputType.Dragging ? null : new TransactionInfo(inputType === InputType.Dragged ? TransactionType.Unique : TransactionInfo.getType(project.selectedGameObject.y, newY), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "y"),
-          data => { data.gameObjects[project.selectedGameObjectKey].y = newY }
+        <LabeledNumberInput label={t("y")} value={project.selectedGameObject.transform.y} precision={0} onChange={(newY, inputType) => project.updateData(
+          inputType === InputType.Dragging ? null : new TransactionInfo(inputType === InputType.Dragged ? TransactionType.Unique : TransactionInfo.getType(project.selectedGameObject.transform.y, newY), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "y"),
+          data => { data.gameObjects[project.selectedGameObjectKey].transform.y = newY }
         )} />
 
-        <LabeledNumberInput label={t("rotation")} value={project.selectedGameObject.rotation} precision={2} onChange={(value, inputType) => {
+        <LabeledNumberInput label={t("rotation")} value={project.selectedGameObject.transform.rotation} precision={2} onChange={(value, inputType) => {
           const newRotation = inputType === InputType.Dragging ? (value > 0 ? value : 360 + value) % 360 : value
 
           project.updateData(
             // Use the raw value to calculate the type to avoid the modulo operation
-            inputType === InputType.Dragging ? null : new TransactionInfo(inputType === InputType.Dragged ? TransactionType.Unique : TransactionInfo.getType(project.selectedGameObject.rotation, value), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "rotation"),
-            data => { data.gameObjects[project.selectedGameObjectKey].rotation = newRotation }
+            inputType === InputType.Dragging ? null : new TransactionInfo(inputType === InputType.Dragged ? TransactionType.Unique : TransactionInfo.getType(project.selectedGameObject.transform.rotation, value), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "rotation"),
+            data => { data.gameObjects[project.selectedGameObjectKey].transform.rotation = newRotation }
           )
         }} />
 
-        <LabeledNumberInput label={t("width")} value={project.selectedGameObject.width} precision={2} onChange={(newWidth, inputType) => {
-          const oldWidth = project.selectedGameObject.width
-          const oldHeight = project.selectedGameObject.height
-          let newHeight = project.selectedGameObject.height
+        <LabeledNumberInput label={t("width")} value={project.selectedGameObject.transform.width} precision={3} dragSensitivity={0.01} onChange={(newWidth, inputType) => {
+          const oldWidth = project.selectedGameObject.transform.width
+          const oldHeight = project.selectedGameObject.transform.height
+          let newHeight = project.selectedGameObject.transform.height
 
            if (linkedScalingEnabled) {
             if (oldWidth == 0) newHeight = newWidth * (1 / aspectRatioCache)
@@ -117,8 +116,8 @@ export default function GameObjectsPane() {
           project.updateData(
             inputType === InputType.Dragging ? null : new TransactionInfo(inputType === InputType.Dragged ? TransactionType.Unique : TransactionInfo.getType(oldWidth, newWidth), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "width"),
             data => {
-              data.gameObjects[project.selectedGameObjectKey].width = newWidth
-              if (linkedScalingEnabled) data.gameObjects[project.selectedGameObjectKey].height = newHeight
+              data.gameObjects[project.selectedGameObjectKey].transform.width = newWidth
+              if (linkedScalingEnabled) data.gameObjects[project.selectedGameObjectKey].transform.height = newHeight
             }
           )
         }} />
@@ -127,10 +126,10 @@ export default function GameObjectsPane() {
           <Icon iconId={linkedScalingEnabled ? "link" : "link_off"} />
         </div>
 
-        <LabeledNumberInput label={t("height")} value={project.selectedGameObject.height} precision={2} onChange={(newHeight, inputType) => {
-          const oldHeight = project.selectedGameObject.height
-          const oldWidth = project.selectedGameObject.width
-          let newWidth = project.selectedGameObject.width
+        <LabeledNumberInput label={t("height")} value={project.selectedGameObject.transform.height} precision={3} dragSensitivity={0.01} onChange={(newHeight, inputType) => {
+          const oldHeight = project.selectedGameObject.transform.height
+          const oldWidth = project.selectedGameObject.transform.width
+          let newWidth = project.selectedGameObject.transform.width
 
           if (linkedScalingEnabled) {
             if (oldHeight == 0) newWidth = newHeight * aspectRatioCache
@@ -144,25 +143,14 @@ export default function GameObjectsPane() {
           project.updateData(
             inputType === InputType.Dragging ? null : new TransactionInfo(inputType === InputType.Dragged ? TransactionType.Unique : TransactionInfo.getType(oldHeight, newHeight), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "height"),
             data => {
-              data.gameObjects[project.selectedGameObjectKey].height = newHeight
-              if (linkedScalingEnabled) data.gameObjects[project.selectedGameObjectKey].width = newWidth
+              data.gameObjects[project.selectedGameObjectKey].transform.height = newHeight
+              if (linkedScalingEnabled) data.gameObjects[project.selectedGameObjectKey].transform.width = newWidth
             }
           )
         }} />
 
         <div id={styles.resetScale} onClick={() => {
-          const sprite = new Image()
-          sprite.src = project.data.sprites[
-            project.selectedGameObject
-              .sprites[project.selectedGameObject.activeSprite]
-          ]
-
-          const [newWidth, newHeight] = [
-            Math.max(sprite.naturalWidth, DEFAULT_GAME_OBJECT_SIZE),
-            Math.max(sprite.naturalHeight, DEFAULT_GAME_OBJECT_SIZE)
-          ]
-
-          setAspectRatioCache(newWidth / newHeight)
+          setAspectRatioCache(1)
 
           project.updateData(
             new TransactionInfo(
@@ -171,8 +159,8 @@ export default function GameObjectsPane() {
               project.selectedGameObjectKey, "reset-scale"
             ),
             data => {
-              data.gameObjects[project.selectedGameObjectKey].width = newWidth
-              data.gameObjects[project.selectedGameObjectKey].height = newHeight
+              data.gameObjects[project.selectedGameObjectKey].transform.width = 1
+              data.gameObjects[project.selectedGameObjectKey].transform.height = 1
             }
           )
         }}>
@@ -196,7 +184,7 @@ export default function GameObjectsPane() {
           )}>
             <NamedSpriteListItem
               label={gameObject.id}
-              src={project.data.sprites[gameObject.sprites[gameObject.activeSprite]] ?? BLANK_IMAGE}
+              src={project.getActiveSprite(gameObject).src}
               onClick={() => project.updateData(
                 new TransactionInfo(TransactionType.Update, TransactionCategory.GameObjectList, gameObjectKey, "select"),
                 data => { data.workspace.selectedGameObjectKey = gameObjectKey }

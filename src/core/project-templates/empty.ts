@@ -23,7 +23,7 @@ const project: ProjectData = {
         y: 540,
         rotation: 0,
         width: 200,
-        height_scale: 1
+        height: 1
       },
       code: ""
     }

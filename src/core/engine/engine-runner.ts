@@ -34,7 +34,7 @@ export default class EngineRunner {
       }
 
       // Run game object code
-      ExecutionHelper.scopedEval(`        
+      ExecutionHelper.scopedEval(`
         ${gameObject.code.toJavaScript()}
 
         // Add getters (and setters) for game_object's global properties
