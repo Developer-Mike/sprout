@@ -1,16 +1,16 @@
 import SourceLocation from "../source-location"
 import AST from "./ast"
 import BlockStatementAST from "./block-statement-ast"
-import PrototypeAST from "./prototype-ast"
+import ExpressionAST from "./expr/expression-ast"
 
-export default class FunctionDefinitionAST extends AST {
+export default class WhileAST extends AST {
   constructor(
-    public proto: PrototypeAST,
+    public condition: ExpressionAST,
     public body: BlockStatementAST,
     public override sourceLocation: SourceLocation
   ) { super() }
 
   toJavaScript(): string {
-    return `function ${this.proto.toJavaScript()} ${this.body.toExprJavaScript()}`
+    return `while (${this.condition.toJavaScript()}) ${this.body.toJavaScript()}`
   }
 }

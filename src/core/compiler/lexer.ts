@@ -182,8 +182,15 @@ export default class Lexer {
     // Check for binary operators
     if (this.currentChar === "+" || this.currentChar === "-" || this.currentChar === "/" || this.currentChar === "*" || this.currentChar === "%") {
       const binOp = this.currentChar
-
       this.consumeChar()
+
+      // Check for assignment
+      // @ts-ignore - TS doesn't know that currentChar gets updated
+      if (this.currentChar === "=") {
+        this.consumeChar()
+        return new Token(TokenType.OPERATOR_ASSIGNMENT, binOp, this.currentLocation, 2)
+      }
+
       return new Token(TokenType.BIN_OP, binOp, this.currentLocation)
     }
 

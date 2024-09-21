@@ -18,7 +18,7 @@ export default class Token {
 
   getDebugCategory(): string {
     if ([TokenType.IDENTIFIER].includes(this.type)) return "identifiers"
-    if ([TokenType.ASSIGNMENT, TokenType.SEPARATOR, TokenType.OPTIONAL_OPERATOR, TokenType.PUNCTUATOR, TokenType.BIN_OP].includes(this.type)) return "punctuators"
+    if ([TokenType.ASSIGNMENT, TokenType.OPERATOR_ASSIGNMENT, TokenType.SEPARATOR, TokenType.OPTIONAL_OPERATOR, TokenType.PUNCTUATOR, TokenType.BIN_OP].includes(this.type)) return "punctuators"
     if (Object.values(KEYWORDS_MAP).includes(this.type)) return "keywords"
     if (Object.values(BRACKETS_MAP).includes(this.type)) return "brackets"
     if ([TokenType.LITERAL_NUMBER, TokenType.LITERAL_STRING, TokenType.LITERAL_BOOLEAN, TokenType.LITERAL_NULL].includes(this.type)) return "literals"
@@ -33,6 +33,7 @@ export enum TokenType {
 
   IDENTIFIER,
   ASSIGNMENT,
+  OPERATOR_ASSIGNMENT,
   SEPARATOR,
   OPTIONAL_OPERATOR,
   PUNCTUATOR,
@@ -52,6 +53,7 @@ export enum TokenType {
   KEYWORD_ON,
   KEYWORD_WHILE,
   KEYWORD_FOR,
+  KEYWORD_IN,
   KEYWORD_IF,
   KEYWORD_ELSE,
   KEYWORD_BREAK,
@@ -82,6 +84,7 @@ export const KEYWORDS_MAP = {
   "on": TokenType.KEYWORD_ON,
   "while": TokenType.KEYWORD_WHILE,
   "for": TokenType.KEYWORD_FOR,
+  "in": TokenType.KEYWORD_IN,
   "if": TokenType.KEYWORD_IF,
   "else": TokenType.KEYWORD_ELSE,
   "break": TokenType.KEYWORD_BREAK,

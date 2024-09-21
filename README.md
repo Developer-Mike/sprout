@@ -70,10 +70,11 @@ npm run dev
   - [x] Create Lexer (Code -> Tokens)
   - [-] Create Parser (Tokens -> AST)
     - [x] Add support for mutable variables
-    - [-] Add support for if, while, for and on statements
+    - [x] Add support for if, while, for and on statements
     - [ ] Add support for lists
     - [ ] (If time allows) Add support for objects
-    - [ ] (If time allows) Add support for +=, -=, *=, /=, ++, -- operators
+    - [x] (If time allows) Add support for +=, -=, *=, /= operators
+    - [ ] (If time allows) Add support for ++, -- operators
   - [x] Create AST compiler function (AST -> JavaScript)
   - [x] Create error handling (Compilation & Runtime)
   - [ ] Show errors in the code editor
@@ -86,10 +87,10 @@ npm run dev
     - [ ] sleep
   - [ ] (If time allows) Add autocomplete for some objects (e.g. game_objects, sprites)
   - [ ] (If time allows) Add advanced explanations to error messages
-- [ ] Miscellaneous
-  - [-] Add a clean way to handle debug information
-  - [-] Rework game object scaling (width and factor for height) -> Fix different scaling for different sprites
-    - [ ] Add width and height info to the sprites in the sprites library
+- [-] Miscellaneous
+  - [x] Add a clean way to handle debug information
+  - [x] Rework game object scaling (width and factor for height) -> Fix different scaling for different sprites
+    - [x] Add width and height info to the sprites in the sprites library
   - [ ] Solve all TODOs
   - [ ] Remove all DEBUGs
 - [ ] Create some example games

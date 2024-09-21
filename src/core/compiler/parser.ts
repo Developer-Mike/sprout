@@ -17,6 +17,13 @@ import BlockStatementAST from "./ast/block-statement-ast"
 import MemberExprAST from "./ast/expr/member-expr-ast"
 import AssignmentExprAST from "./ast/expr/assignment-expr-ast"
 import BooleanExprAST from "./ast/expr/boolean-expr-ast"
+import ReturnAST from "./ast/return-ast"
+import BreakAST from "./ast/break-ast"
+import ContinueAST from "./ast/continue-ast"
+import OnAST from "./ast/on-ast"
+import WhileAST from "./ast/while-ast"
+import ForAST from "./ast/for-ast"
+import IfExprAST from "./ast/expr/if-expr-ast"
 
 export default class Parser {
   readonly precedence: { [operator: string]: number } = {
@@ -43,6 +50,7 @@ export default class Parser {
 
   parse(tokens: Token[]): ProgramAST {
     this.tokens = [...tokens]
+    this.errors = []
 
     const body: AST[] = []
     while (this.currentToken.type !== TokenType.EOF) {
@@ -88,11 +96,11 @@ export default class Parser {
     if (this.currentToken.type === TokenType.CURLY_OPEN)
       return this.parseEmbracedBlockStatement()
 
-    // Otherwise, parse a single expression
-    const expression = this.parseExpression()
-    if (expression === null) return null
+    // Otherwise, parse a single statement
+    const statement = this.parseStatement()
+    if (statement === null) return null
 
-    return new BlockStatementAST([expression], expression.sourceLocation)
+    return new BlockStatementAST([statement], statement.sourceLocation)
   }
 
   private parseEmbracedBlockStatement(): BlockStatementAST | null {
@@ -210,7 +218,42 @@ export default class Parser {
     return ast
   }
 
-  private parseIfExpression(): ExpressionAST | null { return null } // TODO: Implement
+  private parseIfExpression(): IfExprAST | null {
+    if (this.currentToken.type !== TokenType.KEYWORD_IF)
+      return this.logError("Expected keyword 'if'", this.currentToken.location)
+
+    const ifStartLocation = this.currentToken.location.start
+    this.consumeToken() // consume 'if'
+
+    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    if (this.currentToken.type !== TokenType.PAREN_OPEN)
+      return this.logError("Expected '(' after 'if'", this.currentToken.location)
+
+    this.consumeToken() // consume '('
+
+    const condition = this.parseExpression()
+    if (condition === null) return null
+
+    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    if (this.currentToken.type !== TokenType.PAREN_CLOSE)
+      return this.logError("Expected ')' after condition", this.currentToken.location)
+
+    this.consumeToken() // consume ')'
+
+    const thenBody = this.parseBlockStatement()
+    if (thenBody === null) return null
+
+    let elseBody: BlockStatementAST | null = null
+    // @ts-ignore TS doesn't know that this loop changes the current token
+    if (this.currentToken.type === TokenType.KEYWORD_ELSE) {
+      this.consumeToken() // consume 'else'
+
+      elseBody = this.parseBlockStatement()
+      if (elseBody === null) return null
+    }
+
+    return new IfExprAST(condition, thenBody, elseBody, { start: ifStartLocation, end: elseBody?.sourceLocation.end ?? thenBody.sourceLocation.end })
+  }
 
   private parseParenExpression(): ExpressionAST | null {
     this.consumeToken() // consume '('
@@ -261,13 +304,14 @@ export default class Parser {
 
     // If it's an assignment, parse it
     // @ts-ignore TS doesn't know that consumeToken changes the current token
-    if (this.currentToken.type === TokenType.ASSIGNMENT) {
-      this.consumeToken() // consume '='
+    if (this.currentToken.type === TokenType.ASSIGNMENT || this.currentToken.type === TokenType.OPERATOR_ASSIGNMENT) {
+      const assignmentOperator = this.currentToken.value
+      this.consumeToken() // consume assignment token
 
       const value = this.parseExpression()
       if (value === null) return null
 
-      return new AssignmentExprAST(identifier, value, { start: identifier.sourceLocation.start, end: value.sourceLocation.end })
+      return new AssignmentExprAST(identifier, value, assignmentOperator, { start: identifier.sourceLocation.start, end: value.sourceLocation.end })
     }
 
     return identifier
@@ -383,10 +427,134 @@ export default class Parser {
     return new FunctionDefinitionAST(proto, body, { start: proto.sourceLocation.start, end: body.sourceLocation.end })
   }
 
-  private parseWhileStatement(): AST | null { return null } // TODO: Implement
-  private parseForStatement(): AST | null { return null } // TODO: Implement
-  private parseOnStatement(): AST | null { return null } // TODO: Implement
-  private parseReturnStatement(): AST | null { return null } // TODO: Implement
-  private parseBreakStatement(): AST | null { return null } // TODO: Implement
-  private parseContinueStatement(): AST | null { return null } // TODO: Implement
+  private parseWhileStatement(): WhileAST | null {
+    if (this.currentToken.type !== TokenType.KEYWORD_WHILE)
+      return this.logError("Expected keyword 'while'", this.currentToken.location)
+
+    const whileStartLocation = this.currentToken.location.start
+    this.consumeToken() // consume 'while'
+
+    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    if (this.currentToken.type !== TokenType.PAREN_OPEN)
+      return this.logError("Expected '(' after 'while'", this.currentToken.location)
+
+    this.consumeToken() // consume '('
+
+    const condition = this.parseExpression()
+    if (condition === null) return null
+
+    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    if (this.currentToken.type !== TokenType.PAREN_CLOSE)
+      return this.logError("Expected ')' after condition", this.currentToken.location)
+
+    this.consumeToken() // consume ')'
+
+    const body = this.parseBlockStatement()
+    if (body === null) return null
+
+    return new WhileAST(condition, body, { start: whileStartLocation, end: body.sourceLocation.end })
+  }
+
+  private parseForStatement(): ForAST | null {
+    if (this.currentToken.type !== TokenType.KEYWORD_FOR)
+      return this.logError("Expected keyword 'for'", this.currentToken.location)
+
+    const forStartLocation = this.currentToken.location.start
+    this.consumeToken() // consume 'for'
+
+    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    if (this.currentToken.type !== TokenType.PAREN_OPEN)
+      return this.logError("Expected '(' after 'for'", this.currentToken.location)
+
+    this.consumeToken() // consume '('
+    
+    // Parse identifier
+    if (this.currentToken.type !== TokenType.IDENTIFIER)
+      return this.logError("Expected identifier", this.currentToken.location)
+
+    const identifier = this.currentToken.value!
+    this.consumeToken() // consume identifier
+
+    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    if (this.currentToken.type !== TokenType.KEYWORD_IN)
+      return this.logError("Expected keyword 'in'", this.currentToken.location)
+
+    this.consumeToken() // consume 'in'
+
+    // Parse array
+    const array = this.parseExpression()
+    if (array === null) return null
+
+    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    if (this.currentToken.type !== TokenType.PAREN_CLOSE)
+      return this.logError("Expected ')' after array", this.currentToken.location)
+
+    this.consumeToken() // consume ')'
+
+    const body = this.parseBlockStatement()
+    if (body === null) return null
+
+    return new ForAST(identifier, array, body, { start: forStartLocation, end: body.sourceLocation.end })
+  }
+
+  private parseOnStatement(): OnAST | null {
+    if (this.currentToken.type !== TokenType.KEYWORD_ON)
+      return this.logError("Expected keyword 'on'", this.currentToken.location)
+
+    const onStartLocation = this.currentToken.location.start
+    this.consumeToken() // consume 'on'
+
+    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    if (this.currentToken.type !== TokenType.PAREN_OPEN)
+      return this.logError("Expected '(' after 'on'", this.currentToken.location)
+
+    this.consumeToken() // consume '('
+
+    const condition = this.parseExpression()
+    if (condition === null) return null
+
+    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    if (this.currentToken.type !== TokenType.PAREN_CLOSE)
+      return this.logError("Expected ')' after condition", this.currentToken.location)
+
+    this.consumeToken() // consume ')'
+
+    const body = this.parseBlockStatement()
+    if (body === null) return null
+
+    return new OnAST(condition, body, { start: onStartLocation, end: body.sourceLocation.end })
+  }
+
+  private parseReturnStatement(): ReturnAST | null {
+    if (this.currentToken.type !== TokenType.KEYWORD_RETURN)
+      return this.logError("Expected keyword 'return'", this.currentToken.location)
+
+    const returnStartLocation = this.currentToken.location.start
+    this.consumeToken() // consume 'return'
+
+    // Parse optional return value
+    const value = this.parseExpression()
+
+    return new ReturnAST(value, { start: returnStartLocation, end: value?.sourceLocation.end ?? returnStartLocation })
+  }
+
+  private parseBreakStatement(): BreakAST | null {
+    if (this.currentToken.type !== TokenType.KEYWORD_BREAK)
+      return this.logError("Expected keyword 'break'", this.currentToken.location)
+
+    const location = this.currentToken.location
+    this.consumeToken() // consume 'break'
+
+    return new BreakAST(location)
+  }
+
+  private parseContinueStatement(): ContinueAST | null {
+    if (this.currentToken.type !== TokenType.KEYWORD_CONTINUE)
+      return this.logError("Expected keyword 'continue'", this.currentToken.location)
+
+    const location = this.currentToken.location
+    this.consumeToken() // consume 'continue'
+
+    return new ContinueAST(location)
+  }
 }

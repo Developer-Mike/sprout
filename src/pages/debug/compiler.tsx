@@ -10,6 +10,7 @@ fun main = () {}
   `
 fun main = (a_random_variable) {
   var a = a_random_variable + "test"
+  return a
 }
   `,
   `
@@ -24,15 +25,45 @@ test()
   `
 var test = 1
 test += 1
-test++
-
-if (test == 2) {
-  test = 3
-} else if (test >= 3) {
-  test = 4
+//test++
+  `,
+  `
+if (test == 1) {
+  console.log("Test is 1")
+} else if (test <= 2) {
+ console.log("Test is less than or equal to 2")
 } else {
-  test = 5
+ console.log("Test is greater than 2")
+}`,
+  `
+var a = 1
+for (i in range(10)) {
+  a += i
 }
+  `,
+  `
+var a = 1
+if (100 == 100) console.log("Hello, World!")
+else console.log("Goodbye, World!")
+  `,
+  `
+if (true) continue
+else break
+  `,
+  `
+on (true) {
+  console.log("Hello, World!")
+}
+  `,
+  `
+while (i < 5) {
+  i += 1
+}
+  `,
+  `
+break
+continue
+return null
   `,
 ]
 
@@ -51,7 +82,7 @@ export default function CompilerDebug() {
 
       return {
         output: result.toJavaScript(),
-        errors: [...result.errors],
+        errors: result.errors,
       }
     }))
   }, [])
