@@ -66,7 +66,7 @@ export default class Project {
     }
 
     // Debug data state
-    ;[this.debugData, this.setDebugData] = useState<DebugData>(null as any)
+    ;[this.debugData, this.setDebugData] = useState<DebugData>({} as any)
     this.updateDebugData = (transaction: (data: DebugData) => void) => {
       const newDebugData = JSON.parse(JSON.stringify(this.debugData))
       transaction(newDebugData)

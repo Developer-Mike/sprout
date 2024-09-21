@@ -5,10 +5,18 @@ import { LANGUAGE_BUILTINS } from "../compiler/language-builtins"
 const isStopped = () => false
 
 export default class EngineBuiltins {
+  constructor() {
+    Object.defineProperty(this, "frame", {
+      get: () => this.frame
+    })
+
+    Object.defineProperty(this, "time", {
+      get: () => this.time
+    })
+  }
+
   //#region Global Builtins
   readonly GLOBAL = {
-    get frame(): boolean { return this.frame },
-    get time(): any { return this.time },
     tick: this.tick,
     await_frame: this.awaitFrame
   }

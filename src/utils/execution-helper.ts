@@ -4,7 +4,7 @@ export default class ExecutionHelper {
       has: () => true
     })
 
-    let func = (new Function("with(this) { " + src + "}"))
+    let func = new Function(`with(this) { ${src} }`)
     func.call(ctx)
   }
 }

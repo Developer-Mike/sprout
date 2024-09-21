@@ -2,10 +2,12 @@ import ExecutionHelper from '@/utils/execution-helper'
 import Compiler from '../compiler/compiler'
 import { RuntimeProjectData } from '@/types/RuntimeProjectData'
 import EngineBuiltins from './engine-builtins'
+import ObjectHelper from '@/utils/object-helper'
+import ProgramAST from '../compiler/ast/program-ast'
 
 export default class EngineRunner {
   static run(readonlyData: RuntimeProjectData, isStopped: () => boolean, canvas: HTMLCanvasElement) {
-    const data = JSON.parse(JSON.stringify(readonlyData)) as RuntimeProjectData
+    const data = ObjectHelper.deepClone(readonlyData, [ProgramAST]) as RuntimeProjectData
     const engineBuiltins = new EngineBuiltins()
 
     const executionContext = {
@@ -26,7 +28,12 @@ export default class EngineRunner {
       for (const key in engineBuiltins.GAME_OBJECT_BUILTINS) {
         const path = key.split(".")
         let target: any = gameObjectExecutionContext
-        while (path.length > 1) target = target[path.shift() as string]
+        while (path.length > 1) {
+          const subpath = path.shift() as string
+
+          if (!target[subpath]) target[subpath] = {}
+          target = target[subpath]
+        }
 
         Object.defineProperty(target, path[0], {
           get: () => engineBuiltins.GAME_OBJECT_BUILTINS[key](gameObject)
