@@ -1,24 +1,16 @@
 import { RuntimeGameObjectData, RuntimeProjectData } from "@/types/RuntimeProjectData"
-import { LANGUAGE_BUILTINS } from "../compiler/language-builtins"
 
 // Only to suppress the error
 const isStopped = () => false
 
-export default class EngineBuiltins {
-  constructor() {
-    Object.defineProperty(this, "frame", {
-      get: () => this.frame
-    })
-
-    Object.defineProperty(this, "time", {
-      get: () => this.time
-    })
-  }
-
-  //#region Global Builtins
+export default class EngineBuiltins {  //#region Global Builtins
   readonly GLOBAL = {
+    that: this,
+    sleep: this.sleep,
     tick: this.tick,
-    await_frame: this.awaitFrame
+    await_frame: this.awaitFrame,
+    get frame() { return this.that.frame },
+    get time() { return this.that.time }
   }
 
   frame = false
@@ -82,9 +74,7 @@ export default class EngineBuiltins {
       if (gameObject.transform.height < 0) ctx.scale(1, -1)
 
       // Draw sprite
-      const image = new Image() // TODO: Cache images
-      image.src = sprite.src
-      ctx.drawImage(image, x, y, width, height)
+      ctx.drawImage(this.imageCache[sprite.src], x, y, width, height)
 
       // Reset matrix
       ctx.restore()
@@ -92,9 +82,17 @@ export default class EngineBuiltins {
     }
   }
 
+  async sleep(ms: number) {
+    await new Promise((resolve, reject) => {
+      setTimeout(() => (
+        isStopped() ? reject("Stopped") : resolve(null)
+      ), ms)
+    })
+  }
+
   async tick() {
     const start = performance.now()
-    await LANGUAGE_BUILTINS.sleep(0)
+    await this.sleep(0)
     const end = performance.now()
 
     return (end - start) / 1000

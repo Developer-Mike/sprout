@@ -4,11 +4,9 @@ import FSHelper, { ExtendedFileHandle } from "@/utils/fs-helper"
 import DBHelper from "@/utils/db-helper"
 import PROJECT_TEMPLATES from "./project-templates/project-templates"
 import TransactionInfo, { TransactionCategory, TransactionType } from "@/types/TransactionInfo"
-import { DebugData } from "@/types/DebugData"
 import EngineBuiltins from "./engine/engine-builtins"
 import { RuntimeGameObjectData, RuntimeProjectData } from "@/types/RuntimeProjectData"
 import Compiler from "./compiler/compiler"
-import ProgramAST from "./compiler/ast/program-ast"
 import EngineRunner from "./engine/engine-runner"
 import { BLANK_IMAGE } from "@/constants"
 
@@ -27,9 +25,9 @@ export default class Project {
   private static setData: (data: ProjectData) => Promise<ProjectData>
   static updateData: (transaction: (data: ProjectData) => void) => Promise<ProjectData>
 
-  static debugData: DebugData
-  private static setDebugData: (data: DebugData) => void
-  static updateDebugData: (transaction: (data: DebugData) => void) => void
+  static runtimeProjectData: RuntimeProjectData | null
+  private static setRuntimeProjectData: (data: RuntimeProjectData | null) => void
+  static updateRuntimeProjectData: (transaction: (data: RuntimeProjectData) => void) => void
 
   static runningInstanceId: string | null
   private static setRunningInstanceId: (id: string | null) => Promise<string | null>
@@ -65,13 +63,13 @@ export default class Project {
       return Project.setData(newData)
     }
 
-    // Debug data state
-    ;[this.debugData, this.setDebugData] = useState<DebugData>({} as any)
-    this.updateDebugData = (transaction: (data: DebugData) => void) => {
-      const newDebugData = JSON.parse(JSON.stringify(this.debugData))
-      transaction(newDebugData)
+    // Runtime data state
+    ;[this.runtimeProjectData, this.setRuntimeProjectData] = useState<RuntimeProjectData | null>(null)
+    this.updateRuntimeProjectData = (transaction: (data: RuntimeProjectData) => void) => {
+      const newRuntimeProjectData = JSON.parse(JSON.stringify(this.runtimeProjectData))
+      transaction(newRuntimeProjectData)
 
-      this.setDebugData(newDebugData)
+      this.setRuntimeProjectData(newRuntimeProjectData)
     }
 
     // Running instance
@@ -119,8 +117,9 @@ export default class Project {
     return this.data.gameObjects[this.selectedGameObjectKey]
   }
 
-  get debugData() { return Project.debugData }
-  updateDebugData = Project.updateDebugData
+  get runtimeProjectData() { return Project.runtimeProjectData }
+  setRuntimeProjectData = Project.setRuntimeProjectData
+  updateRuntimeProjectData = Project.updateRuntimeProjectData
 
   get runningInstanceId(): string | null { return Project.runningInstanceId }
   private setRunningInstanceId = Project.setRunningInstanceId
@@ -272,7 +271,7 @@ export default class Project {
     this.engineBuiltins.render(this.data as any, canvas)
   }
 
-  // TODO: Return errors
+  // TODO: Handle errors
   async run(canvas?: HTMLCanvasElement | null) {
     if (!canvas) return
     if (this.isRunning) await this.stop(canvas)
@@ -282,45 +281,43 @@ export default class Project {
     await this.setRunningInstanceId(instanceId)
 
     // Create RuntimeProjectData
-    let runtimeData: RuntimeProjectData = {} as RuntimeProjectData
+    let newRuntimeProjectData: RuntimeProjectData = {} as RuntimeProjectData
 
     // Copy stage data
-    runtimeData.stage = this.data.stage
+    newRuntimeProjectData.stage = JSON.parse(JSON.stringify(this.data.stage))
 
     // Optimize sprites
-    runtimeData.sprites = Object.fromEntries(
+    newRuntimeProjectData.sprites = JSON.parse(JSON.stringify(Object.fromEntries(
       Object.entries(this.data.sprites)
         .filter(([key, _value]) => Object.values(this.data.gameObjects).some(gameObject => gameObject.sprites.includes(key)))
-    )
+    )))
 
-    // Compile code
+    // Add game objects with compiled code
     const compiler = new Compiler()
-    runtimeData.gameObjects = Object.values(this.data.gameObjects).reduce((acc, gameObject) => {
-      // TODO: Handle errors
+    newRuntimeProjectData.gameObjects = Object.values(this.data.gameObjects).reduce((acc, gameObject) => {
       const compiledCode = compiler.compile(gameObject.code)
       
       acc[gameObject.id] = {
-        ...gameObject,
-        code: compiledCode
+        ...JSON.parse(JSON.stringify(gameObject)),
+        code: compiledCode,
+        executionError: null
       }
 
       return acc
     }, {} as Record<string, RuntimeGameObjectData>)
 
-    // Update debug data
-    const debugASTData = Object.entries(runtimeData.gameObjects).reduce((acc, [gameObjectKey, gameObject]) => ({
-      ...acc,
-      [gameObjectKey]: gameObject.code
-    }), {} as Record<string, ProgramAST>)
-    this.updateDebugData(data => data.ast = debugASTData)
-    
-    EngineRunner.run(runtimeData, () => this.runningInstanceId !== instanceId, canvas)
+    this.setRuntimeProjectData(newRuntimeProjectData)
+
+    // Execute code
+    EngineRunner.run(newRuntimeProjectData, () => this.runningInstanceId !== instanceId, canvas)
   }
 
   async stop(canvas?: HTMLCanvasElement | null) {
     if (!canvas || !this.isRunning) return
 
     await this.setRunningInstanceId(null)
+
+    await new Promise(resolve => setTimeout(resolve, 100))
 
     // Reset canvas
     this.render(canvas)

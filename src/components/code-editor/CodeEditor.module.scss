@@ -17,6 +17,10 @@
   }
 }
 
+.error {
+  background-color: rgba(var(--red-rgb), 0.8);
+}
+
 .token-identifiers {
   background-color: rgba(255, 0, 255, 0.1);
 }

@@ -9,4 +9,5 @@ export interface RuntimeProjectData {
 
 export interface RuntimeGameObjectData extends Omit<GameObjectData, "code"> {
   code: ProgramAST
+  executionError: Error | null
 }

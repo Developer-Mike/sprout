@@ -62,6 +62,14 @@
     display: none;
   }
 
+  &.hasError {
+    border-bottom-color: var(--red-dim);
+
+    &.focused {
+      border-bottom-color: var(--red);
+    }
+  }
+
   .delete {
     position: absolute;
     top: 0;

@@ -1,7 +1,6 @@
 import { ProjectContext } from "@/ProjectContext"
 import styles from "@/components/code-editor/CodeEditor.module.scss"
 import { SPROUT_LANGUAGE_KEY } from "@/constants"
-import Token from "@/core/compiler/token"
 import { Editor, useMonaco } from "@monaco-editor/react"
 import { useRouter } from "next/router"
 import { useContext, useEffect } from "react"
@@ -20,7 +19,7 @@ export default function CodeEditor() {
     useEffect(() => {
       if (!monaco) return
 
-      const tokens = project.debugData.ast?.[project.selectedGameObject.id]?.tokens as Token[] | undefined
+      const tokens = project.runtimeProjectData?.gameObjects?.[project.selectedGameObject.id]?.code?.tokens
       if (!tokens) return
 
       const editor = monaco.editor.getModels()[0]
@@ -39,8 +38,31 @@ export default function CodeEditor() {
           options: { className: styles[`token-${token.getDebugCategory()}`] }
         }])
       }
-    }, [monaco, project.debugData, project.selectedGameObject.id])
+    }, [monaco, project.runtimeProjectData, project.selectedGameObject.id])
   }
+
+  useEffect(() => {
+    if (!monaco) return
+
+    const editor = monaco.editor.getModels()[0]
+    if (!editor) return
+
+    const errors = project.runtimeProjectData?.gameObjects?.[project.selectedGameObject.id]?.code?.errors ?? []
+
+    // Clear previous decorations
+    const oldDecorations = editor.getAllDecorations().map(decoration => decoration.id)
+    editor.deltaDecorations(oldDecorations, [])
+
+    for (const error of errors) {
+      const startPos = editor.getPositionAt(error.location.start)
+      const endPos = editor.getPositionAt(error.location.end)
+
+      editor.deltaDecorations([], [{
+        range: new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column),
+        options: { className: styles.error }
+      }])
+    }
+  }, [monaco, project.runtimeProjectData, project.selectedGameObject.id])
 
   return (
     <div id={styles.codeEditorContainer}>

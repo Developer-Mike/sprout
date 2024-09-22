@@ -319,7 +319,7 @@ export default class Parser {
 
   private parseExpression(): ExpressionAST | null {
     let lhs = this.parsePrimaryExpression()
-    if (lhs === null) return null // TODO: Treat as a 0 for unary operators?
+    if (lhs === null) return null
 
     return this.parseBinOpRHS(0, lhs)
   }

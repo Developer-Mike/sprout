@@ -183,6 +183,7 @@ export default function GameObjectsPane() {
             }
           )}>
             <NamedSpriteListItem
+              className={project.runtimeProjectData?.gameObjects?.[gameObject.id]?.code?.errors?.length ? namedSpriteListItemStyles.hasError : ""}
               label={gameObject.id}
               src={project.getActiveSprite(gameObject).src}
               onClick={() => project.updateData(

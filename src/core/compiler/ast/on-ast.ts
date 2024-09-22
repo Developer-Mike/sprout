@@ -16,7 +16,7 @@ export default class OnAST extends AST {
     const ifExpr = new IfExprAST(this.condition, this.body, null, this.sourceLocation)
 
     return `;(async () => { 
-      while (true) {
+      while (is_stopped === undefined || !is_stopped()) {
         ${ifExpr.toJavaScript()}
 
         await tick()

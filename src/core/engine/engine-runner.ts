@@ -2,20 +2,19 @@ import ExecutionHelper from '@/utils/execution-helper'
 import Compiler from '../compiler/compiler'
 import { RuntimeProjectData } from '@/types/RuntimeProjectData'
 import EngineBuiltins from './engine-builtins'
-import ObjectHelper from '@/utils/object-helper'
-import ProgramAST from '../compiler/ast/program-ast'
 
 export default class EngineRunner {
-  static run(readonlyData: RuntimeProjectData, isStopped: () => boolean, canvas: HTMLCanvasElement) {
-    const data = ObjectHelper.deepClone(readonlyData, [ProgramAST]) as RuntimeProjectData
+  static run(data: RuntimeProjectData, isStopped: () => boolean, canvas: HTMLCanvasElement) {
     const engineBuiltins = new EngineBuiltins()
 
     const executionContext = {
+      get Object() { return Object },
+      get is_stopped() { return isStopped },
+      ...Compiler.getBuiltins(),
+      ...engineBuiltins.GLOBAL,
       stage: data.stage,
       sprites: data.sprites,
       game_objects: data.gameObjects,
-      ...Compiler.getBuiltins(),
-      ...engineBuiltins.GLOBAL,
     }
 
     for (const gameObject of Object.values(data.gameObjects)) {
@@ -27,7 +26,7 @@ export default class EngineRunner {
       // Add builtin functions to game object
       for (const key in engineBuiltins.GAME_OBJECT_BUILTINS) {
         const path = key.split(".")
-        let target: any = gameObjectExecutionContext
+        let target: any = gameObjectExecutionContext.game_object
         while (path.length > 1) {
           const subpath = path.shift() as string
 
@@ -36,7 +35,7 @@ export default class EngineRunner {
         }
 
         Object.defineProperty(target, path[0], {
-          get: () => engineBuiltins.GAME_OBJECT_BUILTINS[key](gameObject)
+          get: () => (...params: any) => engineBuiltins.GAME_OBJECT_BUILTINS[key].call(engineBuiltins, gameObject, ...params)
         })
       }
 
