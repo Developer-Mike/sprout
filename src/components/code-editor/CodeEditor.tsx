@@ -59,7 +59,7 @@ export default function CodeEditor() {
 
       editor.deltaDecorations([], [{
         range: new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column),
-        options: { className: styles.error }
+        options: { className: styles.error, hoverMessage: { value: error.message } }
       }])
     }
   }, [monaco, project.runtimeProjectData, project.selectedGameObject.id])
