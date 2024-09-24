@@ -89,4 +89,7 @@ export const KEYWORDS_MAP = {
   "else": TokenType.KEYWORD_ELSE,
   "break": TokenType.KEYWORD_BREAK,
   "continue": TokenType.KEYWORD_CONTINUE,
+  "null": TokenType.LITERAL_NULL,
+  "true": TokenType.LITERAL_BOOLEAN,
+  "false": TokenType.LITERAL_BOOLEAN,
 } as Record<string, TokenType>

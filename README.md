@@ -75,7 +75,7 @@ npm run dev
     - [ ] Add support for lists
     - [ ] (If time allows) Add support for objects
     - [x] (If time allows) Add support for +=, -=, *=, /= operators
-    - [ ] (If time allows) Add support for unary operators (-var, +var, ++, --)
+    - [ ] (If time allows) Add support for unary operators (!bool, -var, +var, ++, --)
   - [x] Create AST compiler function (AST -> JavaScript)
   - [x] Create error handling (Compilation & Runtime)
   - [ ] Show errors in the code editor

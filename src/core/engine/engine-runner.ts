@@ -1,65 +1,45 @@
 import ExecutionHelper from '@/utils/execution-helper'
-import Compiler from '../compiler/compiler'
 import { RuntimeProjectData } from '@/types/RuntimeProjectData'
 import EngineBuiltins from './engine-builtins'
+import LanguageBuiltins from '../compiler/language-builtins'
 
 export default class EngineRunner {
   static run(data: RuntimeProjectData, isStopped: () => boolean, canvas: HTMLCanvasElement) {
-    const engineBuiltins = new EngineBuiltins()
-
     const executionContext = {
-      get Object() { return Object },
-      get is_stopped() { return isStopped },
-      ...Compiler.getBuiltins(),
-      ...engineBuiltins.GLOBAL,
+      is_stopped: isStopped,
       stage: data.stage,
       sprites: data.sprites,
-      game_objects: data.gameObjects,
-    }
+      game_objects: data.gameObjects
+    } as any
+
+    // Add builtins to the execution context
+    new LanguageBuiltins(executionContext)
+    const engineBuiltins = new EngineBuiltins(executionContext)
 
     for (const gameObject of Object.values(data.gameObjects)) {
-      const gameObjectExecutionContext = {
-        ...executionContext,
-        game_object: gameObject,
-      }
-
-      // Add builtin functions to game object
-      for (const key in engineBuiltins.GAME_OBJECT_BUILTINS) {
-        const path = key.split(".")
-        let target: any = gameObjectExecutionContext.game_object
-        while (path.length > 1) {
-          const subpath = path.shift() as string
-
-          if (!target[subpath]) target[subpath] = {}
-          target = target[subpath]
-        }
-
-        Object.defineProperty(target, path[0], {
-          get: () => (...params: any) => engineBuiltins.GAME_OBJECT_BUILTINS[key].call(engineBuiltins, gameObject, ...params)
-        })
-      }
-
       // Run game object code
       ExecutionHelper.scopedEval(`
+        const game_object = game_objects["${gameObject.id}"]
+
         ${gameObject.code.toJavaScript()}
 
-        // Add getters (and setters) for game_object's global properties
+        ${ /* Add getters (and setters) for game_object's global properties */ "" }
         ${gameObject.code.getGlobalDeclarations().map(declaration => `
         Object.defineProperty(game_object, "${declaration.identifier.name}", {
           get: () => { return ${declaration.identifier.name} },
           ${declaration.readonly ? "" : `set: (value) => { ${declaration.identifier.name} = value }`}
         })
         `).join("\n")}
-      `, gameObjectExecutionContext)
+      `, executionContext)
     }
 
     // Render loop
     ;(async () => {
       while (!isStopped()) {
-        await executionContext.await_frame()
+        await engineBuiltins.awaitFrame()
 
         engineBuiltins.render(data, canvas)
-        engineBuiltins.frame = true
+        executionContext.frame = true
       }
     })()
 
@@ -69,7 +49,7 @@ export default class EngineRunner {
         // TODO: Handle input
 
         await executionContext.tick()
-        engineBuiltins.frame = false
+        executionContext.frame = false
       }
     })()
   }

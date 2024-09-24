@@ -102,18 +102,12 @@ export default class Lexer {
         this.consumeChar()
       } while (this.currentChar?.match(/[a-zA-Z0-9_]/))
 
-      // Check for boolean
-      if (identifier === "true" || identifier === "false") {
-        return new Token(TokenType.LITERAL_BOOLEAN, identifier, this.currentLocation, identifier.length)
-      }
-
-      // Check for null
-      if (identifier === "null") {
-        return new Token(TokenType.LITERAL_NULL, null, this.currentLocation, identifier.length)
-      }
-
       // Check for keywords
       const keyword = KEYWORDS_MAP[identifier]
+
+      // If boolean, return it with the correct value
+      if (keyword === TokenType.LITERAL_BOOLEAN)
+        return new Token(TokenType.LITERAL_BOOLEAN, identifier, this.currentLocation, identifier.length)
 
       return keyword !== undefined ?
         new Token(keyword, null, this.currentLocation, identifier.length) :

@@ -1,26 +1,87 @@
 import { RuntimeGameObjectData, RuntimeProjectData } from "@/types/RuntimeProjectData"
 
-// Only to suppress the error
-const isStopped = () => false
+export default class EngineBuiltins {
+  private executionContext: any
 
-export default class EngineBuiltins {  //#region Global Builtins
-  readonly GLOBAL = {
-    that: this,
-    sleep: this.sleep,
-    tick: this.tick,
-    await_frame: this.awaitFrame,
-    get frame() { return this.that.frame },
-    get time() { return this.that.time }
+  constructor(executionContext: any) {
+    this.executionContext = executionContext
+
+    // Add builtins to the execution context
+    this.executionContext.sleep = this.sleep.bind(this)
+    this.executionContext.tick = this.tick.bind(this)
+    this.executionContext.await_frame = this.awaitFrame.bind(this)
+    this.executionContext.frame = false
+    this.executionContext.time = {
+      frame_time: 1, // Default to 1
+      start_timestamp: Date.now(),
+      get timestamp() { return Date.now() },
+      get timer() { return this.timestamp - this.start_timestamp }
+    }
+
+    // Add game object builtins
+    for (const gameObjectId in this.executionContext.game_objects) {
+      const gameObject = this.executionContext.game_objects[gameObjectId]
+
+      for (const key in this.GAME_OBJECT_BUILTINS) {
+        const path = key.split(".")
+        let target: any = gameObject
+        while (path.length > 1) {
+          const subpath = path.shift() as string
+
+          if (!target[subpath]) target[subpath] = {}
+          target = target[subpath]
+        }
+
+        Object.defineProperty(target, path[0], {
+          get: () => (...params: any) => this.GAME_OBJECT_BUILTINS[key].call(this, gameObject, ...params)
+        })
+      }
+    }
   }
 
-  frame = false
-  time = {
-    frame_time: 1, // Default to 1
-    start_timestamp: Date.now(),
-    get timestamp() { return Date.now() },
-    get timer() { return this.timestamp - this.start_timestamp }
+  //#region Global Builtins
+  async sleep(ms: number) {
+    await new Promise((resolve, reject) => {
+      setTimeout(() => (
+        this.executionContext.is_stopped() ? reject("Stopped") : resolve(null)
+      ), ms)
+    })
   }
 
+  async tick() {
+    const start = performance.now()
+    await this.sleep(0)
+    const end = performance.now()
+
+    return (end - start) / 1000
+  }
+
+  async awaitFrame() {
+    await new Promise((resolve, reject) => {
+      requestAnimationFrame(() => (
+        this.executionContext.is_stopped() ? reject("Stopped") : resolve(null)
+      ))
+    })
+  }
+  //#endregion
+
+  //#region Game Object Functions
+  readonly GAME_OBJECT_BUILTINS: { [path: string]: (...params: any) => any } = {
+    "transform.move": this.move,
+    "transform.rotate": this.rotate
+  }
+
+  move(game_object: RuntimeGameObjectData, x: number, y: number) {
+    game_object.transform.x += x * this.executionContext.time.frame_time
+    game_object.transform.y += y * this.executionContext.time.frame_time
+  }
+
+  rotate(game_object: RuntimeGameObjectData, angle: number) {
+    game_object.transform.rotation += angle * this.executionContext.time.frame_time
+  }
+  //#endregion
+
+  //#region Private builtins
   private imageCache: { [src: string]: HTMLImageElement } = {}
   async render(data: RuntimeProjectData, canvas: HTMLCanvasElement) {
     const ctx = canvas.getContext("2d")
@@ -80,46 +141,6 @@ export default class EngineBuiltins {  //#region Global Builtins
       ctx.restore()
       ctx.save()
     }
-  }
-
-  async sleep(ms: number) {
-    await new Promise((resolve, reject) => {
-      setTimeout(() => (
-        isStopped() ? reject("Stopped") : resolve(null)
-      ), ms)
-    })
-  }
-
-  async tick() {
-    const start = performance.now()
-    await this.sleep(0)
-    const end = performance.now()
-
-    return (end - start) / 1000
-  }
-
-  async awaitFrame() {
-    await new Promise((resolve, reject) => {
-      requestAnimationFrame(() => (
-        isStopped() ? reject("Stopped") : resolve(null)
-      ))
-    })
-  }
-  //#endregion
-
-  //#region Game Object Functions
-  readonly GAME_OBJECT_BUILTINS: { [path: string]: (...params: any) => any } = {
-    "transform.move": this.move,
-    "transform.rotate": this.rotate
-  }
-
-  move(game_object: RuntimeGameObjectData, x: number, y: number) {
-    game_object.transform.x += x * this.time.frame_time
-    game_object.transform.y += y * this.time.frame_time
-  }
-
-  rotate(game_object: RuntimeGameObjectData, angle: number) {
-    game_object.transform.rotation += angle * this.time.frame_time
   }
   //#endregion
 }

@@ -9,6 +9,7 @@ import { RuntimeGameObjectData, RuntimeProjectData } from "@/types/RuntimeProjec
 import Compiler from "./compiler/compiler"
 import EngineRunner from "./engine/engine-runner"
 import { BLANK_IMAGE } from "@/constants"
+import ProgramAST from "./compiler/ast/program-ast"
 
 export default class Project {
   //#region Static React States
@@ -25,12 +26,15 @@ export default class Project {
   private static setData: (data: ProjectData) => Promise<ProjectData>
   static updateData: (transaction: (data: ProjectData) => void) => Promise<ProjectData>
 
-  static runtimeProjectData: RuntimeProjectData | null
-  private static setRuntimeProjectData: (data: RuntimeProjectData | null) => void
-  static updateRuntimeProjectData: (transaction: (data: RuntimeProjectData) => void) => void
+  static compiledASTs: Record<string, ProgramAST>
+  private static setCompiledASTs: (value: Record<string, ProgramAST>) => void
+  static updateCompiledASTs: (transaction: (data: Record<string, ProgramAST>) => void) => void
 
   static runningInstanceId: string | null
   private static setRunningInstanceId: (id: string | null) => Promise<string | null>
+
+  static consoleOutput: string[]
+  private static setConsoleOutput: (value: string[]) => void
   
   static registerHooks() {
     // Loading state
@@ -64,12 +68,12 @@ export default class Project {
     }
 
     // Runtime data state
-    ;[this.runtimeProjectData, this.setRuntimeProjectData] = useState<RuntimeProjectData | null>(null)
-    this.updateRuntimeProjectData = (transaction: (data: RuntimeProjectData) => void) => {
-      const newRuntimeProjectData = JSON.parse(JSON.stringify(this.runtimeProjectData))
-      transaction(newRuntimeProjectData)
+    ;[this.compiledASTs, this.setCompiledASTs] = useState({})
+    this.updateCompiledASTs = (transaction: (data: Record<string, ProgramAST>) => void) => {
+      const newCompiledASTs = { ...this.compiledASTs }
+      transaction(newCompiledASTs)
 
-      this.setRuntimeProjectData(newRuntimeProjectData)
+      this.setCompiledASTs(newCompiledASTs)
     }
 
     // Running instance
@@ -86,6 +90,18 @@ export default class Project {
       runningInstanceIdCallbackRef.current = resolve
       setRunningInstanceIdState(id)
     })
+
+    // Console output state
+    ;[this.consoleOutput, this.setConsoleOutput] = useState<string[]>([])
+    window.onerror = (message, _source, _lineno, _colno, _error) => {
+      if (this.runningInstanceId !== null) this.setConsoleOutput([...this.consoleOutput, message.toString()])
+    }
+
+    const oldConsoleLog = window.console.log
+    window.console.log = (message) => {
+      if (this.runningInstanceId !== null) this.setConsoleOutput([...this.consoleOutput, message.toString()])
+      oldConsoleLog(message)
+    }
   }
   //#endregion
 
@@ -117,13 +133,15 @@ export default class Project {
     return this.data.gameObjects[this.selectedGameObjectKey]
   }
 
-  get runtimeProjectData() { return Project.runtimeProjectData }
-  setRuntimeProjectData = Project.setRuntimeProjectData
-  updateRuntimeProjectData = Project.updateRuntimeProjectData
+  get compiledASTs() { return Project.compiledASTs }
+  updateCompiledASTs = Project.updateCompiledASTs
 
   get runningInstanceId(): string | null { return Project.runningInstanceId }
   private setRunningInstanceId = Project.setRunningInstanceId
   get isRunning() { return this.runningInstanceId !== null }
+
+  get consoleOutput() { return Project.consoleOutput }
+  private setConsoleOutput = Project.setConsoleOutput
   //#endregion
 
   //#region Static factory methods
@@ -266,12 +284,27 @@ export default class Project {
   //#endregion
 
   //#region SproutEngine integration
-  private engineBuiltins = new EngineBuiltins()
+  private engineBuiltins = new EngineBuiltins({})
   render(canvas: HTMLCanvasElement) {
     this.engineBuiltins.render(this.data as any, canvas)
   }
 
-  // TODO: Handle errors
+  private compiler = new Compiler()
+  compileAST(gameObjectKey?: string) {
+    if (!gameObjectKey) {
+      for (const gameObjectKey of Object.keys(this.data.gameObjects)) {
+        this.compileAST(gameObjectKey)
+      }
+
+      return
+    }
+
+    const gameObject = this.data.gameObjects[gameObjectKey]
+    const compiledCode = this.compiler.compile(gameObject.code)
+
+    this.updateCompiledASTs(data => data[gameObjectKey] = compiledCode)
+  }
+
   async run(canvas?: HTMLCanvasElement | null) {
     if (!canvas) return
     if (this.isRunning) await this.stop(canvas)
@@ -279,6 +312,9 @@ export default class Project {
     // Set running instance id
     const instanceId = Math.random().toString(36).substring(7)
     await this.setRunningInstanceId(instanceId)
+
+    // Clear console
+    this.setConsoleOutput([])
 
     // Create RuntimeProjectData
     let newRuntimeProjectData: RuntimeProjectData = {} as RuntimeProjectData
@@ -292,21 +328,18 @@ export default class Project {
         .filter(([key, _value]) => Object.values(this.data.gameObjects).some(gameObject => gameObject.sprites.includes(key)))
     )))
 
-    // Add game objects with compiled code
-    const compiler = new Compiler()
-    newRuntimeProjectData.gameObjects = Object.values(this.data.gameObjects).reduce((acc, gameObject) => {
-      const compiledCode = compiler.compile(gameObject.code)
-      
+    // Compile codes
+    this.compileAST()
+
+    // Add game objects with id as key and compiled code
+    newRuntimeProjectData.gameObjects = Object.entries(this.data.gameObjects).reduce((acc, [gameObjectKey, gameObject]) => {      
       acc[gameObject.id] = {
         ...JSON.parse(JSON.stringify(gameObject)),
-        code: compiledCode,
-        executionError: null
+        code: this.compiledASTs[gameObjectKey]
       }
 
       return acc
     }, {} as Record<string, RuntimeGameObjectData>)
-
-    this.setRuntimeProjectData(newRuntimeProjectData)
 
     // Execute code
     EngineRunner.run(newRuntimeProjectData, () => this.runningInstanceId !== instanceId, canvas)
@@ -368,4 +401,27 @@ export default class Project {
     this.setIsSaving(false)
   }
   //#endregion
+
+  // TODO: Add compileAST method
+
+  // TODO: Add autocompletion
+  /*
+  const keywordSuggestions = Object.keys(KEYWORDS_MAP).map(keyword => ({
+    label: keyword,
+    kind: monaco.languages.CompletionItemKind.Keyword,
+    insertText: keyword
+  }))
+
+  const inbuiltFunctionSuggestions = Object.entries(LANGUAGE_BUILTINS).map(([keyword, value]) => ({
+    label: keyword,
+    kind: value instanceof Function ? monaco.languages.CompletionItemKind.Function : monaco.languages.CompletionItemKind.Variable,
+    insertText: keyword
+  }))
+  
+  monaco.languages.registerCompletionItemProvider(SPROUT_LANGUAGE_KEY, {
+    provideCompletionItems: () => {
+      return { suggestions: project }
+    }
+  })
+  */
 }
