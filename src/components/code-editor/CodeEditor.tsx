@@ -17,17 +17,17 @@ export default function CodeEditor() {
     setLanguage(monaco)
     setTheme(monaco)
 
-    monaco.languages.registerCompletionItemProvider(SPROUT_LANGUAGE_KEY, project.getAutocompletionProvider())
+    monaco.languages.registerCompletionItemProvider(SPROUT_LANGUAGE_KEY, project.getAutocompletionProvider(monaco))
   }, [monaco])
 
-  const onValidate = () => {
+  useEffect(() => { (async () => {
     if (!monaco) return
 
     const editor = monaco.editor.getModels()[0]
     if (!editor) return
 
     // Compile the game object's code
-    project.compileAST(project.selectedGameObjectKey)
+    await project.compileAST(project.selectedGameObjectKey)
 
     const errors = project.compiledASTs[project.selectedGameObjectKey]?.errors
     if (!errors) return
@@ -47,7 +47,7 @@ export default function CodeEditor() {
     })
 
     monaco.editor.setModelMarkers(editor, "error", errorMarkers)
-  }
+  })() }, [monaco, project, project.selectedGameObjectKey, project.selectedGameObject.code]) // TODO: Throttle
 
   if (router.query["tokens"]) {
     useEffect(() => {
@@ -75,11 +75,6 @@ export default function CodeEditor() {
     }, [monaco, project.compiledASTs, project.selectedGameObject.id])
   }
 
-  // DEBUG
-  useEffect(() => {
-    console.log("New console output received:", project.consoleOutput)
-  }, [project.consoleOutput])
-
   return (
     <div id={styles.codeEditorContainer}>
       <Editor
@@ -89,7 +84,6 @@ export default function CodeEditor() {
           padding: { top: 10 },
           minimap: { enabled: false }
         }}
-        onValidate={onValidate}
         path={project.selectedGameObjectKey}
         value={project.selectedGameObject.code}
         onChange={value => project.updateData(null, data => {

@@ -10,6 +10,10 @@ import Compiler from "./compiler/compiler"
 import EngineRunner from "./engine/engine-runner"
 import { BLANK_IMAGE } from "@/constants"
 import ProgramAST from "./compiler/ast/program-ast"
+import LanguageBuiltins from "./compiler/language-builtins"
+import { KEYWORDS_MAP } from "./compiler/token"
+import AutocompletionItem, { AutocompletionItemKind } from "./autocompletion-item"
+import { Monaco } from "@monaco-editor/react"
 
 export default class Project {
   //#region Static React States
@@ -27,8 +31,7 @@ export default class Project {
   static updateData: (transaction: (data: ProjectData) => void) => Promise<ProjectData>
 
   static compiledASTs: Record<string, ProgramAST>
-  private static setCompiledASTs: (value: Record<string, ProgramAST>) => void
-  static updateCompiledASTs: (transaction: (data: Record<string, ProgramAST>) => void) => void
+  private static setCompiledASTs: (value: Record<string, ProgramAST>) => Promise<Record<string, ProgramAST>>
 
   static runningInstanceId: string | null
   private static setRunningInstanceId: (id: string | null) => Promise<string | null>
@@ -68,13 +71,19 @@ export default class Project {
     }
 
     // Runtime data state
-    ;[this.compiledASTs, this.setCompiledASTs] = useState({})
-    this.updateCompiledASTs = (transaction: (data: Record<string, ProgramAST>) => void) => {
-      const newCompiledASTs = { ...this.compiledASTs }
-      transaction(newCompiledASTs)
+    const [compiledASTsState, setCompiledASTsState] = useState<Record<string, ProgramAST>>({})
+    const compiledASTsCallbackRef = useRef<(data: Record<string, ProgramAST>) => void>()
 
-      this.setCompiledASTs(newCompiledASTs)
-    }
+    useEffect(() => {
+      if (!compiledASTsCallbackRef.current) return
+      compiledASTsCallbackRef.current(compiledASTsState)
+    }, [compiledASTsState])
+
+    this.compiledASTs = compiledASTsState
+    this.setCompiledASTs = (data: Record<string, ProgramAST>) => new Promise(resolve => {
+      compiledASTsCallbackRef.current = resolve
+      setCompiledASTsState(data)
+    })
 
     // Running instance
     const [runningInstanceIdState, setRunningInstanceIdState] = useState<string | null>(null)
@@ -93,13 +102,17 @@ export default class Project {
 
     // Console output state
     ;[this.consoleOutput, this.setConsoleOutput] = useState<string[]>([])
+  }
+
+  static registerWindowCallbacks(window: Window) {
+    // Console output state
     window.onerror = (message, _source, _lineno, _colno, _error) => {
-      if (this.runningInstanceId !== null) this.setConsoleOutput([...this.consoleOutput, message.toString()])
+      if (Project.runningInstanceId !== null) Project.setConsoleOutput([...Project.consoleOutput, message.toString()])
     }
 
-    const oldConsoleLog = window.console.log
-    window.console.log = (message) => {
-      if (this.runningInstanceId !== null) this.setConsoleOutput([...this.consoleOutput, message.toString()])
+    const oldConsoleLog = (window as any).console.log
+    ;(window as any).console.log = (message: string) => {
+      if (Project.runningInstanceId !== null) Project.setConsoleOutput([...Project.consoleOutput, message.toString()])
       oldConsoleLog(message)
     }
   }
@@ -134,7 +147,7 @@ export default class Project {
   }
 
   get compiledASTs() { return Project.compiledASTs }
-  updateCompiledASTs = Project.updateCompiledASTs
+  private setCompiledASTs = Project.setCompiledASTs
 
   get runningInstanceId(): string | null { return Project.runningInstanceId }
   private setRunningInstanceId = Project.setRunningInstanceId
@@ -283,26 +296,59 @@ export default class Project {
   }
   //#endregion
 
-  //#region SproutEngine integration
-  private engineBuiltins = new EngineBuiltins({})
+  //#region Autocompletion provider
+  private builtins = {}
+  private languageBuiltins = new LanguageBuiltins(this.builtins)
+  private engineBuiltins = new EngineBuiltins(this.builtins)
+  getAutocompletionProvider(monaco: Monaco) {
+    const suggestions: AutocompletionItem[] = []
+
+    // Add keywords
+    for (const keyword of Object.keys(KEYWORDS_MAP)) {
+      suggestions.push({
+        label: keyword,
+        kind: AutocompletionItemKind.Keyword,
+        insertText: keyword
+      })
+    }
+
+    return {
+      provideCompletionItems: (_model: any, position: any, _context: any, _token: any): any => {
+        // TODO: Filter suggestions based on position
+        const specificSuggestions = suggestions.map(suggestion => ({
+          ...suggestion,
+          kind: (() => {
+            switch (suggestion.kind) {
+              case AutocompletionItemKind.Keyword: return monaco.languages.CompletionItemKind.Keyword
+              case AutocompletionItemKind.Identifier: return monaco.languages.CompletionItemKind.Variable
+              case AutocompletionItemKind.Function: return monaco.languages.CompletionItemKind.Function
+            }
+          })()
+        }))
+
+        return { suggestions: specificSuggestions }
+      }
+    }
+  }
+  //#endregion
+
+  //#region compiler and engine-runner integration
   render(canvas: HTMLCanvasElement) {
     this.engineBuiltins.render(this.data as any, canvas)
   }
 
   private compiler = new Compiler()
-  compileAST(gameObjectKey?: string) {
-    if (!gameObjectKey) {
-      for (const gameObjectKey of Object.keys(this.data.gameObjects)) {
-        this.compileAST(gameObjectKey)
-      }
+  async compileAST(gameObjectKey?: string) {
+    if (gameObjectKey && !this.data.gameObjects[gameObjectKey]) return console.error("Game object not found")
 
-      return
+    const gameObjectKeys = gameObjectKey ? [gameObjectKey] : Object.keys(this.data.gameObjects)
+    const newASTs = {} as Record<string, ProgramAST>
+
+    for (const key of gameObjectKeys) {
+      newASTs[key] = this.compiler.compile(this.data.gameObjects[key].code)
     }
 
-    const gameObject = this.data.gameObjects[gameObjectKey]
-    const compiledCode = this.compiler.compile(gameObject.code)
-
-    this.updateCompiledASTs(data => data[gameObjectKey] = compiledCode)
+    await this.setCompiledASTs(newASTs)
   }
 
   async run(canvas?: HTMLCanvasElement | null) {
@@ -329,7 +375,7 @@ export default class Project {
     )))
 
     // Compile codes
-    this.compileAST()
+    await this.compileAST()
 
     // Add game objects with id as key and compiled code
     newRuntimeProjectData.gameObjects = Object.entries(this.data.gameObjects).reduce((acc, [gameObjectKey, gameObject]) => {      
@@ -401,27 +447,4 @@ export default class Project {
     this.setIsSaving(false)
   }
   //#endregion
-
-  // TODO: Add compileAST method
-
-  // TODO: Add autocompletion
-  /*
-  const keywordSuggestions = Object.keys(KEYWORDS_MAP).map(keyword => ({
-    label: keyword,
-    kind: monaco.languages.CompletionItemKind.Keyword,
-    insertText: keyword
-  }))
-
-  const inbuiltFunctionSuggestions = Object.entries(LANGUAGE_BUILTINS).map(([keyword, value]) => ({
-    label: keyword,
-    kind: value instanceof Function ? monaco.languages.CompletionItemKind.Function : monaco.languages.CompletionItemKind.Variable,
-    insertText: keyword
-  }))
-  
-  monaco.languages.registerCompletionItemProvider(SPROUT_LANGUAGE_KEY, {
-    provideCompletionItems: () => {
-      return { suggestions: project }
-    }
-  })
-  */
 }
