@@ -99,8 +99,8 @@ npm run dev
     - [x] Add width and height info to the sprites in the sprites library
   - [ ] Solve all TODOs
   - [x] Remove all DEBUGs
-  - [ ] Fix canvas can be right-clicked
-  - [ ] Disable the ability to select game objects through the canvas if th game is running
+  - [x] Fix canvas can be right-clicked
+  - [x] Disable the ability to select game objects through the canvas if th game is running
 - [ ] Create some example games
   - [ ] Add the ability to add information text to the documentation sidebar
 - [x] Add warning if not using Chrome

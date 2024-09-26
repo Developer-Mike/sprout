@@ -55,7 +55,9 @@ export default function StagePane({ canvasRef }: {
     highlighter.addEventListener("transitionend", () => { highlighter.classList.remove(styles.show) }, { once: true })
   }
 
-  const setSelectClickedGameObject = (e: MouseEvent) => {
+  const selectGameObjectOnClick = (e: MouseEvent) => {
+    if (project.isRunning) return
+
     const canvas = document.getElementById(styles.stageCanvas) as HTMLCanvasElement
     if (!canvas) return
 
@@ -97,13 +99,13 @@ export default function StagePane({ canvasRef }: {
     const canvas = document.getElementById(styles.stageCanvas) as HTMLCanvasElement
     if (!canvas) return
 
-    canvas.addEventListener("click", setSelectClickedGameObject)
+    canvas.addEventListener("click", selectGameObjectOnClick)
 
     const resizeObserver = new ResizeObserver(() => { updateCanvas() })
     resizeObserver.observe(stage)
 
     return () => { 
-      canvas.removeEventListener("click", setSelectClickedGameObject)
+      canvas.removeEventListener("click", selectGameObjectOnClick)
       resizeObserver.disconnect()
     }
   }, [])
@@ -164,7 +166,7 @@ export default function StagePane({ canvasRef }: {
       </div>
 
       <div id={styles.canvasContainer}>
-        <canvas ref={canvasRef} id={styles.stageCanvas} />
+        <canvas ref={canvasRef} id={styles.stageCanvas} onContextMenu={e => e.preventDefault()} />
         <div id={styles.gameObjectSelectionHighlighter} />
       </div>
     </div>
