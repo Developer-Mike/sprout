@@ -51,7 +51,9 @@ export default class EngineRunner {
           for (const listener of gameObject.on) {
             if (listener.condition()) {
               listener.callback().then(unsubscribe => {
+                if (executionContext.is_stopped()) return
                 if (unsubscribe !== true) return
+                
                 gameObject.on = gameObject.on.filter(l => l !== listener)
               })
             }
