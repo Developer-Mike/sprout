@@ -72,7 +72,7 @@ npm run dev
     - [x] Add support for mutable variables
     - [x] Add support for if, while, for and on statements
     - [x] Add support for await expressions
-    - [ ] Add support for lists
+    - [x] Add support for lists
     - [ ] Fix return statements nested inside if statements not working
     - [ ] (If time allows) Add support for objects
     - [x] (If time allows) Add support for +=, -=, *=, /= operators

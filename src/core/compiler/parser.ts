@@ -26,6 +26,7 @@ import ForAST from "./ast/for-ast"
 import IfExprAST from "./ast/expr/if-expr-ast"
 import UnsubscribeAST from "./ast/unsubscribe-ast"
 import AwaitExprAST from "./ast/expr/await-expr-ast"
+import ListExprAST from "./ast/expr/list-expr-ast"
 
 export default class Parser {
   readonly precedence: { [operator: string]: number } = {
@@ -153,6 +154,9 @@ export default class Parser {
       case TokenType.KEYWORD_AWAIT:
         objectExpr = this.parseAwaitExpression()
         break
+      case TokenType.SQUARE_OPEN:
+        objectExpr = this.parseListExpression()
+        break
       case TokenType.PAREN_OPEN:
         objectExpr = this.parseParenExpression()
         break
@@ -273,6 +277,32 @@ export default class Parser {
     if (expression === null) return null
 
     return new AwaitExprAST(expression, { start: awaitStartLocation, end: expression.sourceLocation.end })
+  }
+
+  private parseListExpression(): ListExprAST | null {
+    if (this.currentToken.type !== TokenType.SQUARE_OPEN)
+      return this.logError("Expected '['", this.currentToken.location)
+
+    const listStartLocation = this.currentToken.location.start
+    this.consumeToken() // consume '['
+
+    const elements: ExpressionAST[] = []
+    // @ts-ignore TS doesn't know that this loop changes the current token
+    while (this.currentToken.type !== TokenType.SQUARE_CLOSE) {
+      const element = this.parseExpression()
+      if (element === null) return null
+
+      elements.push(element)
+
+      // @ts-ignore TS doesn't know that this loop changes the current token
+      if (this.currentToken.type === TokenType.SEPARATOR)
+        this.consumeToken() // consume ','
+    }
+
+    const listEndLocation = this.currentToken.location.end
+    this.consumeToken() // consume ']'
+
+    return new ListExprAST(elements, { start: listStartLocation, end: listEndLocation })
   }
 
   private parseParenExpression(): ExpressionAST | null {
