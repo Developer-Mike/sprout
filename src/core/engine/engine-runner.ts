@@ -1,5 +1,5 @@
 import ExecutionHelper from '@/utils/execution-helper'
-import { RuntimeProjectData } from '@/types/RuntimeProjectData'
+import { RuntimeGameObjectData, RuntimeProjectData } from '@/types/RuntimeProjectData'
 import EngineBuiltins from './engine-builtins'
 import LanguageBuiltins from '../compiler/language-builtins'
 
@@ -14,7 +14,7 @@ export default class EngineRunner {
 
     // Add builtins to the execution context
     new LanguageBuiltins(executionContext)
-    const engineBuiltins = new EngineBuiltins(executionContext)
+    const engineBuiltins = new EngineBuiltins(executionContext, canvas)
 
     for (const gameObject of Object.values(data.gameObjects)) {
       // Run game object code
@@ -46,10 +46,21 @@ export default class EngineRunner {
     // Main loop
     ;(async () => {
       while (!isStopped()) {
-        // TODO: Handle input
+        // Run game loop
+        for (const gameObject of Object.values(executionContext.game_objects) as RuntimeGameObjectData[]) {
+          for (const listener of gameObject.on) {
+            if (listener.condition()) {
+              listener.callback().then(unsubscribe => {
+                if (unsubscribe !== true) return
+                gameObject.on = gameObject.on.filter(l => l !== listener)
+              })
+            }
+          }
+        }
+        executionContext.frame = false
+        engineBuiltins.updateInput()
 
         await executionContext.tick()
-        executionContext.frame = false
       }
     })()
   }

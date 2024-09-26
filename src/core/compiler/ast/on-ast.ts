@@ -1,7 +1,6 @@
 import SourceLocation from "../source-location"
 import AST from "./ast"
 import BlockStatementAST from "./block-statement-ast"
-import IfExprAST from "./expr/if-expr-ast"
 import ExpressionAST from "./expr/expression-ast"
 
 export default class OnAST extends AST {
@@ -12,15 +11,11 @@ export default class OnAST extends AST {
   ) { super() }
 
   toJavaScript(): string {
-    // Handle if expression using artificial AST node
-    const ifExpr = new IfExprAST(this.condition, this.body, null, this.sourceLocation)
-
-    return `;(async () => { 
-      while (is_stopped === undefined || !is_stopped()) {
-        ${ifExpr.toJavaScript()}
-
-        await tick()
-      }
-    })()`
+    return `
+      game_object.on.push({
+        condition: () => { return ${this.condition.toJavaScript()} },
+        callback: async () => ${this.body.toJavaScript()}
+      })
+    `
   }
 }

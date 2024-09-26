@@ -2,21 +2,20 @@ import { RuntimeGameObjectData, RuntimeProjectData } from "@/types/RuntimeProjec
 
 export default class EngineBuiltins {
   private executionContext: any
+  private canvas: HTMLCanvasElement
 
-  constructor(executionContext: any) {
+  constructor(executionContext: any, canvas: HTMLCanvasElement) {
     this.executionContext = executionContext
+    this.canvas = canvas
 
     // Add builtins to the execution context
     this.executionContext.sleep = this.sleep.bind(this)
     this.executionContext.tick = this.tick.bind(this)
     this.executionContext.await_frame = this.awaitFrame.bind(this)
-    this.executionContext.frame = false
-    this.executionContext.time = {
-      frame_time: 1, // Default to 1
-      start_timestamp: Date.now(),
-      get timestamp() { return Date.now() },
-      get timer() { return this.timestamp - this.start_timestamp }
-    }
+
+    this.setupFrameValue()
+    this.setupTimeValue()
+    this.setupInputValue()
 
     // Add game object builtins
     for (const gameObjectId in this.executionContext.game_objects) {
@@ -37,6 +36,83 @@ export default class EngineBuiltins {
         })
       }
     }
+  }
+
+  private setupFrameValue() {
+    this.executionContext.frame = false
+  }
+
+  private setupTimeValue() {
+    this.executionContext.time = {
+      frame_time: 1, // Default to 1
+      start_timestamp: Date.now(),
+      get timestamp() { return Date.now() },
+      get timer() { return (this.timestamp - this.start_timestamp) / 1000 }
+    }
+  }
+
+  private setupInputValue() {
+    this.executionContext.input = {
+      key: new Proxy({} as Record<string, KeyState>, {
+        get: (target: Record<string, KeyState>, key: string) => 
+          key in target ? target[key] : { is_down: false, is_pressed: false, is_up: false }
+      }),
+      mouse: {
+        x: 0, y: 0,
+        button: new Proxy({} as Record<string, KeyState>, {
+          get: (target: Record<string, KeyState>, key: string) => 
+            key in target ? target[key] : { is_down: false, is_pressed: false, is_up: false }
+        })
+      }
+    }
+
+    const getKeyName = (key: string) => {
+      if (key === " ") return "space"
+      return key.replace(/(?<!^)[A-Z]/g, letter => `_${letter.toLowerCase()}`).toLowerCase()
+    }
+
+    window.addEventListener("keydown", e => {
+      if (e.repeat) return // Skip if key is being held down
+      if (e.key === "Meta") return // Skip if meta key is pressed
+
+      const key = getKeyName(e.key)
+      this.executionContext.input.key[key] = { is_down: true, is_pressed: true, is_up: false }
+    })
+    window.addEventListener("keyup", e => {
+      const key = getKeyName(e.key)
+      this.executionContext.input.key[key] = { is_down: false, is_pressed: false, is_up: true }
+    })
+
+    const getButtonName = (button: number) => {
+      switch (button) {
+        case 0: return "left"
+        case 1: return "middle"
+        case 2: return "right"
+        default: return `button_${button}`
+      }
+    }
+
+    window.addEventListener("mousemove", e => {
+      const rect = this.canvas.getBoundingClientRect()
+
+      let x = Math.min(Math.max(e.clientX - rect.left, 0), this.canvas.width)
+      let y = Math.min(Math.max(e.clientY - rect.top, 0), this.canvas.height)
+
+      x = x / this.canvas.width * this.executionContext.stage?.width ?? 0
+      y = y / this.canvas.height * this.executionContext.stage?.height ?? 0
+      
+      this.executionContext.input.mouse.x = x
+      this.executionContext.input.mouse.y = y
+    })
+
+    window.addEventListener("mousedown", e => {
+      const button = getButtonName(e.button)
+      this.executionContext.input.mouse.button[button] = { is_down: true, is_pressed: true, is_up: false }
+    })
+    window.addEventListener("mouseup", e => {
+      const button = getButtonName(e.button)
+      this.executionContext.input.mouse.button[button] = { is_down: false, is_pressed: false, is_up: true }
+    })
   }
 
   //#region Global Builtins
@@ -142,5 +218,27 @@ export default class EngineBuiltins {
       ctx.save()
     }
   }
+
+  updateInput() {
+    for (const key in this.executionContext.input.key) {
+      const state = this.executionContext.input.key[key]
+
+      if (state.is_down) state.is_down = false
+      if (state.is_up) delete this.executionContext.input.key[key]
+    }
+
+    for (const button in this.executionContext.input.mouse.button) {
+      const state = this.executionContext.input.mouse.button[button]
+
+      if (state.is_down) state.is_down = false
+      if (state.is_up) delete this.executionContext.input.mouse.button[button]
+    }
+  }
   //#endregion
+}
+
+export interface KeyState {
+  is_down: boolean
+  is_pressed: boolean
+  is_up: boolean
 }

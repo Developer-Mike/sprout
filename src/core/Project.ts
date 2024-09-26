@@ -101,7 +101,7 @@ export default class Project {
     })
 
     // Console output state
-    ;[this.consoleOutput, this.setConsoleOutput] = useState<string[]>([])
+    ;[this.consoleOutput, this.setConsoleOutput] = useState<any[]>([])
   }
 
   static registerWindowCallbacks(window: Window) {
@@ -111,9 +111,9 @@ export default class Project {
     }
 
     const oldConsoleLog = (window as any).console.log
-    ;(window as any).console.log = (message: string) => {
-      if (Project.runningInstanceId !== null) Project.setConsoleOutput([...Project.consoleOutput, message.toString()])
-      oldConsoleLog(message)
+    ;(window as any).console.log = (...params: any) => {
+      if (Project.runningInstanceId !== null) Project.setConsoleOutput([...Project.consoleOutput, params])
+      oldConsoleLog(...params)
     }
   }
   //#endregion
@@ -299,7 +299,7 @@ export default class Project {
   //#region Autocompletion provider
   private builtins = {}
   private languageBuiltins = new LanguageBuiltins(this.builtins)
-  private engineBuiltins = new EngineBuiltins(this.builtins)
+  private engineBuiltins = new EngineBuiltins(this.builtins, document.createElement("canvas"))
   getAutocompletionProvider(monaco: Monaco) {
     const suggestions: AutocompletionItem[] = []
 
@@ -377,11 +377,12 @@ export default class Project {
     // Compile codes
     await this.compileAST()
 
-    // Add game objects with id as key and compiled code
+    // Add game objects with id as key, compiled code and empty on listeners
     newRuntimeProjectData.gameObjects = Object.entries(this.data.gameObjects).reduce((acc, [gameObjectKey, gameObject]) => {      
       acc[gameObject.id] = {
         ...JSON.parse(JSON.stringify(gameObject)),
-        code: this.compiledASTs[gameObjectKey]
+        code: this.compiledASTs[gameObjectKey],
+        on: []
       }
 
       return acc

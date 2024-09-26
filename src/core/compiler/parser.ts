@@ -24,6 +24,7 @@ import OnAST from "./ast/on-ast"
 import WhileAST from "./ast/while-ast"
 import ForAST from "./ast/for-ast"
 import IfExprAST from "./ast/expr/if-expr-ast"
+import UnsubscribeAST from "./ast/unsubscribe-ast"
 
 export default class Parser {
   readonly precedence: { [operator: string]: number } = {
@@ -86,6 +87,8 @@ export default class Parser {
         return this.parseBreakStatement()
       case TokenType.KEYWORD_CONTINUE:
         return this.parseContinueStatement()
+      case TokenType.KEYWORD_UNSUBSCRIBE:
+        return this.parseUnsubscribeStatement()
       default:
         return this.parseExpression()
     }
@@ -556,5 +559,15 @@ export default class Parser {
     this.consumeToken() // consume 'continue'
 
     return new ContinueAST(location)
+  }
+
+  private parseUnsubscribeStatement(): UnsubscribeAST | null {
+    if (this.currentToken.type !== TokenType.KEYWORD_UNSUBSCRIBE)
+      return this.logError("Expected keyword 'unsubscribe'", this.currentToken.location)
+
+    const location = this.currentToken.location
+    this.consumeToken() // consume 'unsubscribe'
+
+    return new UnsubscribeAST(location)
   }
 }
