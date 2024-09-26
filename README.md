@@ -73,19 +73,24 @@ npm run dev
     - [x] Add support for if, while, for and on statements
     - [ ] Add support for await statements
     - [ ] Add support for lists
+    - [ ] Fix return statements nested inside if statements not working
     - [ ] (If time allows) Add support for objects
     - [x] (If time allows) Add support for +=, -=, *=, /= operators
     - [ ] (If time allows) Add support for unary operators (!bool, -var, +var, ++, --)
   - [x] Create AST compiler function (AST -> JavaScript)
   - [x] Create error handling (Compilation & Runtime)
-  - [ ] Show errors in the code editor
-  - [ ] Fix the syntax highlighting and linting (Only basic syntax highlighting)
-  - [ ] Fix execution of the code
+  - [x] Show errors in the code editor
+  - [x] Fix the syntax highlighting and linting (Only basic syntax highlighting)
+  - [x] Fix execution of the code
+  - [ ] Add implemented functions to the language
+    - [ ] range
+    - [ ] Expose math functions
   - [ ] Add implemented functions to the engine
     - [ ] move, rotate (Handle frame_time)
     - [ ] rotate_to
-    - [ ] collides_with, collides_with_box
+    - [ ] collides_with, collides_with_box, collides_with_mouse
     - [ ] sleep
+  - [ ] Add console view
   - [ ] (If time allows) Add autocomplete for some objects (e.g. game_objects, sprites)
   - [ ] (If time allows) Add advanced explanations to error messages
 - [-] Miscellaneous
@@ -93,7 +98,9 @@ npm run dev
   - [x] Rework game object scaling (width and factor for height) -> Fix different scaling for different sprites
     - [x] Add width and height info to the sprites in the sprites library
   - [ ] Solve all TODOs
-  - [ ] Remove all DEBUGs
+  - [x] Remove all DEBUGs
+  - [ ] Fix canvas can be right-clicked
+  - [ ] Disable the ability to select game objects through the canvas if th game is running
 - [ ] Create some example games
   - [ ] Add the ability to add information text to the documentation sidebar
 - [x] Add warning if not using Chrome
