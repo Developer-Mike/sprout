@@ -25,6 +25,7 @@ import WhileAST from "./ast/while-ast"
 import ForAST from "./ast/for-ast"
 import IfExprAST from "./ast/expr/if-expr-ast"
 import UnsubscribeAST from "./ast/unsubscribe-ast"
+import AwaitExprAST from "./ast/expr/await-expr-ast"
 
 export default class Parser {
   readonly precedence: { [operator: string]: number } = {
@@ -149,6 +150,9 @@ export default class Parser {
       case TokenType.KEYWORD_IF:
         objectExpr = this.parseIfExpression()
         break
+      case TokenType.KEYWORD_AWAIT:
+        objectExpr = this.parseAwaitExpression()
+        break
       case TokenType.PAREN_OPEN:
         objectExpr = this.parseParenExpression()
         break
@@ -256,6 +260,19 @@ export default class Parser {
     }
 
     return new IfExprAST(condition, thenBody, elseBody, { start: ifStartLocation, end: elseBody?.sourceLocation.end ?? thenBody.sourceLocation.end })
+  }
+
+  private parseAwaitExpression(): AwaitExprAST | null {
+    if (this.currentToken.type !== TokenType.KEYWORD_AWAIT)
+      return this.logError("Expected keyword 'await'", this.currentToken.location)
+
+    const awaitStartLocation = this.currentToken.location.start
+    this.consumeToken() // consume 'await'
+
+    const expression = this.parseExpression()
+    if (expression === null) return null
+
+    return new AwaitExprAST(expression, { start: awaitStartLocation, end: expression.sourceLocation.end })
   }
 
   private parseParenExpression(): ExpressionAST | null {

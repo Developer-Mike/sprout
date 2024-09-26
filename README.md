@@ -71,7 +71,7 @@ npm run dev
   - [-] Create Parser (Tokens -> AST)
     - [x] Add support for mutable variables
     - [x] Add support for if, while, for and on statements
-    - [ ] Add support for await statements
+    - [x] Add support for await expressions
     - [ ] Add support for lists
     - [ ] Fix return statements nested inside if statements not working
     - [ ] (If time allows) Add support for objects

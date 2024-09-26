@@ -59,6 +59,7 @@ export enum TokenType {
   KEYWORD_BREAK,
   KEYWORD_CONTINUE,
   KEYWORD_UNSUBSCRIBE,
+  KEYWORD_AWAIT,
 
   BIN_OP,
 
@@ -91,6 +92,7 @@ export const KEYWORDS_MAP = {
   "break": TokenType.KEYWORD_BREAK,
   "continue": TokenType.KEYWORD_CONTINUE,
   "unsubscribe": TokenType.KEYWORD_UNSUBSCRIBE,
+  "await": TokenType.KEYWORD_AWAIT,
   "null": TokenType.LITERAL_NULL,
   "true": TokenType.LITERAL_BOOLEAN,
   "false": TokenType.LITERAL_BOOLEAN,
