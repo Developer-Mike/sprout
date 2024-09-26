@@ -18,12 +18,16 @@ export default function CodeEditor() {
     setTheme(monaco)
 
     monaco.languages.registerCompletionItemProvider(SPROUT_LANGUAGE_KEY, project.getAutocompletionProvider(monaco))
+
+    // Validate the code of the current model and future models created
+    validate()
+    monaco.editor.onDidCreateModel(_model => validate())
   }, [monaco])
 
-  useEffect(() => { (async () => {
+  const validate = async () => {
     if (!monaco) return
 
-    const editor = monaco.editor.getModels()[0]
+    const editor = monaco.editor.getModel(monaco.Uri.parse(project.selectedGameObjectKey))
     if (!editor) return
 
     // Compile the game object's code
@@ -46,21 +50,23 @@ export default function CodeEditor() {
       }
     })
 
-    monaco.editor.setModelMarkers(editor, "error", errorMarkers)
-  })() }, [monaco, project, project.selectedGameObjectKey, project.selectedGameObject.code]) // TODO: Throttle
+    monaco.editor.setModelMarkers(editor, SPROUT_LANGUAGE_KEY, errorMarkers)
+  }
 
   if (router.query["tokens"]) {
     useEffect(() => {
       if (!monaco) return
 
-      const editor = monaco.editor.getModels()[0]
+      const editor = monaco.editor.getModel(monaco.Uri.parse(project.selectedGameObjectKey))
       if (!editor) return
 
       const tokens = project.compiledASTs[project.selectedGameObjectKey]?.tokens
       if (!tokens) return
 
       // Clear previous decorations
-      const oldDecorations = editor.getAllDecorations().map(decoration => decoration.id)
+      const oldDecorations = editor.getAllDecorations()
+        .filter(decoration => decoration.options.className?.startsWith("token-"))
+        .map(decoration => decoration.id)
       editor.deltaDecorations(oldDecorations, [])
 
       for (const token of tokens) {
@@ -88,7 +94,7 @@ export default function CodeEditor() {
         value={project.selectedGameObject.code}
         onChange={value => project.updateData(null, data => {
           data.gameObjects[project.selectedGameObjectKey].code = value ?? ""
-        })}
+        }).then(() => validate())}
       />
 
       <img id={styles.gameObjectPreview} src={project.getActiveSprite(project.selectedGameObject).src} />
