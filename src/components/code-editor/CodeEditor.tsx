@@ -86,7 +86,9 @@ export default function CodeEditor() {
       <Editor
         theme={SPROUT_THEME_KEY}
         language={SPROUT_LANGUAGE_KEY}
-        options={{ 
+        options={{
+          fixedOverflowWidgets: true,
+          tabSize: 2,
           padding: { top: 10 },
           minimap: { enabled: false }
         }}

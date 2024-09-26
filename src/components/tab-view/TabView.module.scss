@@ -89,8 +89,6 @@
     border: var(--border-width) solid var(--primary-dim);
     border-radius: 16px;
 
-    transform: scaleX(1);
-
     &.noPadding {
       padding: 0;
     }
@@ -129,7 +127,5 @@
 
     width: 0;
     padding: 0;
-    
-    transform: scaleX(0);
   }
 }
