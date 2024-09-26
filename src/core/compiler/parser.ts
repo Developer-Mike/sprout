@@ -53,7 +53,7 @@ export default class Parser {
     this.errors = []
 
     const body: AST[] = []
-    while (this.currentToken.type !== TokenType.EOF) {
+    while (this.currentToken !== undefined && this.currentToken.type !== TokenType.EOF) {
       const node = this.parseStatement()
       if (node !== null) body.push(node)
     }

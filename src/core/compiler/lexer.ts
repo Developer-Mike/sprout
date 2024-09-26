@@ -126,10 +126,11 @@ export default class Lexer {
         escaped = !escaped && this.currentChar === "\\"
 
         this.consumeChar()
-      } while (this.currentChar !== "\"" || escaped)
+      } while (this.currentChar !== undefined && (this.currentChar !== "\"" || escaped))
 
-      this.consumeChar() // Eat closing quote
-      return new Token(TokenType.LITERAL_STRING, string, this.currentLocation, string.length + 2) // Include quotes
+      const unterminatedString = this.currentChar === undefined
+      if (!unterminatedString) this.consumeChar() // Eat closing quote
+      return new Token(TokenType.LITERAL_STRING, string, this.currentLocation, string.length + (unterminatedString ? 1 : 2)) // Include quotes
     }
 
     // Check for number

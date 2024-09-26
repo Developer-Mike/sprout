@@ -4,7 +4,7 @@ import { SPROUT_LANGUAGE_KEY, SPROUT_THEME_KEY } from "@/constants"
 import { KEYWORDS_MAP } from "@/core/compiler/token"
 import { Editor, useMonaco } from "@monaco-editor/react"
 import { useRouter } from "next/router"
-import { useContext, useEffect } from "react"
+import { useContext, useEffect, useState } from "react"
 
 export default function CodeEditor() {
   const { project } = useContext(ProjectContext)
@@ -54,6 +54,8 @@ export default function CodeEditor() {
   }
 
   if (router.query["tokens"]) {
+    const [tokenDecorationsIdentifiers, setTokenDecorationsIdentifiers] = useState<string[]>([])
+
     useEffect(() => {
       if (!monaco) return
 
@@ -63,21 +65,19 @@ export default function CodeEditor() {
       const tokens = project.compiledASTs[project.selectedGameObjectKey]?.tokens
       if (!tokens) return
 
-      // Clear previous decorations
-      const oldDecorations = editor.getAllDecorations()
-        .filter(decoration => decoration.options.className?.startsWith("token-"))
-        .map(decoration => decoration.id)
-      editor.deltaDecorations(oldDecorations, [])
-
-      for (const token of tokens) {
+      // Create new decorations
+      const newTokenDecorations = tokens.map(token => {
         const startPos = editor.getPositionAt(token.location.start)
         const endPos = editor.getPositionAt(token.location.end)
 
-        editor.deltaDecorations([], [{
+        return {
           range: new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column),
           options: { className: styles[`token-${token.getDebugCategory()}`], hoverMessage: { value: token.toString() } }
-        }])
-      }
+        }
+      })
+
+      // Apply new decorations
+      setTokenDecorationsIdentifiers(editor.deltaDecorations(tokenDecorationsIdentifiers, newTokenDecorations))
     }, [monaco, project.compiledASTs, project.selectedGameObject.id])
   }
 
