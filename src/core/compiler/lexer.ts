@@ -103,7 +103,7 @@ export default class Lexer {
       } while (this.currentChar?.match(/[a-zA-Z0-9_]/))
 
       // Check for keywords
-      const keyword = KEYWORDS_MAP[identifier]
+      const keyword = Object.entries(KEYWORDS_MAP).find(([key, _type]) => key === identifier)?.[1] // KEYWORDS_MAP[identifier] would cause e.g. toString not to be undefined
 
       // If boolean, return it with the correct value
       if (keyword === TokenType.LITERAL_BOOLEAN)
