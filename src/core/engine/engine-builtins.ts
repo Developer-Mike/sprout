@@ -119,7 +119,7 @@ export default class EngineBuiltins {
 
       // Skip if no sprite or index out of bounds
       const sprite = data.sprites[gameObject.sprites[gameObject.active_sprite]]
-      if (!sprite) return
+      if (!sprite) continue
 
       const width = gameObject.transform.width * sprite.width
       const height = gameObject.transform.height * sprite.height
