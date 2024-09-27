@@ -1,11 +1,11 @@
 import SourceLocation from "./source-location"
 
 export default class Token {
-  type: number
+  type: TokenType
   value: string | null
   location: SourceLocation
 
-  constructor(type: number, value: string | null, endLocation: number, length: number = 1) {
+  constructor(type: TokenType, value: string | null, endLocation: number, length: number = 1) {
     this.type = type
     this.value = value
     this.location = { start: endLocation - length, end: endLocation }

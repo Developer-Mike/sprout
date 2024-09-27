@@ -120,13 +120,13 @@ export default class Lexer {
       this.consumeChar() // Eat opening quote
 
       let escaped = false
-      do {
+      while (this.currentChar !== undefined && (this.currentChar !== "\"" || escaped)) {
         string += this.currentChar
         // @ts-ignore - TS doesn't know that currentChar gets updated
         escaped = !escaped && this.currentChar === "\\"
 
         this.consumeChar()
-      } while (this.currentChar !== undefined && (this.currentChar !== "\"" || escaped))
+      }
 
       const unterminatedString = this.currentChar === undefined
       if (!unterminatedString) this.consumeChar() // Eat closing quote
@@ -205,7 +205,6 @@ export default class Lexer {
 
     // If not identified
     const invalidChar = this.currentChar
-    console.error(`Invalid character: ${invalidChar}`)
     this.consumeChar()
     return new Token(TokenType.INVALID, invalidChar, this.currentLocation)
   }

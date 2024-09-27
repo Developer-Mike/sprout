@@ -167,24 +167,50 @@ export default class Parser {
 
     // Parse member expressions
     // @ts-ignore TS doesn't know that the current token changes
-    while (this.currentToken.type === TokenType.OPTIONAL_OPERATOR || this.currentToken.type === TokenType.PUNCTUATOR) {
+    while ([TokenType.OPTIONAL_OPERATOR, TokenType.PUNCTUATOR, TokenType.SQUARE_OPEN].includes(this.currentToken.type)) {
+      // @ts-ignore TS doesn't handle the tokens correctly
       const optional = this.currentToken.type === TokenType.OPTIONAL_OPERATOR
       if (optional) this.consumeToken() // consume '?'
 
-      if (this.currentToken.type !== TokenType.PUNCTUATOR)
-        return this.logError("Expected '.' after '?'", this.currentToken.location)
+      if (![TokenType.PUNCTUATOR, TokenType.SQUARE_OPEN].includes(this.currentToken.type))
+        return this.logError("Expected '.' or '[' after optional operator", this.currentToken.location)
 
-      this.consumeToken() // consume '.'
+      // @ts-ignore TS doesn't handle the tokens correctly
+      const punctuator = this.currentToken.type === TokenType.PUNCTUATOR
+      this.consumeToken() // consume '.' or '['
 
-      // @ts-ignore TS doesn't know that consumeToken changes the current token
-      if (this.currentToken.type !== TokenType.IDENTIFIER)
-        return this.logError("Expected member name after '.'", this.currentToken.location)
+      let memberIdentifier: ExpressionAST | null = null
+      if (punctuator) {
+        if (this.currentToken.type !== TokenType.IDENTIFIER)
+          return this.logError("Expected member name after '.'", this.currentToken.location)
 
-      const memberIdentifier = this.parseIdentifierExpression()
+        memberIdentifier = this.parseIdentifierExpression()
+      } else {
+        memberIdentifier = this.parseExpression()
+
+        // @ts-ignore TS doesn't know that consumeToken changes the current token
+        if (this.currentToken.type !== TokenType.SQUARE_CLOSE)
+          return this.logError("Expected ']' after member expression", this.currentToken.location)
+
+        this.consumeToken() // consume ']'
+      }
+
       if (memberIdentifier === null) return null
 
       // Create a new member expression node
       objectExpr = new MemberExprAST(objectExpr, memberIdentifier, optional, { start: objectExpr.sourceLocation.start, end: memberIdentifier.sourceLocation.end })
+    }
+
+    // If it's an assignment, parse it
+    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    if (this.currentToken.type === TokenType.ASSIGNMENT || this.currentToken.type === TokenType.OPERATOR_ASSIGNMENT) {
+      const assignmentOperator = this.currentToken.value
+      this.consumeToken() // consume assignment token
+
+      const value = this.parseExpression()
+      if (value === null) return null
+
+      return new AssignmentExprAST(objectExpr, value, assignmentOperator, { start: objectExpr.sourceLocation.start, end: value.sourceLocation.end })
     }
 
     return objectExpr
@@ -350,18 +376,6 @@ export default class Parser {
       this.consumeToken() // consume ')'
 
       return new CallExprAST(identifier, args, { start: identifier.sourceLocation.start, end: callEndLocation })
-    }
-
-    // If it's an assignment, parse it
-    // @ts-ignore TS doesn't know that consumeToken changes the current token
-    if (this.currentToken.type === TokenType.ASSIGNMENT || this.currentToken.type === TokenType.OPERATOR_ASSIGNMENT) {
-      const assignmentOperator = this.currentToken.value
-      this.consumeToken() // consume assignment token
-
-      const value = this.parseExpression()
-      if (value === null) return null
-
-      return new AssignmentExprAST(identifier, value, assignmentOperator, { start: identifier.sourceLocation.start, end: value.sourceLocation.end })
     }
 
     return identifier

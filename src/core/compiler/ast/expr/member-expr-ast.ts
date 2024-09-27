@@ -1,5 +1,7 @@
 import SourceLocation from "../../source-location"
+import CallExprAST from "./call-expr-ast"
 import ExpressionAST from "./expression-ast"
+import IdentifierExprAST from "./identifier-expr-ast"
 
 export default class MemberExprAST extends ExpressionAST {
   constructor(
@@ -10,6 +12,7 @@ export default class MemberExprAST extends ExpressionAST {
   ) { super() }
 
   toJavaScript(): string {
-    return `${this.object.toJavaScript()}${this.optional ? "?" : ""}.${this.property.toJavaScript()}`
+    const dotAccessible = this.property instanceof IdentifierExprAST || this.property instanceof CallExprAST
+    return `${this.object.toJavaScript()}${this.optional ? "?" : ""}${dotAccessible ? `.${this.property.toJavaScript()}` : `[${this.property.toJavaScript()}]`}`
   }
 }
