@@ -4,9 +4,12 @@ export default class LanguageBuiltins {
   constructor(executionContext: any) {
     this.executionContext = executionContext
 
+    // Copy JS builtins to the execution context
+    this.executionContext.Object = Object
+    this.executionContext.Math = Math
+
     // Add builtins to the execution context
     this.executionContext.log = this.log
-    this.executionContext.Object = Object
   }
 
   log(message: string) {

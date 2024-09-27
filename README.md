@@ -88,10 +88,10 @@ npm run dev
   - [x] Fix execution of the code
   - [ ] Add implemented functions to the language
     - [ ] range
-    - [ ] Expose math functions
-  - [ ] Add implemented functions to the engine
+    - [x] Expose math functions
+  - [-] Add implemented functions to the engine
     - [x] move, rotate (Handle delta_time)
-    - [ ] rotate_to
+    - [x] rotate_to
     - [ ] collides_with, collides_with_box, collides_with_mouse
     - [x] sleep
     - [ ] (If time allows) draw_text

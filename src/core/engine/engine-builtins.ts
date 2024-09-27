@@ -144,7 +144,8 @@ export default class EngineBuiltins {
   //#region Game Object Functions
   readonly GAME_OBJECT_BUILTINS: { [path: string]: (...params: any) => any } = {
     "transform.move": this.move,
-    "transform.rotate": this.rotate
+    "transform.rotate": this.rotate,
+    "transform.rotate_to": this.rotate_to
   }
 
   move(game_object: RuntimeGameObjectData, x: number, y: number) {
@@ -154,6 +155,16 @@ export default class EngineBuiltins {
 
   rotate(game_object: RuntimeGameObjectData, angle: number) {
     game_object.transform.rotation += angle * this.executionContext.time.delta_time
+  }
+
+  rotate_to(game_object: RuntimeGameObjectData, target_game_object_or_x: any, target_y?: number) {
+    const x = typeof target_game_object_or_x === "number" ? target_game_object_or_x : target_game_object_or_x.transform.x as number
+    target_y = typeof target_game_object_or_x === "number" ? target_y as number : target_game_object_or_x.transform.y as number
+
+    const angle = Math.atan2(target_y - game_object.transform.y, x - game_object.transform.x) * 180 / Math.PI
+    game_object.transform.rotation = angle
+
+    return angle
   }
   //#endregion
 
