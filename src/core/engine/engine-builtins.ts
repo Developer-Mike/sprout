@@ -44,10 +44,10 @@ export default class EngineBuiltins {
 
   private setupTimeValue() {
     this.executionContext.time = {
-      frame_time: 1, // Default to 1
-      start_timestamp: Date.now(),
-      get timestamp() { return Date.now() },
-      get timer() { return (this.timestamp - this.start_timestamp) / 1000 }
+      delta_time: 1, // Default to 1
+      get timestamp() { return Date.now() / 1000 },
+      start_time: performance.now() / 1000,
+      get timer() { return (performance.now() / 1000) - this.start_time }
     }
   }
 
@@ -133,7 +133,7 @@ export default class EngineBuiltins {
   }
 
   async awaitFrame() {
-    await new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       requestAnimationFrame(() => (
         this.executionContext.is_stopped() ? reject("Stopped") : resolve(null)
       ))
@@ -148,12 +148,12 @@ export default class EngineBuiltins {
   }
 
   move(game_object: RuntimeGameObjectData, x: number, y: number) {
-    game_object.transform.x += x * this.executionContext.time.frame_time
-    game_object.transform.y += y * this.executionContext.time.frame_time
+    game_object.transform.x += x * this.executionContext.time.delta_time
+    game_object.transform.y += y * this.executionContext.time.delta_time
   }
 
   rotate(game_object: RuntimeGameObjectData, angle: number) {
-    game_object.transform.rotation += angle * this.executionContext.time.frame_time
+    game_object.transform.rotation += angle * this.executionContext.time.delta_time
   }
   //#endregion
 

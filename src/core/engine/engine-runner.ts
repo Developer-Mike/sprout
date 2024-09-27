@@ -46,6 +46,8 @@ export default class EngineRunner {
     // Main loop
     ;(async () => {
       while (!isStopped()) {
+        executionContext.time.delta_time = await executionContext.tick()
+
         // Run game loop
         for (const gameObject of Object.values(executionContext.game_objects) as RuntimeGameObjectData[]) {
           for (const listener of gameObject.on) {
@@ -59,10 +61,9 @@ export default class EngineRunner {
             }
           }
         }
+
         executionContext.frame = false
         engineBuiltins.updateInput()
-
-        await executionContext.tick()
       }
     })()
   }

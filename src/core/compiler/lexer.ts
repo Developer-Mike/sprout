@@ -203,6 +203,13 @@ export default class Lexer {
       return new Token(TokenType.BIN_OP, binOp, this.currentLocation, binOp.length)
     }
 
+    // Check for logical operators
+    if ((this.currentChar === "&" || this.currentChar === "|") && this.nextChar === this.currentChar) {
+      const logicalOp = this.currentChar
+      this.consumeCharTwice()
+      return new Token(TokenType.BIN_OP, logicalOp + logicalOp, this.currentLocation, 2)
+    }
+
     // If not identified
     const invalidChar = this.currentChar
     this.consumeChar()

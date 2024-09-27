@@ -75,6 +75,9 @@ npm run dev
     - [x] Add support for lists
     - [x] Add support for index access (and square brackets access in general)
     - [ ] Fix return statements nested inside if statements not working
+      - [ ] Change if expressions to statements?
+    - [x] Add support for && and || operators
+    - [ ] (If time allows) Add support for lambdas
     - [ ] (If time allows) Add support for objects
     - [x] (If time allows) Add support for +=, -=, *=, /= operators
     - [ ] (If time allows) Add support for unary operators (!bool, -var, +var, ++, --)
@@ -87,10 +90,11 @@ npm run dev
     - [ ] range
     - [ ] Expose math functions
   - [ ] Add implemented functions to the engine
-    - [ ] move, rotate (Handle frame_time)
+    - [x] move, rotate (Handle delta_time)
     - [ ] rotate_to
     - [ ] collides_with, collides_with_box, collides_with_mouse
-    - [ ] sleep
+    - [x] sleep
+    - [ ] (If time allows) draw_text
   - [ ] Add console view
   - [ ] (If time allows) Add autocomplete for some objects (e.g. game_objects, sprites)
   - [ ] (If time allows) Add advanced explanations to error messages

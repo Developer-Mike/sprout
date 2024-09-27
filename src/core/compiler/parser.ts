@@ -30,6 +30,8 @@ import ListExprAST from "./ast/expr/list-expr-ast"
 
 export default class Parser {
   readonly precedence: { [operator: string]: number } = {
+    "||": 4,
+    "&&": 5,
     "<": 10, ">": 10, "<=": 10, ">=": 10, "==": 10, "!=": 10,
     "+": 20, "-": 20, 
     "*": 40, "/": 40, "%": 40,
