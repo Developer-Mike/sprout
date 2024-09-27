@@ -77,6 +77,7 @@ npm run dev
     - [ ] Fix return statements inside for loops not working
     - [ ] Fix return statements nested inside if statements not working
       - [ ] Change if expressions to statements?
+    - [ ] Fix return statements inside e.g. if expressions checking next line for return value
     - [x] Add support for && and || operators
     - [ ] (If time allows) Add support for lambdas
     - [ ] (If time allows) Add support for objects

@@ -145,19 +145,40 @@ export default class EngineBuiltins {
   readonly GAME_OBJECT_BUILTINS: { [path: string]: (...params: any) => any } = {
     "transform.move": this.move,
     "transform.rotate": this.rotate,
-    "transform.rotate_to": this.rotate_to
+    "transform.rotate_to": this.rotate_to,
+    "get_collision_with": this.get_collision_with,
+    "get_box_collision_with": this.get_box_collision_with,
+    "get_collisions": this.get_collisions,
+    "get_box_collisions": this.get_box_collisions
   }
 
-  move(game_object: RuntimeGameObjectData, x: number, y: number) {
+  move(game_object: RuntimeGameObjectData, x: number, y: number): null {
     game_object.transform.x += x * this.executionContext.time.delta_time
     game_object.transform.y += y * this.executionContext.time.delta_time
+
+    return null
   }
 
-  rotate(game_object: RuntimeGameObjectData, angle: number) {
+  rotate(game_object: RuntimeGameObjectData, angle: number): null {
     game_object.transform.rotation += angle * this.executionContext.time.delta_time
+
+    return null
   }
 
-  rotate_to(game_object: RuntimeGameObjectData, target_game_object_or_x: any, target_y?: number) {
+  get_bounding_box(game_object: RuntimeGameObjectData): BoundingBox {
+    const sprite = this.executionContext.sprites[game_object.sprites[game_object.active_sprite]]
+    const width = game_object.transform.width * (sprite?.width ?? 0)
+    const height = game_object.transform.height * (sprite?.height ?? 0)
+
+    return {
+      min_x: game_object.transform.x - width / 2,
+      min_y: game_object.transform.y - height / 2,
+      max_x: game_object.transform.x + width / 2,
+      max_y: game_object.transform.y + height / 2
+    }
+  }
+
+  rotate_to(game_object: RuntimeGameObjectData, target_game_object_or_x: any, target_y?: number): number {
     const x = typeof target_game_object_or_x === "number" ? target_game_object_or_x : target_game_object_or_x.transform.x as number
     target_y = typeof target_game_object_or_x === "number" ? target_y as number : target_game_object_or_x.transform.y as number
 
@@ -166,29 +187,112 @@ export default class EngineBuiltins {
 
     return angle
   }
+
+  get_collision_with(game_object: RuntimeGameObjectData, target_game_object_or_x: any, target_y?: number): Collision | null {
+    if (!this.get_box_collision_with(game_object, target_game_object_or_x, target_y)) return null // Not even box collision
+
+    const game_object_sprite = this.spritesCache[game_object.sprites[game_object.active_sprite]]
+    if (!game_object_sprite) return null
+
+    if (typeof target_game_object_or_x === "object") {
+      const target_game_object = target_game_object_or_x
+
+      const target_sprite = this.spritesCache[target_game_object.sprites[target_game_object.active_sprite]]
+      if (!target_sprite) return null
+
+
+    } else {
+      const target_x = target_game_object_or_x
+    }
+
+    return null
+  }
+
+  get_box_collision_with(game_object: RuntimeGameObjectData, target_game_object_or_x: any, target_y?: number): Collision | null {
+    const game_object_bounding_box = this.get_bounding_box(game_object)
+    const target_bounding_box = target_y === undefined ?
+      this.get_bounding_box(target_game_object_or_x) :
+      { min_x: target_game_object_or_x, min_y: target_y, max_x: target_game_object_or_x, max_y: target_y }
+
+    if (
+      game_object_bounding_box.min_x <= target_bounding_box.max_x &&
+      game_object_bounding_box.max_x >= target_bounding_box.min_x &&
+      game_object_bounding_box.min_y <= target_bounding_box.max_y &&
+      game_object_bounding_box.max_y >= target_bounding_box.min_y
+    ) {
+      const target_game_object = typeof target_game_object_or_x === "object" ? target_game_object_or_x : null
+      const collision_bounding_box = {
+        min_x: Math.max(game_object_bounding_box.min_x, target_bounding_box.min_x),
+        min_y: Math.max(game_object_bounding_box.min_y, target_bounding_box.min_y),
+        max_x: Math.min(game_object_bounding_box.max_x, target_bounding_box.max_x),
+        max_y: Math.min(game_object_bounding_box.max_y, target_bounding_box.max_y)
+      }
+
+      return { game_object: target_game_object, bounding_box: collision_bounding_box }
+    }
+
+    return null
+  }
+
+  get_collisions(game_object: RuntimeGameObjectData): Collision[] {
+    const boxCollisions = this.get_box_collisions(game_object) // Get box collisions first
+    const collisions: Collision[] = []
+
+    for (const boxCollision of boxCollisions) {
+      const collision = this.get_collision_with(game_object, boxCollision.game_object)
+      if (collision) collisions.push(collision)
+    }
+
+    return collisions
+  }
+
+  get_box_collisions(game_object: RuntimeGameObjectData): Collision[] {
+    const collisions: Collision[] = []
+
+    for (const other_game_object of Object.values(this.executionContext.game_objects)) {
+      if (other_game_object === game_object) continue // Skip self
+
+      const collision = this.get_box_collision_with(game_object, other_game_object)
+      if (collision) collisions.push(collision)
+    }
+
+    return collisions
+  }
   //#endregion
 
   //#region Private builtins
-  private imageCache: { [src: string]: HTMLImageElement } = {}
-  async render(data: RuntimeProjectData, canvas: HTMLCanvasElement) {
+  private spritesCache: { [src: string]: HTMLImageElement } = {}
+  private loadSpriteToCache(sprite: string): Promise<HTMLImageElement> {
+    return new Promise(resolve => {
+      if (this.spritesCache[sprite]) return resolve(this.spritesCache[sprite])
+
+      const image = new Image()
+      image.src = sprite
+      this.spritesCache[sprite] = image
+
+      image.onload = () => resolve(image)
+      if (image.complete) resolve(image)
+    })
+  }
+
+  async render(data: RuntimeProjectData, canvas: HTMLCanvasElement, clearCache: boolean = false) {
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
     // Update image cache
-    const newCache: { [src: string]: HTMLImageElement } = {}
-    for (const sprite of Object.values(data.sprites)) {
-      if (this.imageCache[sprite.src]) newCache[sprite.src] = this.imageCache[sprite.src]
-      else {
-        const image = new Image()
-        image.src = sprite.src
-        newCache[sprite.src] = image
+    if (clearCache) {
+      for (const cachedSprite in this.spritesCache) {
+        if (data.sprites[cachedSprite] === undefined) delete this.spritesCache[cachedSprite]
       }
     }
-    await Promise.all(Object.values(newCache).map(image => new Promise(resolve => {
-      if (image.complete) resolve(void 0)
-      else image.onload = resolve
-    })))
-    this.imageCache = newCache
+
+    // Load new sprites
+    const loadingPromises: Promise<HTMLImageElement>[] = []
+    for (const sprite of Object.values(data.sprites)) {
+      if (this.spritesCache[sprite.src]) continue
+      loadingPromises.push(this.loadSpriteToCache(sprite.src))
+    }
+    await Promise.all(loadingPromises)
 
     // Set matrix
     ctx.resetTransform()
@@ -215,14 +319,14 @@ export default class EngineBuiltins {
       const y = -height / 2
 
       // Set matrix
-      ctx.translate(gameObject.transform.x, gameObject.transform.y)
+      ctx.translate(gameObject.transform.x, data.stage.height - gameObject.transform.y)
       ctx.rotate(gameObject.transform.rotation * Math.PI / 180)
 
       if (gameObject.transform.width < 0) ctx.scale(-1, 1)
       if (gameObject.transform.height < 0) ctx.scale(1, -1)
 
       // Draw sprite
-      ctx.drawImage(this.imageCache[sprite.src], x, y, width, height)
+      ctx.drawImage(this.spritesCache[sprite.src], x, y, width, height)
 
       // Reset matrix
       ctx.restore()
@@ -252,4 +356,16 @@ export interface KeyState {
   is_down: boolean
   is_pressed: boolean
   is_up: boolean
+}
+
+export interface Collision {
+  game_object: RuntimeGameObjectData | null
+  bounding_box: BoundingBox
+}
+
+export interface BoundingBox {
+  min_x: number
+  min_y: number
+  max_x: number
+  max_y: number
 }

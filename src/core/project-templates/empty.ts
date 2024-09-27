@@ -22,7 +22,7 @@ const project: ProjectData = {
         x: 960,
         y: 540,
         rotation: 0,
-        width: 200,
+        width: 1,
         height: 1
       },
       code: ""

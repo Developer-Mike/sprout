@@ -55,7 +55,7 @@ export default function StagePane({ canvasRef }: {
     const x = activeGameObject.transform.x * scale - width / 2
     const y = activeGameObject.transform.y * scale - height / 2
 
-    highlighter.style.top = `${y}px`
+    highlighter.style.bottom = `${y}px`
     highlighter.style.left = `${x}px`
     highlighter.style.width = `${width}px`
     highlighter.style.height = `${height}px`
@@ -72,11 +72,11 @@ export default function StagePane({ canvasRef }: {
 
     const scale = project.data.stage.width / canvas.width
     const mouseX = e.offsetX * scale
-    const mouseY = e.offsetY * scale
+    const mouseY = (canvas.height - e.offsetY) * scale
 
     const clickedGameObjectKey = Object.entries(project.data.gameObjects)
       .sort(([_, gameObject]) => gameObject.layer)
-      .find(([_, gameObject]) => {
+      .findLast(([_, gameObject]) => {
         const sprite = project.getActiveSprite(gameObject)
         const width = gameObject.transform.width * sprite.width
         const height = gameObject.transform.height * sprite.height

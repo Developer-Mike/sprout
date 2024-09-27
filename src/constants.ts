@@ -16,7 +16,6 @@ export const DEFAULT_GAME_OBJECT_SPRITES: { [id: string]: SpriteData } = {
     height: 256
   }
 } as const
-export const DEFAULT_GAME_OBJECT_SIZE = 256
 export const DEFAULT_NEW_GAME_OBJECT: GameObjectData = {
   id: "",
   visible: true,
@@ -27,7 +26,7 @@ export const DEFAULT_NEW_GAME_OBJECT: GameObjectData = {
     x: 0,
     y: 0,
     rotation: 0,
-    width: DEFAULT_GAME_OBJECT_SIZE,
+    width: 1,
     height: 1
   },
   code: ""

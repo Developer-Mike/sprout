@@ -334,7 +334,7 @@ export default class Project {
 
   //#region compiler and engine-runner integration
   render(canvas: HTMLCanvasElement) {
-    this.engineBuiltins.render(this.data as any, canvas)
+    this.engineBuiltins.render(this.data as any, canvas, true)
   }
 
   private compiler = new Compiler()
