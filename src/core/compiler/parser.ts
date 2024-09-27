@@ -210,6 +210,10 @@ export default class Parser {
       const value = this.parseExpression()
       if (value === null) return null
 
+      // Don't allow assignment to optional member expressions
+      if (objectExpr instanceof MemberExprAST && objectExpr.isOptionalChain())
+        return this.logError("Cannot assign to optional chain", objectExpr.sourceLocation)
+
       return new AssignmentExprAST(objectExpr, value, assignmentOperator, { start: objectExpr.sourceLocation.start, end: value.sourceLocation.end })
     }
 

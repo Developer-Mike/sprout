@@ -11,6 +11,10 @@ export default class MemberExprAST extends ExpressionAST {
     public override sourceLocation: SourceLocation
   ) { super() }
 
+  isOptionalChain(): boolean {
+    return this.optional || (this.object instanceof MemberExprAST && this.object.isOptionalChain())
+  }
+
   toJavaScript(): string {
     const dotAccessible = this.property instanceof IdentifierExprAST || this.property instanceof CallExprAST
     return `${this.object.toJavaScript()}${this.optional ? "?" : ""}${dotAccessible ? `.${this.property.toJavaScript()}` : `[${this.property.toJavaScript()}]`}`
