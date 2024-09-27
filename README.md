@@ -74,6 +74,7 @@ npm run dev
     - [x] Add support for await expressions
     - [x] Add support for lists
     - [x] Add support for index access (and square brackets access in general)
+    - [ ] Fix return statements inside for loops not working
     - [ ] Fix return statements nested inside if statements not working
       - [ ] Change if expressions to statements?
     - [x] Add support for && and || operators

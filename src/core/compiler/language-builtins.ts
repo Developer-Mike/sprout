@@ -13,8 +13,8 @@ export default class LanguageBuiltins {
     this.executionContext.range = this.range
   }
 
-  log(message: string) {
-    console.log(message)
+  log(...messages: any[]) {
+    console.log(...messages)
   }
 
   range(start_or_end: number, end?: number, step?: number): number[] {
