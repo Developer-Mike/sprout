@@ -86,8 +86,8 @@ npm run dev
   - [x] Show errors in the code editor
   - [x] Fix the syntax highlighting and linting (Only basic syntax highlighting)
   - [x] Fix execution of the code
-  - [ ] Add implemented functions to the language
-    - [ ] range
+  - [x] Add implemented functions to the language
+    - [x] range
     - [x] Expose math functions
   - [-] Add implemented functions to the engine
     - [x] move, rotate (Handle delta_time)
