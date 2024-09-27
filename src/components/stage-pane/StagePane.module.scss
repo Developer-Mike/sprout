@@ -39,6 +39,13 @@
     
       border: var(--border-width) solid var(--primary-dim);
       border-radius: 16px;
+
+      &:fullscreen {
+        margin-right: 0;
+
+        border: none;
+        border-radius: 0;
+      }
     }
 
     #gameObjectSelectionHighlighter {

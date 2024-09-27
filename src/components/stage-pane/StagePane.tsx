@@ -11,6 +11,15 @@ export default function StagePane({ canvasRef }: {
 
   const [isEnlarged, setEnlarged] = useState(false)
 
+  const enableFullscreen = () => {
+    if (document.fullscreenElement) return
+
+    const stage = document.getElementById(styles.stageCanvas) as HTMLCanvasElement
+    if (!stage) return
+
+    stage.requestFullscreen()
+  }
+
   const updateCanvas = () => {
     const stage = document.getElementById(styles.stage) as HTMLDivElement
     if (!stage) return
@@ -162,7 +171,8 @@ export default function StagePane({ canvasRef }: {
           ) })
         }} disabled={!project.data.workspace.advanced} />
 
-        <button id={styles.fullscreenToggle} onClick={() => { setEnlarged(!isEnlarged) }}><Icon iconId={isEnlarged ? "fullscreen_exit" : "fullscreen"} /></button>
+        <button id={styles.fullscreenToggle} onClick={() => enableFullscreen()}><Icon iconId="fit_screen" /></button>
+        <button onClick={() => setEnlarged(!isEnlarged)}><Icon iconId={isEnlarged ? "fullscreen_exit" : "fullscreen"} /></button>
       </div>
 
       <div id={styles.canvasContainer}>
