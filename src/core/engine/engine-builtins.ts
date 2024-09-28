@@ -1,4 +1,5 @@
 import { RuntimeGameObjectData, RuntimeProjectData } from "@/types/RuntimeProjectData"
+import SpriteHelper from "@/utils/sprite-helper"
 
 export default class EngineBuiltins {
   private executionContext: any
@@ -189,20 +190,37 @@ export default class EngineBuiltins {
   }
 
   get_collision_with(game_object: RuntimeGameObjectData, target_game_object_or_x: any, target_y?: number): Collision | null {
-    if (!this.get_box_collision_with(game_object, target_game_object_or_x, target_y)) return null // Not even box collision
+    const box_collision = this.get_box_collision_with(game_object, target_game_object_or_x, target_y)
+    if (!box_collision) return null // Not even box collision
 
-    const game_object_sprite = this.spritesCache[game_object.sprites[game_object.active_sprite]]
-    if (!game_object_sprite) return null
+    const game_object_collision_mask = this.executionContext.sprites[game_object.sprites[game_object.active_sprite]].collision_mask
 
     if (typeof target_game_object_or_x === "object") {
       const target_game_object = target_game_object_or_x
 
-      const target_sprite = this.spritesCache[target_game_object.sprites[target_game_object.active_sprite]]
-      if (!target_sprite) return null
+      const target_collision_mask = this.executionContext.sprites[target_game_object.sprites[target_game_object.active_sprite]].COLLISION_MASK_SIZE
 
+      for (let y = box_collision.bounding_box.min_y; y < box_collision.bounding_box.max_y; y++) {
+        for (let x = box_collision.bounding_box.min_x; x < box_collision.bounding_box.max_x; x++) {
+          const local_x = x - target_game_object.transform.x
+          const local_y = y - target_game_object.transform.y
 
+          if (local_x < 0 || local_x >= target_collision_mask[0].length) continue
+          if (local_y < 0 || local_y >= target_collision_mask.length) continue
+
+          if (target_collision_mask[local_y][local_x] && game_object_collision_mask[y][x])
+            return { game_object: target_game_object, bounding_box: box_collision.bounding_box }
+        }
+      }
     } else {
-      const target_x = target_game_object_or_x
+      const local_x = target_game_object_or_x as number - game_object.transform.x
+      const local_y = target_y as number - game_object.transform.y
+
+      if (local_x < 0 || local_x >= game_object_collision_mask[0].length) return null
+      if (local_y < 0 || local_y >= game_object_collision_mask.length) return null
+
+      if (game_object_collision_mask[local_y][local_x])
+        return { game_object: null, bounding_box: box_collision.bounding_box }
     }
 
     return null
@@ -262,19 +280,6 @@ export default class EngineBuiltins {
 
   //#region Private builtins
   private spritesCache: { [src: string]: HTMLImageElement } = {}
-  private loadSpriteToCache(sprite: string): Promise<HTMLImageElement> {
-    return new Promise(resolve => {
-      if (this.spritesCache[sprite]) return resolve(this.spritesCache[sprite])
-
-      const image = new Image()
-      image.src = sprite
-      this.spritesCache[sprite] = image
-
-      image.onload = () => resolve(image)
-      if (image.complete) resolve(image)
-    })
-  }
-
   async render(data: RuntimeProjectData, canvas: HTMLCanvasElement, clearCache: boolean = false) {
     const ctx = canvas.getContext("2d")
     if (!ctx) return
@@ -290,7 +295,11 @@ export default class EngineBuiltins {
     const loadingPromises: Promise<HTMLImageElement>[] = []
     for (const sprite of Object.values(data.sprites)) {
       if (this.spritesCache[sprite.src]) continue
-      loadingPromises.push(this.loadSpriteToCache(sprite.src))
+
+      loadingPromises.push(
+        SpriteHelper.loadFromBase64(sprite.src)
+          .then(image => this.spritesCache[sprite.src] = image)
+      )
     }
     await Promise.all(loadingPromises)
 

@@ -27,6 +27,7 @@ import IfExprAST from "./ast/expr/if-expr-ast"
 import UnsubscribeAST from "./ast/unsubscribe-ast"
 import AwaitExprAST from "./ast/expr/await-expr-ast"
 import ListExprAST from "./ast/expr/list-expr-ast"
+import UnaryExprAst from "./ast/expr/unary-expr-ast"
 
 export default class Parser {
   readonly precedence: { [operator: string]: number } = {
@@ -162,6 +163,10 @@ export default class Parser {
       case TokenType.PAREN_OPEN:
         objectExpr = this.parseParenExpression()
         break
+      case TokenType.UNARY_OPERATOR:
+      case TokenType.BINARY_OPERATOR:
+        objectExpr = this.parseUnaryPrefixExpression()
+        break
       default:
         return this.logError("Expected primary expression", this.currentToken.location)
     }
@@ -217,6 +222,17 @@ export default class Parser {
         return this.logError("Cannot assign to optional chain", objectExpr.sourceLocation)
 
       return new AssignmentExprAST(objectExpr, value, assignmentOperator, { start: objectExpr.sourceLocation.start, end: value.sourceLocation.end })
+    }
+
+    // If there's a unary operator after the primary expression, parse it
+    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    if (this.currentToken.type === TokenType.UNARY_OPERATOR) {
+      const endLocation = this.currentToken.location.end
+
+      const operator = this.currentToken.value!
+      this.consumeToken() // consume operator
+
+      return new UnaryExprAst(operator, false, objectExpr, { start: objectExpr.sourceLocation.start, end: endLocation })
     }
 
     return objectExpr
@@ -350,6 +366,21 @@ export default class Parser {
     this.consumeToken() // consume ')'
 
     return ast
+  }
+
+  private parseUnaryPrefixExpression(): UnaryExprAst | null {
+    if (this.currentToken.type !== TokenType.UNARY_OPERATOR && this.currentToken.type !== TokenType.BINARY_OPERATOR)
+      return this.logError("Expected unary operator", this.currentToken.location)
+
+    const startLocation = this.currentToken.location.start
+
+    const operator = this.currentToken.value!
+    this.consumeToken() // consume operator
+
+    const operand = this.parsePrimaryExpression()
+    if (operand === null) return null
+
+    return new UnaryExprAst(operator, true, operand, { start: startLocation, end: operand.sourceLocation.end })
   }
 
   private parseIdentifierExpression(): ExpressionAST | null {

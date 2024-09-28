@@ -86,7 +86,7 @@ img {
   -webkit-user-drag: none;
 }
 
-button, .button {  
+button, .button:not(.monaco-editor .button) {  
   padding: 10px;
 
   cursor: pointer;

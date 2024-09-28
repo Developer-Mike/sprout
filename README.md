@@ -82,7 +82,7 @@ npm run dev
     - [ ] (If time allows) Add support for lambdas
     - [ ] (If time allows) Add support for objects
     - [x] (If time allows) Add support for +=, -=, *=, /= operators
-    - [ ] (If time allows) Add support for unary operators (!bool, -var, +var, ++, --)
+    - [x] (If time allows) Add support for unary operators (!bool, -var, +var, ++, --)
   - [x] Create AST compiler function (AST -> JavaScript)
   - [x] Create error handling (Compilation & Runtime)
   - [x] Show errors in the code editor
@@ -94,7 +94,7 @@ npm run dev
   - [-] Add implemented functions to the engine
     - [x] move, rotate (Handle delta_time)
     - [x] rotate_to
-    - [ ] collides_with, collides_with_box, collides_with_mouse
+    - [-] collides_with, collides_with_box, collides_with_mouse
     - [x] sleep
     - [ ] (If time allows) draw_text
   - [ ] Add console view
@@ -108,7 +108,7 @@ npm run dev
   - [x] Remove all DEBUGs
   - [x] Fix canvas can be right-clicked
   - [x] Disable the ability to select game objects through the canvas if th game is running
-- [ ] Create some example games
+- [-] Create some example games
   - [ ] Add the ability to add information text to the documentation sidebar
 - [x] Add warning if not using Chrome
 - [x] Bugfixes

@@ -167,11 +167,30 @@ export default class Lexer {
     if (this.currentChar === "=") {
       if (this.nextChar === "=") {
         this.consumeCharTwice()
-        return new Token(TokenType.BIN_OP, "==", this.currentLocation, 2)
+        return new Token(TokenType.BINARY_OPERATOR, "==", this.currentLocation, 2)
       } else {
         this.consumeChar()
         return new Token(TokenType.ASSIGNMENT, null, this.currentLocation)
       }
+    }
+
+    // Check for !=
+    if (this.currentChar === "!" && this.nextChar === "=") {
+      this.consumeCharTwice()
+      return new Token(TokenType.BINARY_OPERATOR, "!=", this.currentLocation, 2)
+    }
+
+    // Check for unary operators
+    if (this.currentChar === "!") {
+      this.consumeChar()
+      return new Token(TokenType.UNARY_OPERATOR, "!", this.currentLocation)
+    }
+
+    if ((this.currentChar === "-" && this.nextChar === "-") || (this.currentChar === "+" && this.nextChar === "+")) {
+      const unOp = this.currentChar
+      this.consumeCharTwice()
+
+      return new Token(TokenType.UNARY_OPERATOR, unOp + unOp, this.currentLocation, 2)
     }
 
     // Check for binary operators
@@ -186,7 +205,7 @@ export default class Lexer {
         return new Token(TokenType.OPERATOR_ASSIGNMENT, binOp, this.currentLocation, 2)
       }
 
-      return new Token(TokenType.BIN_OP, binOp, this.currentLocation)
+      return new Token(TokenType.BINARY_OPERATOR, binOp, this.currentLocation)
     }
 
     // Check for binary operators with possible following "="
@@ -200,14 +219,14 @@ export default class Lexer {
         this.consumeChar()
       }
 
-      return new Token(TokenType.BIN_OP, binOp, this.currentLocation, binOp.length)
+      return new Token(TokenType.BINARY_OPERATOR, binOp, this.currentLocation, binOp.length)
     }
 
     // Check for logical operators
     if ((this.currentChar === "&" || this.currentChar === "|") && this.nextChar === this.currentChar) {
       const logicalOp = this.currentChar
       this.consumeCharTwice()
-      return new Token(TokenType.BIN_OP, logicalOp + logicalOp, this.currentLocation, 2)
+      return new Token(TokenType.BINARY_OPERATOR, logicalOp + logicalOp, this.currentLocation, 2)
     }
 
     // If not identified

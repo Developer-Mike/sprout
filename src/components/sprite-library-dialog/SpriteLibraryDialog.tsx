@@ -9,6 +9,7 @@ import LabeledTextInput from "../labeled-input/LabeledTextInput"
 import IdHelper from "@/utils/id-helper"
 import TransactionInfo, { TransactionCategory, TransactionType } from "@/types/TransactionInfo"
 import { DialogContext } from "../dialog/Dialog"
+import SpriteHelper from "@/utils/sprite-helper"
 
 export default function SpriteLibraryDialog({ isVisible, onSelect, onCancel }: {
   isVisible: boolean
@@ -148,25 +149,23 @@ export default function SpriteLibraryDialog({ isVisible, onSelect, onCancel }: {
               if (!file) return
 
               const reader = new FileReader()
-              reader.onload = () => {
+              reader.onload = async () => {
                 const spriteName = IdHelper.generateId(t("default-sprite-id"), Object.keys(project.data.sprites))
 
-                // Resize image
-                let image = new Image()
-                image.src = reader.result as string
+                const image = await SpriteHelper.loadFromBase64(reader.result as string)
+                const collisionMask = SpriteHelper.getCollisionMask(image)
+                
+                project.updateData(null, data => {
+                  data.sprites[spriteName] = {
+                    src: image.src,
+                    collision_mask: collisionMask,
+                    width: image.width,
+                    height: image.height
+                  }
 
-                image.onload = () => {
-                  project.updateData(null, data => {
-                    data.sprites[spriteName] = {
-                      src: image.src,
-                      width: image.width,
-                      height: image.height
-                    }
-
-                    // Select the new sprite
-                    data.workspace.selectedLibrarySpriteKey = spriteName
-                  })
-                }
+                  // Select the new sprite
+                  data.workspace.selectedLibrarySpriteKey = spriteName
+                })
               }
               reader.readAsDataURL(file)
 

@@ -1,4 +1,4 @@
-import { DEFAULT_GAME_OBJECT_SPRITES, DEFAULT_STAGE_SIZE } from "@/constants"
+import { DEFAULT_STAGE_SIZE } from "@/constants"
 import { ProjectData } from "@/types/ProjectData"
 
 // TODO: Make it a pong game
@@ -8,7 +8,7 @@ const project: ProjectData = {
     selectedGameObjectKey: "e078df39-1caf-495f-b9c6-a38c137935b5",
     selectedLibrarySpriteKey: null
   },
-  sprites: DEFAULT_GAME_OBJECT_SPRITES,
+  sprites: {},
   stage: DEFAULT_STAGE_SIZE,
   gameObjects: {
     "e078df39-1caf-495f-b9c6-a38c137935b5": {

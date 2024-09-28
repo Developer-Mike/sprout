@@ -21,6 +21,7 @@ export interface StageData {
 
 export interface SpriteData {
   src: string
+  collision_mask: boolean[][]
   width: number
   height: number
 }
