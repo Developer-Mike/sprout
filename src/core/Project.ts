@@ -14,6 +14,8 @@ import LanguageBuiltins from "./compiler/language-builtins"
 import { KEYWORDS_MAP } from "./compiler/token"
 import AutocompletionItem, { AutocompletionItemType } from "./autocompletion-item"
 import { Monaco } from "@monaco-editor/react"
+import MemberExprAST from "./compiler/ast/expr/member-expr-ast"
+import IdentifierExprAST from "./compiler/ast/expr/identifier-expr-ast"
 
 export default class Project {
   //#region Static React States
@@ -346,19 +348,33 @@ export default class Project {
         this.engineBuiltins.addAutocompletionItems(suggestions)
 
         // Get previous members of the current line
-        const currentLine = (model.getValueInRange({ startLineNumber: position.lineNumber, startColumn: 1, endLineNumber: position.lineNumber, endColumn: position.column }) as string)
-          .split(".").map(member => member.trim())
-        
-        const previousMembers: string[] = []
-        while (currentLine.length > 0 && !currentLine[currentLine.length - 1].includes(" ")) previousMembers.push(currentLine.pop() as string)
-        const firstMemberSegment = currentLine.pop()?.split(" ") ?? []
-        if (firstMemberSegment.length > 0) previousMembers.push(firstMemberSegment[firstMemberSegment.length - 1])
-        previousMembers.reverse().pop()
+
+        // Convert line and column to character position
+        const offsetPosition = model.getOffsetAt({ lineNumber: position.lineNumber, column: position.column })
+        const sourceLocationASTs = this.compiledASTs[this.selectedGameObjectKey]?.getASTsFromSourceLocation(offsetPosition)
+        let memberAST: MemberExprAST | IdentifierExprAST | undefined = sourceLocationASTs.find(ast => ast instanceof MemberExprAST)
+        if (!memberAST) {
+          const lastChar = model.getValueInRange({ 
+            startLineNumber: position.lineNumber, 
+            startColumn: position.column - 1, 
+            endLineNumber: position.lineNumber, 
+            endColumn: position.column 
+          })
+
+          if (lastChar === ".") {
+            const identifierAST = sourceLocationASTs.find(ast => ast instanceof IdentifierExprAST)
+            if (identifierAST) memberAST = new MemberExprAST(identifierAST, new IdentifierExprAST("", identifierAST.sourceLocation), false, identifierAST.sourceLocation)
+          }
+        }
 
         // Filter suggestions based on previous members
-        while (previousMembers.length > 0) {
-          const member = previousMembers.shift() as string
-          suggestions = suggestions.find(suggestion => suggestion.value === member)?.children ?? []
+        if (memberAST) {
+          while (memberAST instanceof MemberExprAST) {
+            const object = memberAST.object as IdentifierExprAST
+            suggestions = suggestions.find(suggestion => suggestion.value === object.toJavaScript())?.children ?? []
+
+            memberAST = memberAST.property as MemberExprAST | IdentifierExprAST
+          }
         }
 
         return { suggestions: suggestions.map(suggestion => ({
