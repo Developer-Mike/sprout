@@ -28,6 +28,7 @@ import UnsubscribeAST from "./ast/unsubscribe-ast"
 import AwaitExprAST from "./ast/expr/await-expr-ast"
 import ListExprAST from "./ast/expr/list-expr-ast"
 import UnaryExprAst from "./ast/expr/unary-expr-ast"
+import IfStatementAST from "./ast/if-statement-ast"
 
 export default class Parser {
   readonly precedence: { [operator: string]: number } = {
@@ -38,8 +39,8 @@ export default class Parser {
     "*": 40, "/": 40, "%": 40,
   }
 
-  tokens: Token[] = []
-  errors: CompileError[] = []
+  private tokens: Token[] = []
+  private errors: CompileError[] = []
 
   private get currentToken() {
     return this.tokens[0]
@@ -67,6 +68,11 @@ export default class Parser {
     return new ProgramAST(body, this.errors, tokens)
   }
 
+  logLogicalError(message: string, location: SourceLocation) {
+    this.errors.push(new CompileError(message, location))
+    return null
+  }
+
   private logError(message: string, location: SourceLocation) {
     this.errors.push(new CompileError(message, location))
     this.consumeToken() // consume the token to avoid infinite loop
@@ -80,6 +86,8 @@ export default class Parser {
       case TokenType.KEYWORD_VAR:
       case TokenType.KEYWORD_CONST:
         return this.parseVariableDeclaration()
+      case TokenType.KEYWORD_IF:
+        return this.parseIfStatementOrExpression(true)
       case TokenType.KEYWORD_WHILE:
         return this.parseWhileStatement()
       case TokenType.KEYWORD_FOR:
@@ -152,7 +160,7 @@ export default class Parser {
         objectExpr = this.parseIdentifierExpression()
         break
       case TokenType.KEYWORD_IF:
-        objectExpr = this.parseIfExpression()
+        objectExpr = this.parseIfStatementOrExpression(false)
         break
       case TokenType.KEYWORD_AWAIT:
         objectExpr = this.parseAwaitExpression()
@@ -277,7 +285,7 @@ export default class Parser {
     return ast
   }
 
-  private parseIfExpression(): IfExprAST | null {
+  private parseIfStatementOrExpression(statement: boolean): IfStatementAST | IfExprAST | null {
     if (this.currentToken.type !== TokenType.KEYWORD_IF)
       return this.logError("Expected keyword 'if'", this.currentToken.location)
 
@@ -311,7 +319,9 @@ export default class Parser {
       if (elseBody === null) return null
     }
 
-    return new IfExprAST(condition, thenBody, elseBody, { start: ifStartLocation, end: elseBody?.sourceLocation.end ?? thenBody.sourceLocation.end })
+    return statement ?
+      new IfStatementAST(condition, thenBody, elseBody, { start: ifStartLocation, end: elseBody?.sourceLocation.end ?? thenBody.sourceLocation.end }) :
+      new IfExprAST(this, condition, thenBody, elseBody, { start: ifStartLocation, end: elseBody?.sourceLocation.end ?? thenBody.sourceLocation.end })
   }
 
   private parseAwaitExpression(): AwaitExprAST | null {

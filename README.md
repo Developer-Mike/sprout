@@ -74,9 +74,9 @@ npm run dev
     - [x] Add support for await expressions
     - [x] Add support for lists
     - [x] Add support for index access (and square brackets access in general)
-    - [ ] Fix return statements inside for loops not working
-    - [ ] Fix return statements nested inside if statements not working
-      - [ ] Change if expressions to statements?
+    - [x] Fix return statements inside for loops not working
+    - [x] Fix return statements nested inside if statements not working
+      - [x] Change if expressions to statements? -> Added both types!
     - [ ] Fix return statements inside e.g. if expressions checking next line for return value
     - [x] Add support for && and || operators
     - [ ] (If time allows) Add support for lambdas
@@ -97,6 +97,11 @@ npm run dev
     - [-] collides_with, collides_with_box, collides_with_mouse
     - [x] sleep
     - [ ] (If time allows) draw_text
+    - [ ] (If time allows) draw_line
+    - [ ] (If time allows) draw_rectangle
+    - [ ] (If time allows) draw_circle
+    - [ ] (If time allows) clone (is_clone)
+    - [ ] (If time allows) destroy
   - [ ] Add console view
   - [ ] (If time allows) Add autocomplete for some objects (e.g. game_objects, sprites)
   - [ ] (If time allows) Add advanced explanations to error messages

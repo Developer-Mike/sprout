@@ -12,7 +12,6 @@ export default class ForAST extends AST {
   ) { super() }
 
   toJavaScript(): string {
-    // Avoid errors when identifier is already declared
-    return `;(() => { for (let ${this.identifier} of ${this.array.toJavaScript()}) ${this.body.toJavaScript()} })()`
+    return `for (let ${this.identifier} of ${this.array.toJavaScript()}) ${this.body.toJavaScript()}`
   }
 }

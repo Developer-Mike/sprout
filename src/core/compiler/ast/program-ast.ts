@@ -4,19 +4,21 @@ import FunctionDefinitionAST from "./function-definition-ast"
 import IdentifierExprAST from "./expr/identifier-expr-ast"
 import VariableDeclarationAST from "./variable-declaration-ast"
 import AST from "./ast"
+import SourceLocation from "../source-location"
 
-export default class ProgramAST {
-  body: AST[]
-  errors: CompileError[]
-  tokens: Token[] // For debugging
+export default class ProgramAST extends AST {
+  sourceLocation: SourceLocation
 
-  constructor(body: AST[], errors: CompileError[], tokens: Token[]) {    
-    this.body = body
-    this.errors = errors
-    this.tokens = tokens
+  constructor(
+    public body: AST[],
+    public errors: CompileError[], 
+    public tokens: Token[] // For debugging
+  ) {
+    super()
+    this.sourceLocation = { start: body[0].sourceLocation.start, end: body[body.length - 1].sourceLocation.end }
   }
 
-  toJavaScript(): string {
+  override toJavaScript(): string {
     return this.body.map(node => node.toJavaScript()).join('\n')
   }
 
