@@ -1,16 +1,29 @@
+import AutocompletionItem, { AutocompletionItemType } from "../autocompletion-item"
+
 export default class LanguageBuiltins {
   private executionContext: any
+  private readonly builtins: { [key: string]: any } = {
+    Object: Object,
+    Math: Math,
+    log: this.log,
+    range: this.range
+  }
 
   constructor(executionContext: any) {
     this.executionContext = executionContext
 
-    // Copy JS builtins to the execution context
-    this.executionContext.Object = Object
-    this.executionContext.Math = Math
+    for (const key in this.builtins) {
+      this.executionContext[key] = this.builtins[key]
+    }
+  }
 
-    // Add builtins to the execution context
-    this.executionContext.log = this.log
-    this.executionContext.range = this.range
+  addAutocompletionItems(suggestions: AutocompletionItem[]) {
+    for (const key in this.builtins) {
+      suggestions.push({
+        value: key,
+        type: this.builtins[key] === Object ? AutocompletionItemType.CONSTANT : AutocompletionItemType.FUNCTION
+      })
+    }
   }
 
   log(...messages: any[]) {

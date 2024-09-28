@@ -12,7 +12,7 @@ import { BLANK_IMAGE } from "@/constants"
 import ProgramAST from "./compiler/ast/program-ast"
 import LanguageBuiltins from "./compiler/language-builtins"
 import { KEYWORDS_MAP } from "./compiler/token"
-import AutocompletionItem, { AutocompletionItemKind } from "./autocompletion-item"
+import AutocompletionItem, { AutocompletionItemType } from "./autocompletion-item"
 import { Monaco } from "@monaco-editor/react"
 
 export default class Project {
@@ -209,8 +209,10 @@ export default class Project {
       data: JSON.parse(JSON.stringify(data))
     }])
 
-    // Set loading state to false after data is set
-    promise.finally(() => Project.setIsLoading(false))
+    promise.then(() => {
+      this.compileAST() // Compile ASTs
+      Project.setIsLoading(false) // Set loading state to false after data is set
+    })
   }
 
   getNewGameObjectKey() {
@@ -301,32 +303,75 @@ export default class Project {
   private languageBuiltins = new LanguageBuiltins(this.builtins)
   private engineBuiltins = new EngineBuiltins(this.builtins, document.createElement("canvas"))
   getAutocompletionProvider(monaco: Monaco) {
-    const suggestions: AutocompletionItem[] = []
-
-    // Add keywords
-    for (const keyword of Object.keys(KEYWORDS_MAP)) {
-      suggestions.push({
-        label: keyword,
-        kind: AutocompletionItemKind.Keyword,
-        insertText: keyword
-      })
-    }
+    const keywordSuggestions = Object.keys(KEYWORDS_MAP).map(keyword => ({
+      value: keyword,
+      type: AutocompletionItemType.KEYWORD
+    }))
 
     return {
-      provideCompletionItems: (_model: any, position: any, _context: any, _token: any): any => {
-        // TODO: Filter suggestions based on position
-        const specificSuggestions = suggestions.map(suggestion => ({
-          ...suggestion,
-          kind: (() => {
-            switch (suggestion.kind) {
-              case AutocompletionItemKind.Keyword: return monaco.languages.CompletionItemKind.Keyword
-              case AutocompletionItemKind.Identifier: return monaco.languages.CompletionItemKind.Variable
-              case AutocompletionItemKind.Function: return monaco.languages.CompletionItemKind.Function
-            }
-          })()
-        }))
+      provideCompletionItems: (model: any, position: any, _context: any, _token: any): any => {
+        let suggestions: AutocompletionItem[] = [...keywordSuggestions]
 
-        return { suggestions: specificSuggestions }
+        // Add sprites suggestions
+        suggestions.push({
+          value: "sprites",
+          type: AutocompletionItemType.VARIABLE,
+          children: Object.keys(this.data.sprites).map(spriteKey => ({
+            value: spriteKey,
+            type: AutocompletionItemType.VARIABLE
+          }))
+        })
+    
+        // Add game_objects suggestions
+        const gameObjectsSuggestions = {
+          value: "game_objects",
+          type: AutocompletionItemType.VARIABLE,
+          children: Object.entries(this.data.gameObjects).map(([gameObjectKey, gameObject]) => ({
+            value: gameObject.id,
+            type: AutocompletionItemType.VARIABLE,
+            children: this.compiledASTs[gameObjectKey]?.getGlobalDeclarations() ?? []
+          }))
+        }
+        this.engineBuiltins.addGameObjectsAutocompletionItems(gameObjectsSuggestions.children)
+        suggestions.push(gameObjectsSuggestions)
+    
+        // Add game_object suggestions
+        suggestions.push({
+          value: "game_object",
+          type: AutocompletionItemType.VARIABLE,
+          children: gameObjectsSuggestions.children.find(child => child.value === this.selectedGameObject.id)?.children
+        })
+    
+        this.languageBuiltins.addAutocompletionItems(suggestions)
+        this.engineBuiltins.addAutocompletionItems(suggestions)
+
+        // Get previous members of the current line
+        const currentLine = (model.getValueInRange({ startLineNumber: position.lineNumber, startColumn: 1, endLineNumber: position.lineNumber, endColumn: position.column }) as string)
+          .split(".").map(member => member.trim())
+        
+        const previousMembers: string[] = []
+        while (currentLine.length > 0 && !currentLine[currentLine.length - 1].includes(" ")) previousMembers.push(currentLine.pop() as string)
+        const firstMemberSegment = currentLine.pop()?.split(" ") ?? []
+        if (firstMemberSegment.length > 0) previousMembers.push(firstMemberSegment[firstMemberSegment.length - 1])
+        previousMembers.reverse().pop()
+
+        // Filter suggestions based on previous members
+        while (previousMembers.length > 0) {
+          const member = previousMembers.shift() as string
+          suggestions = suggestions.find(suggestion => suggestion.value === member)?.children ?? []
+        }
+
+        return { suggestions: suggestions.map(suggestion => ({
+          label: suggestion.value,
+          insertText: suggestion.value,
+          kind: {
+            [AutocompletionItemType.KEYWORD]: monaco.languages.CompletionItemKind.Keyword,
+            [AutocompletionItemType.CONSTANT]: monaco.languages.CompletionItemKind.Constant,
+            [AutocompletionItemType.VARIABLE]: monaco.languages.CompletionItemKind.Variable,
+            [AutocompletionItemType.FUNCTION]: monaco.languages.CompletionItemKind.Function
+          }[suggestion.type],
+          detail: suggestion.detail
+        })) }
       }
     }
   }
@@ -342,7 +387,7 @@ export default class Project {
     if (gameObjectKey && !this.data.gameObjects[gameObjectKey]) return console.error("Game object not found")
 
     const gameObjectKeys = gameObjectKey ? [gameObjectKey] : Object.keys(this.data.gameObjects)
-    const newASTs = {} as Record<string, ProgramAST>
+    const newASTs = { ...this.compiledASTs }
 
     for (const key of gameObjectKeys) {
       newASTs[key] = this.compiler.compile(this.data.gameObjects[key].code)

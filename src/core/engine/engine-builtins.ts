@@ -1,5 +1,6 @@
 import { RuntimeGameObjectData, RuntimeProjectData } from "@/types/RuntimeProjectData"
 import SpriteHelper from "@/utils/sprite-helper"
+import AutocompletionItem from "../autocompletion-item"
 
 export default class EngineBuiltins {
   private executionContext: any
@@ -37,6 +38,14 @@ export default class EngineBuiltins {
         })
       }
     }
+  }
+
+  addAutocompletionItems(suggestions: AutocompletionItem[]) {
+    // TODO: Add builtins autocompletion items
+  }
+
+  addGameObjectsAutocompletionItems(suggestions: AutocompletionItem[]) {
+    // TODO: Add game objects autocompletion items
   }
 
   private setupFrameValue() {

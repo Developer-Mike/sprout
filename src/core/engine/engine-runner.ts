@@ -2,6 +2,7 @@ import ExecutionHelper from '@/utils/execution-helper'
 import { RuntimeGameObjectData, RuntimeProjectData } from '@/types/RuntimeProjectData'
 import EngineBuiltins from './engine-builtins'
 import LanguageBuiltins from '../compiler/language-builtins'
+import { AutocompletionItemType } from '../autocompletion-item'
 
 export default class EngineRunner {
   static run(data: RuntimeProjectData, isStopped: () => boolean, canvas: HTMLCanvasElement) {
@@ -25,9 +26,9 @@ export default class EngineRunner {
 
         ${ /* Add getters (and setters) for game_object's global properties */ "" }
         ${gameObject.code.getGlobalDeclarations().map(declaration => `
-        Object.defineProperty(game_object, "${declaration.identifier.name}", {
-          get: () => { return ${declaration.identifier.name} },
-          ${declaration.readonly ? "" : `set: (value) => { ${declaration.identifier.name} = value }`}
+        Object.defineProperty(game_object, "${declaration.value}", {
+          get: () => { return ${declaration.value} },
+          ${declaration.type === AutocompletionItemType.VARIABLE ? `set: (value) => { ${declaration.value} = value }` : ""}
         })
         `).join("\n")}
       `, executionContext)
