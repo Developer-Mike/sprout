@@ -348,15 +348,17 @@ export default class Project {
         this.engineBuiltins.addAutocompletionItems(suggestions)
 
         // Get previous members of the current line
-        // Convert line and column to character position
         const offsetPosition = model.getOffsetAt({ lineNumber: position.lineNumber, column: position.column }) as number
-        let sourceLocationASTs = this.compiledASTs[this.selectedGameObjectKey]?.getASTsFromSourceLocation(offsetPosition)
 
         // Find last member expression
-        let memberAST: MemberExprAST | IdentifierExprAST | undefined = sourceLocationASTs.findLast(ast => ast instanceof MemberExprAST)
+        let sourceLocationASTs = this.compiledASTs[this.selectedGameObjectKey]?.getASTsFromSourceLocation(offsetPosition)
+        let memberAST: MemberExprAST | IdentifierExprAST | undefined  = sourceLocationASTs.findLast(ast => ast instanceof MemberExprAST)
+
+        // If no member expression found, check if there is a member expression before a dot
         if (!memberAST) {
           const previousTokens = this.compiledASTs[this.selectedGameObjectKey]?.tokens.filter(token => token.location.end <= offsetPosition).splice(-2)
 
+          console.log(previousTokens)
           if (previousTokens.length === 2 && previousTokens[1].type === TokenType.PUNCTUATOR) {
             const previousASTs = this.compiledASTs[this.selectedGameObjectKey]?.getASTsFromSourceLocation(previousTokens[0].location.end)
 
@@ -369,11 +371,20 @@ export default class Project {
 
         // Filter suggestions based on previous members
         if (memberAST) {
+          const previousIdentifiers = []
           while (memberAST instanceof MemberExprAST) {
-            const object = memberAST.object as IdentifierExprAST
-            suggestions = suggestions.find(suggestion => suggestion.value === object.toJavaScript())?.children ?? []
+            previousIdentifiers.push(memberAST.property)
+            memberAST = memberAST.object as MemberExprAST | IdentifierExprAST
+          }
+          previousIdentifiers.push(memberAST)
+          previousIdentifiers.reverse()
+          previousIdentifiers.pop() // Remove the last identifier (the place where the cursor is)
 
-            memberAST = memberAST.property as MemberExprAST | IdentifierExprAST
+          for (const identifier of previousIdentifiers) {
+            const objectSuggestions = suggestions.find(suggestion => suggestion.value === identifier.toJavaScript())
+            const wildcardSuggestions = suggestions.find(suggestion => suggestion.value === "*")
+
+            suggestions = (objectSuggestions?.children ?? []).concat(wildcardSuggestions?.children ?? [])
           }
         }
 
