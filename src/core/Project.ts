@@ -12,7 +12,7 @@ import { BLANK_IMAGE } from "@/constants"
 import ProgramAST from "./compiler/ast/program-ast"
 import LanguageBuiltins from "./compiler/language-builtins"
 import { KEYWORDS_MAP, TokenType } from "./compiler/token"
-import AutocompletionItem, { AutocompletionItemType } from "./autocompletion-item"
+import AutocompletionItem, { AutocompletionItemType, getGlobalAutocompletionSuggestions } from "./autocompletion-item"
 import { Monaco } from "@monaco-editor/react"
 import MemberExprAST from "./compiler/ast/expr/member-expr-ast"
 import IdentifierExprAST from "./compiler/ast/expr/identifier-expr-ast"
@@ -305,47 +305,48 @@ export default class Project {
   private languageBuiltins = new LanguageBuiltins(this.builtins)
   private engineBuiltins = new EngineBuiltins(this.builtins, document.createElement("canvas"))
   getAutocompletionProvider(monaco: Monaco) {
-    const keywordSuggestions = Object.keys(KEYWORDS_MAP).map(keyword => ({
-      value: keyword,
-      type: AutocompletionItemType.KEYWORD
-    }))
+    const keywordSuggestions = Object.keys(KEYWORDS_MAP).reduce((acc, keyword) => ({
+      ...acc,
+      [keyword]: {
+        value: keyword,
+        type: AutocompletionItemType.KEYWORD,
+        children: {}
+      }
+    }), {} as Record<string, AutocompletionItem>)
 
     return {
       provideCompletionItems: (model: any, position: any, _context: any, _token: any): any => {
-        let suggestions: AutocompletionItem[] = [...keywordSuggestions]
+        // Runtime data suggestions
+        let suggestions = getGlobalAutocompletionSuggestions(this.data)
 
-        // Add sprites suggestions
-        suggestions.push({
-          value: "sprites",
-          type: AutocompletionItemType.VARIABLE,
-          children: Object.keys(this.data.sprites).map(spriteKey => ({
-            value: spriteKey,
-            type: AutocompletionItemType.VARIABLE
-          }))
-        })
-    
-        // Add game_objects suggestions
-        const gameObjectsSuggestions = {
-          value: "game_objects",
-          type: AutocompletionItemType.VARIABLE,
-          children: Object.entries(this.data.gameObjects).map(([gameObjectKey, gameObject]) => ({
-            value: gameObject.id,
-            type: AutocompletionItemType.VARIABLE,
-            children: this.compiledASTs[gameObjectKey]?.getGlobalDeclarations() ?? []
-          }))
+        // Add keyword suggestions
+        for (const keyword in keywordSuggestions)
+          suggestions[keyword] = keywordSuggestions[keyword]
+
+        // Add game_objects global declarations suggestions
+        for (const gameObjectKey in this.compiledASTs) {
+          const gameObjectId = this.data.gameObjects[gameObjectKey]?.id
+          const globalDeclarations = this.compiledASTs[gameObjectKey]?.getGlobalDeclarations() ?? {}
+
+          suggestions.game_objects.children[gameObjectId].children = {
+            ...suggestions.game_objects.children[gameObjectId].children,
+            ...globalDeclarations
+          }
         }
-        this.engineBuiltins.addGameObjectsAutocompletionItems(gameObjectsSuggestions.children)
-        suggestions.push(gameObjectsSuggestions)
-    
+
         // Add game_object suggestions
-        suggestions.push({
-          value: "game_object",
-          type: AutocompletionItemType.VARIABLE,
-          children: gameObjectsSuggestions.children.find(child => child.value === this.selectedGameObject.id)?.children
-        })
+        suggestions["game_object"] = {
+          type: AutocompletionItemType.CONSTANT,
+          children: suggestions.game_objects?.children[this.selectedGameObject.id]?.children ?? {}
+        }
     
         this.languageBuiltins.addAutocompletionItems(suggestions)
         this.engineBuiltins.addAutocompletionItems(suggestions)
+
+        for (const gameObject of Object.values(suggestions.game_objects.children))
+          this.engineBuiltins.addGameObjectsAutocompletionItems(gameObject.children)
+
+        // Filter suggestions based on previous members
 
         // Get previous members of the current line
         const offsetPosition = model.getOffsetAt({ lineNumber: position.lineNumber, column: position.column }) as number
@@ -358,7 +359,6 @@ export default class Project {
         if (!memberAST) {
           const previousTokens = this.compiledASTs[this.selectedGameObjectKey]?.tokens.filter(token => token.location.end <= offsetPosition).splice(-2)
 
-          console.log(previousTokens)
           if (previousTokens.length === 2 && previousTokens[1].type === TokenType.PUNCTUATOR) {
             const previousASTs = this.compiledASTs[this.selectedGameObjectKey]?.getASTsFromSourceLocation(previousTokens[0].location.end)
 
@@ -381,23 +381,26 @@ export default class Project {
           previousIdentifiers.pop() // Remove the last identifier (the place where the cursor is)
 
           for (const identifier of previousIdentifiers) {
-            const objectSuggestions = suggestions.find(suggestion => suggestion.value === identifier.toJavaScript())
-            const wildcardSuggestions = suggestions.find(suggestion => suggestion.value === "*")
+            const objectSuggestions = suggestions[identifier.toJavaScript()]
+            const wildcardSuggestions = suggestions["*"]
 
-            suggestions = (objectSuggestions?.children ?? []).concat(wildcardSuggestions?.children ?? [])
+            suggestions = {
+              ...wildcardSuggestions?.children ?? {},
+              ...objectSuggestions?.children ?? {}
+            }
           }
         }
 
-        return { suggestions: suggestions.map(suggestion => ({
-          label: suggestion.value,
-          insertText: suggestion.value,
+        return { suggestions: Object.entries(suggestions).map(([key, suggestion]) => ({
+          label: key,
+          insertText: key,
           kind: {
             [AutocompletionItemType.KEYWORD]: monaco.languages.CompletionItemKind.Keyword,
             [AutocompletionItemType.CONSTANT]: monaco.languages.CompletionItemKind.Constant,
             [AutocompletionItemType.VARIABLE]: monaco.languages.CompletionItemKind.Variable,
             [AutocompletionItemType.FUNCTION]: monaco.languages.CompletionItemKind.Function
           }[suggestion.type],
-          detail: suggestion.detail
+          detail: suggestion.description
         })) }
       }
     }

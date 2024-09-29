@@ -7,23 +7,22 @@ export default class LanguageBuiltins {
     Math: Math,
     log: this.log,
     range: this.range
-  }
+  } as const
 
   constructor(executionContext: any) {
     this.executionContext = executionContext
 
+    // Add builtins to the execution context
     for (const key in this.builtins) {
       this.executionContext[key] = this.builtins[key]
     }
   }
 
-  addAutocompletionItems(suggestions: AutocompletionItem[]) {
-    for (const key in this.builtins) {
-      suggestions.push({
-        value: key,
-        type: this.builtins[key] === Object ? AutocompletionItemType.CONSTANT : AutocompletionItemType.FUNCTION
-      })
-    }
+  addAutocompletionItems(suggestions: Record<string, AutocompletionItem>) {
+    suggestions["Object"] = { type: AutocompletionItemType.CONSTANT, children: {} }
+    suggestions["Math"] = { type: AutocompletionItemType.CONSTANT, children: {} }
+    suggestions["log"] = { type: AutocompletionItemType.FUNCTION, children: {} }
+    suggestions["range"] = { type: AutocompletionItemType.FUNCTION, children: {} }
   }
 
   log(...messages: any[]) {

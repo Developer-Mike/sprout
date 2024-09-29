@@ -1,68 +1,23 @@
 import { RuntimeGameObjectData, RuntimeProjectData } from "@/types/RuntimeProjectData"
 import SpriteHelper from "@/utils/sprite-helper"
-import AutocompletionItem from "../autocompletion-item"
+import AutocompletionItem, { AutocompletionItemType } from "../autocompletion-item"
+import ObjectHelper from "@/utils/object-helper"
 
 export default class EngineBuiltins {
   private executionContext: any
   private canvas: HTMLCanvasElement
-
-  constructor(executionContext: any, canvas: HTMLCanvasElement) {
-    this.executionContext = executionContext
-    this.canvas = canvas
-
-    // Add builtins to the execution context
-    this.executionContext.sleep = this.sleep.bind(this)
-    this.executionContext.tick = this.tick.bind(this)
-    this.executionContext.await_frame = this.awaitFrame.bind(this)
-
-    this.setupFrameValue()
-    this.setupTimeValue()
-    this.setupInputValue()
-
-    // Add game object builtins
-    for (const gameObjectId in this.executionContext.game_objects) {
-      const gameObject = this.executionContext.game_objects[gameObjectId]
-
-      for (const key in this.GAME_OBJECT_BUILTINS) {
-        const path = key.split(".")
-        let target: any = gameObject
-        while (path.length > 1) {
-          const subpath = path.shift() as string
-
-          if (!target[subpath]) target[subpath] = {}
-          target = target[subpath]
-        }
-
-        Object.defineProperty(target, path[0], {
-          get: () => (...params: any) => this.GAME_OBJECT_BUILTINS[key].call(this, gameObject, ...params)
-        })
-      }
-    }
-  }
-
-  addAutocompletionItems(suggestions: AutocompletionItem[]) {
-    // TODO: Add builtins autocompletion items
-  }
-
-  addGameObjectsAutocompletionItems(suggestions: AutocompletionItem[]) {
-    // TODO: Add game objects autocompletion items
-  }
-
-  private setupFrameValue() {
-    this.executionContext.frame = false
-  }
-
-  private setupTimeValue() {
-    this.executionContext.time = {
+  private readonly builtins: { [key: string]: any } = {
+    sleep: this.sleep.bind(this),
+    tick: this.tick.bind(this),
+    await_frame: this.awaitFrame.bind(this),
+    frame: false,
+    time: {
       delta_time: 1, // Default to 1
       get timestamp() { return Date.now() / 1000 },
       start_time: performance.now() / 1000,
       get timer() { return (performance.now() / 1000) - this.start_time }
-    }
-  }
-
-  private setupInputValue() {
-    this.executionContext.input = {
+    },
+    input: {
       key: new Proxy({} as Record<string, KeyState>, {
         get: (target: Record<string, KeyState>, key: string) => 
           key in target ? target[key] : { is_down: false, is_pressed: false, is_up: false }
@@ -75,7 +30,119 @@ export default class EngineBuiltins {
         })
       }
     }
+  } as const
+  private readonly gameObjectsBuiltins: { [path: string]: any } = {
+    transform: {
+      move: this.move.bind(this),
+      rotate: this.rotate.bind(this),
+      rotate_to: this.rotate_to.bind(this)
+    },
+    get_collision_with: this.get_collision_with.bind(this),
+    get_box_collision_with: this.get_box_collision_with.bind(this),
+    get_collisions: this.get_collisions.bind(this),
+    get_box_collisions: this.get_box_collisions.bind(this)
+  }
 
+  constructor(executionContext: any, canvas: HTMLCanvasElement) {
+    this.executionContext = executionContext
+    this.canvas = canvas
+
+    // Add builtins to the execution context
+    for (const key in this.builtins) {
+      this.executionContext[key] = this.builtins[key]
+    }
+
+    // Add game object builtins
+    for (const gameObjectId in this.executionContext.game_objects) {
+      const gameObject = this.executionContext.game_objects[gameObjectId]
+      ObjectHelper.deepMerge(gameObject, this.gameObjectsBuiltins, (object, key, value) => {
+        Object.defineProperty(object, key, {
+          get: () => (...params: any) => value.call(this, gameObject, ...params)
+        })
+      })
+    }
+
+    this.setupInputListeners()
+  }
+
+  addAutocompletionItems(suggestions: Record<string, AutocompletionItem>) {
+    suggestions["sleep"] = { type: AutocompletionItemType.FUNCTION, children: {} }
+    suggestions["tick"] = { type: AutocompletionItemType.FUNCTION, children: {} }
+    suggestions["await_frame"] = { type: AutocompletionItemType.FUNCTION, children: {} }
+    suggestions["time"] = { 
+      type: AutocompletionItemType.CONSTANT, 
+      children: {
+        "delta_time": { type: AutocompletionItemType.CONSTANT, children: {} },
+        "timestamp": { type: AutocompletionItemType.CONSTANT, children: {} },
+        "start_time": { type: AutocompletionItemType.CONSTANT, children: {} },
+        "timer": { type: AutocompletionItemType.CONSTANT, children: {} }
+      }
+    }
+    suggestions["input"] = {
+      type: AutocompletionItemType.CONSTANT,
+      children: {
+        "key": {
+          type: AutocompletionItemType.CONSTANT,
+          children: {
+            "*": { 
+              type: AutocompletionItemType.CONSTANT, 
+              children: {
+                "is_down": { type: AutocompletionItemType.CONSTANT, children: {} },
+                "is_pressed": { type: AutocompletionItemType.CONSTANT, children: {} },
+                "is_up": { type: AutocompletionItemType.CONSTANT, children: {} }
+              }
+            }
+          }
+        },
+        "mouse": {
+          type: AutocompletionItemType.CONSTANT,
+          children: {
+            "x": { type: AutocompletionItemType.CONSTANT, children: {} },
+            "y": { type: AutocompletionItemType.CONSTANT, children: {} },
+            "button": {
+              type: AutocompletionItemType.CONSTANT,
+              children: {
+                "*": { 
+                  type: AutocompletionItemType.CONSTANT, 
+                  children: {
+                    "is_down": { type: AutocompletionItemType.CONSTANT, children: {} },
+                    "is_pressed": { type: AutocompletionItemType.CONSTANT, children: {} },
+                    "is_up": { type: AutocompletionItemType.CONSTANT, children: {} }
+                  }
+                },
+
+                "left": { type: AutocompletionItemType.CONSTANT, children: {} },
+                "middle": { type: AutocompletionItemType.CONSTANT, children: {} },
+                "right": { type: AutocompletionItemType.CONSTANT, children: {} }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  addGameObjectsAutocompletionItems(gameObjectSuggestions: Record<string, AutocompletionItem>) {
+    gameObjectSuggestions["transform"] = {
+      ...gameObjectSuggestions["transform"],
+
+      type: AutocompletionItemType.CONSTANT,
+      children: {
+        ...gameObjectSuggestions["transform"].children,
+        
+        "move": { type: AutocompletionItemType.FUNCTION, children: {} },
+        "rotate": { type: AutocompletionItemType.FUNCTION, children: {} },
+        "rotate_to": { type: AutocompletionItemType.FUNCTION, children: {} }
+      }
+    }
+
+    gameObjectSuggestions["get_collision_with"] = { type: AutocompletionItemType.FUNCTION, children: {} }
+    gameObjectSuggestions["get_box_collision_with"] = { type: AutocompletionItemType.FUNCTION, children: {} }
+    gameObjectSuggestions["get_collisions"] = { type: AutocompletionItemType.FUNCTION, children: {} }
+    gameObjectSuggestions["get_box_collisions"] = { type: AutocompletionItemType.FUNCTION, children: {} }
+  }
+
+  private setupInputListeners() {
     const getKeyName = (key: string) => {
       if (key === " ") return "space"
       return key.replace(/(?<!^)[A-Z]/g, letter => `_${letter.toLowerCase()}`).toLowerCase()
@@ -152,16 +219,6 @@ export default class EngineBuiltins {
   //#endregion
 
   //#region Game Object Functions
-  readonly GAME_OBJECT_BUILTINS: { [path: string]: (...params: any) => any } = {
-    "transform.move": this.move,
-    "transform.rotate": this.rotate,
-    "transform.rotate_to": this.rotate_to,
-    "get_collision_with": this.get_collision_with,
-    "get_box_collision_with": this.get_box_collision_with,
-    "get_collisions": this.get_collisions,
-    "get_box_collisions": this.get_box_collisions
-  }
-
   move(game_object: RuntimeGameObjectData, x: number, y: number): null {
     game_object.transform.x += x * this.executionContext.time.delta_time
     game_object.transform.y += y * this.executionContext.time.delta_time

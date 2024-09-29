@@ -25,10 +25,10 @@ export default class EngineRunner {
         ${gameObject.code.toJavaScript()}
 
         ${ /* Add getters (and setters) for game_object's global properties */ "" }
-        ${gameObject.code.getGlobalDeclarations().map(declaration => `
-        Object.defineProperty(game_object, "${declaration.value}", {
-          get: () => { return ${declaration.value} },
-          ${declaration.type === AutocompletionItemType.VARIABLE ? `set: (value) => { ${declaration.value} = value }` : ""}
+        ${Object.entries(gameObject.code.getGlobalDeclarations()).map(([name, info]) => `
+        Object.defineProperty(game_object, "${name}", {
+          get: () => { return ${name} },
+          ${info.type === AutocompletionItemType.VARIABLE ? `set: (value) => { ${name} = value }` : ""}
         })
         `).join("\n")}
       `, executionContext)

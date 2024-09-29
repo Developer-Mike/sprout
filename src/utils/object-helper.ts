@@ -22,4 +22,23 @@ export default class ObjectHelper {
 
     return clone
   }
+
+  // Merge two objects together without copying the target object
+  static deepMerge(target: any, source: any, setKey: (object: any, key: string, value: any) => void = (object, key, value) => { object[key] = value }): any {
+    for (const key in source) {
+      if (source[key] instanceof Array) {
+        target[key] = target[key] ?? []
+        for (const value of source[key]) {
+          target[key].push(value)
+        }
+      } else if (source[key] instanceof Object) {
+        target[key] = target[key] ?? {}
+        ObjectHelper.deepMerge(target[key], source[key])
+      } else {
+        setKey(target, key, source[key])
+      }
+    }
+
+    return target
+  }
 }

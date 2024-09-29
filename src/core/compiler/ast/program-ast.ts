@@ -23,12 +23,14 @@ export default class ProgramAST extends AST {
     return this.body.map(node => node.toJavaScript()).join('\n')
   }
 
-  getGlobalDeclarations(): AutocompletionItem[] {
-    return this.body.map(node => {
-      if (node instanceof VariableDeclarationAST) return { type: node.constant ? AutocompletionItemType.CONSTANT : AutocompletionItemType.VARIABLE, value: node.name.toJavaScript() }
-      if (node instanceof FunctionDefinitionAST) return { type: AutocompletionItemType.FUNCTION, value: node.proto.name.toJavaScript() }
+  getGlobalDeclarations(): Record<string, AutocompletionItem> {
+    return this.body.reduce((acc, node) => {
+      if (node instanceof VariableDeclarationAST)
+        acc[node.name.toJavaScript()] = { type: node.constant ? AutocompletionItemType.CONSTANT : AutocompletionItemType.VARIABLE, children: {} }
+      if (node instanceof FunctionDefinitionAST)
+        acc[node.proto.name.toJavaScript()] = { type: AutocompletionItemType.FUNCTION, children: {} }
 
-      return null
-    }).filter(declaration => declaration !== null)
+      return acc
+    }, {} as Record<string, AutocompletionItem>)
   }
 }
