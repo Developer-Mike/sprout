@@ -8,7 +8,7 @@ import EngineBuiltins from "./engine/engine-builtins"
 import { RuntimeGameObjectData, RuntimeProjectData } from "@/types/RuntimeProjectData"
 import Compiler from "./compiler/compiler"
 import EngineRunner from "./engine/engine-runner"
-import { BLANK_IMAGE } from "@/constants"
+import { BLANK_IMAGE, MAX_CONSOLE_OUTPUT_LENGTH } from "@/constants"
 import ProgramAST from "./compiler/ast/program-ast"
 import LanguageBuiltins from "./compiler/language-builtins"
 import { KEYWORDS_MAP, TokenType } from "./compiler/token"
@@ -16,6 +16,8 @@ import AutocompletionItem, { AutocompletionItemType, getGlobalAutocompletionSugg
 import { Monaco } from "@monaco-editor/react"
 import MemberExprAST from "./compiler/ast/expr/member-expr-ast"
 import IdentifierExprAST from "./compiler/ast/expr/identifier-expr-ast"
+import LogItem, { LogItemType } from "@/types/LogItem"
+import { ExtendedConsole } from "@/types/ExtendedConsole"
 
 export default class Project {
   //#region Static React States
@@ -38,8 +40,10 @@ export default class Project {
   static runningInstanceId: string | null
   private static setRunningInstanceId: (id: string | null) => Promise<string | null>
 
-  static consoleOutput: string[]
-  private static setConsoleOutput: (value: string[]) => void
+  private static consoleOutputUnreactive: LogItem[] = []
+  static consoleOutput: LogItem[] = []
+  private static clearConsoleOutput: () => void
+  private static addConsoleOutput: (message: any, type: LogItemType) => void
   
   static registerHooks() {
     // Loading state
@@ -103,19 +107,38 @@ export default class Project {
     })
 
     // Console output state
-    ;[this.consoleOutput, this.setConsoleOutput] = useState<any[]>([])
+    const [consoleOutputState, setConsoleOutputState] = useState<LogItem[]>([])
+    this.consoleOutput = consoleOutputState
+
+    this.clearConsoleOutput = () => {
+      this.consoleOutputUnreactive = []
+      setConsoleOutputState([...this.consoleOutputUnreactive])
+    }
+    this.addConsoleOutput = (message: string, type: LogItemType = LogItemType.INFO) => {
+      this.consoleOutputUnreactive.push({
+        message: message,
+        type: type
+      })
+
+      // Limit console output length
+      if (this.consoleOutputUnreactive.length > MAX_CONSOLE_OUTPUT_LENGTH)
+        this.consoleOutputUnreactive.shift()
+
+      setConsoleOutputState([...this.consoleOutputUnreactive])
+    }
   }
 
   static registerWindowCallbacks(window: Window) {
     // Console output state
     window.onerror = (message, _source, _lineno, _colno, _error) => {
-      if (Project.runningInstanceId !== null) Project.setConsoleOutput([...Project.consoleOutput, message.toString()])
+      if (Project.runningInstanceId !== null) this.addConsoleOutput(message.toString(), LogItemType.ERROR)
     }
 
-    const oldConsoleLog = (window as any).console.log
-    ;(window as any).console.log = (...params: any) => {
-      if (Project.runningInstanceId !== null) Project.setConsoleOutput([...Project.consoleOutput, params])
-      oldConsoleLog(...params)
+    ;(console as ExtendedConsole).runtimeLog = (...params: any) => {
+      if (Project.runningInstanceId === null) return
+
+      this.addConsoleOutput(params.join(" "), LogItemType.INFO)
+      console.log(...params)
     }
   }
   //#endregion
@@ -156,7 +179,7 @@ export default class Project {
   get isRunning() { return this.runningInstanceId !== null }
 
   get consoleOutput() { return Project.consoleOutput }
-  private setConsoleOutput = Project.setConsoleOutput
+  private clearConsoleOutput = Project.clearConsoleOutput
   //#endregion
 
   //#region Static factory methods
@@ -201,6 +224,9 @@ export default class Project {
     // Set loading and saving states
     this.setIsLoading(true)
     this.setIsSaving(false)
+
+    // Reset console output
+    this.clearConsoleOutput()
 
     // Set data and save history
     const promise = Project.setData(data)
@@ -435,7 +461,7 @@ export default class Project {
     await this.setRunningInstanceId(instanceId)
 
     // Clear console
-    this.setConsoleOutput([])
+    this.clearConsoleOutput()
 
     // Create RuntimeProjectData
     let newRuntimeProjectData: RuntimeProjectData = {} as RuntimeProjectData

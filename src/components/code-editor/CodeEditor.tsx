@@ -5,6 +5,7 @@ import { KEYWORDS_MAP } from "@/core/compiler/token"
 import { Editor, useMonaco } from "@monaco-editor/react"
 import { useRouter } from "next/router"
 import { useContext, useEffect, useState } from "react"
+import ConsoleView from "../console-view/ConsoleView"
 
 export default function CodeEditor() {
   const { project } = useContext(ProjectContext)
@@ -100,6 +101,7 @@ export default function CodeEditor() {
       />
 
       <img id={styles.gameObjectPreview} src={project.getActiveSprite(project.selectedGameObject).src} />
+      <ConsoleView />
     </div>
   )
 }

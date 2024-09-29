@@ -6,6 +6,8 @@ export const DEBUG_BYPASS_SAVE_ALERT = DEBUG && true
 export const SPROUT_LANGUAGE_KEY = "sproutscript"
 export const SPROUT_THEME_KEY = "sprouttheme"
 
+export const MAX_CONSOLE_OUTPUT_LENGTH = 200
+
 export const BLANK_IMAGE = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
 export const MAX_SPRITE_SIZE = 1024 // TODO: Implement this
 export const COLLISION_MASK_SIZE = 128

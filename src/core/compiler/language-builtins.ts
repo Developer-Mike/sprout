@@ -1,3 +1,4 @@
+import { ExtendedConsole } from "@/types/ExtendedConsole"
 import AutocompletionItem, { AutocompletionItemType } from "../autocompletion-item"
 
 export default class LanguageBuiltins {
@@ -26,7 +27,7 @@ export default class LanguageBuiltins {
   }
 
   log(...messages: any[]) {
-    console.log(...messages)
+    (console as ExtendedConsole).runtimeLog(...messages)
   }
 
   range(start_or_end: number, end?: number, step?: number): number[] {
