@@ -103,7 +103,7 @@ npm run dev
     - [ ] (If time allows) clone (is_clone)
     - [ ] (If time allows) destroy
   - [ ] Add console view
-  - [ ] (If time allows) Add autocomplete for some objects (e.g. game_objects, sprites)
+  - [x] (If time allows) Add autocomplete for some objects (e.g. game_objects, sprites)
   - [ ] (If time allows) Add advanced explanations to error messages
 - [-] Miscellaneous
   - [x] Add a clean way to handle debug information
