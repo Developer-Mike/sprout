@@ -102,9 +102,11 @@ npm run dev
     - [ ] (If time allows) draw_circle
     - [ ] (If time allows) clone (is_clone)
     - [ ] (If time allows) destroy
-  - [ ] Add console view
+  - [x] Add console view
+    - [ ] Throw error if the user wants to start the game with syntax errors
+    - [ ] Catch runtime errors and show them in the console
+    - [ ] (If time allows) Add advanced explanations to error messages
   - [x] (If time allows) Add autocomplete for some objects (e.g. game_objects, sprites)
-  - [ ] (If time allows) Add advanced explanations to error messages
 - [-] Miscellaneous
   - [x] Add a clean way to handle debug information
   - [x] Rework game object scaling (width and factor for height) -> Fix different scaling for different sprites
