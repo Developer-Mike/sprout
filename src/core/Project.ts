@@ -11,7 +11,7 @@ import EngineRunner from "./engine/engine-runner"
 import { BLANK_IMAGE } from "@/constants"
 import ProgramAST from "./compiler/ast/program-ast"
 import LanguageBuiltins from "./compiler/language-builtins"
-import { KEYWORDS_MAP } from "./compiler/token"
+import { KEYWORDS_MAP, TokenType } from "./compiler/token"
 import AutocompletionItem, { AutocompletionItemType } from "./autocompletion-item"
 import { Monaco } from "@monaco-editor/react"
 import MemberExprAST from "./compiler/ast/expr/member-expr-ast"
@@ -348,22 +348,22 @@ export default class Project {
         this.engineBuiltins.addAutocompletionItems(suggestions)
 
         // Get previous members of the current line
-
         // Convert line and column to character position
-        const offsetPosition = model.getOffsetAt({ lineNumber: position.lineNumber, column: position.column })
-        const sourceLocationASTs = this.compiledASTs[this.selectedGameObjectKey]?.getASTsFromSourceLocation(offsetPosition)
-        let memberAST: MemberExprAST | IdentifierExprAST | undefined = sourceLocationASTs.find(ast => ast instanceof MemberExprAST)
-        if (!memberAST) {
-          const lastChar = model.getValueInRange({ 
-            startLineNumber: position.lineNumber, 
-            startColumn: position.column - 1, 
-            endLineNumber: position.lineNumber, 
-            endColumn: position.column 
-          })
+        const offsetPosition = model.getOffsetAt({ lineNumber: position.lineNumber, column: position.column }) as number
+        let sourceLocationASTs = this.compiledASTs[this.selectedGameObjectKey]?.getASTsFromSourceLocation(offsetPosition)
 
-          if (lastChar === ".") {
-            const identifierAST = sourceLocationASTs.find(ast => ast instanceof IdentifierExprAST)
-            if (identifierAST) memberAST = new MemberExprAST(identifierAST, new IdentifierExprAST("", identifierAST.sourceLocation), false, identifierAST.sourceLocation)
+        // Find last member expression
+        let memberAST: MemberExprAST | IdentifierExprAST | undefined = sourceLocationASTs.findLast(ast => ast instanceof MemberExprAST)
+        if (!memberAST) {
+          const previousTokens = this.compiledASTs[this.selectedGameObjectKey]?.tokens.filter(token => token.location.end <= offsetPosition).splice(-2)
+
+          if (previousTokens.length === 2 && previousTokens[1].type === TokenType.PUNCTUATOR) {
+            const previousASTs = this.compiledASTs[this.selectedGameObjectKey]?.getASTsFromSourceLocation(previousTokens[0].location.end)
+
+            let lastMemberExprAST: MemberExprAST | IdentifierExprAST | undefined = previousASTs.findLast(ast => ast instanceof MemberExprAST) as MemberExprAST | undefined
+            if (!lastMemberExprAST) lastMemberExprAST = previousASTs.findLast(ast => ast instanceof IdentifierExprAST) as IdentifierExprAST | undefined
+
+            if (lastMemberExprAST) memberAST = new MemberExprAST(lastMemberExprAST, new IdentifierExprAST("", lastMemberExprAST.sourceLocation), false, lastMemberExprAST.sourceLocation)
           }
         }
 

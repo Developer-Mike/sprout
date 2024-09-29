@@ -10,7 +10,7 @@ export default abstract class AST {
 
     while (openASTs.length > 0) {
       const ast = openASTs.pop()!
-      if (ast.sourceLocation.start <= location && location <= ast.sourceLocation.end)
+      if (location >= ast.sourceLocation.start && location <= ast.sourceLocation.end)
         foundASTs.push(ast)
 
       for (const key in ast) {

@@ -196,8 +196,10 @@ export default class Parser {
 
       let memberIdentifier: ExpressionAST | null = null
       if (punctuator) {
-        if (this.currentToken.type !== TokenType.IDENTIFIER)
-          return this.logError("Expected member name after '.'", this.currentToken.location)
+        if (this.currentToken.type !== TokenType.IDENTIFIER) {
+          this.logError("Expected member name after '.'", this.currentToken.location)
+          break // Don't return null, just break the loop
+        }
 
         memberIdentifier = this.parseIdentifierExpression()
       } else {
