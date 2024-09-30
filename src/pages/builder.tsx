@@ -27,8 +27,6 @@ export default function Builder() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   Project.registerHooks()
-  useEffect(() => Project.registerWindowCallbacks(window), [])
-
   const [project, _setProject] = useState<Project | null>(null)
 
   const showInvalidProjectDialog = (projectId: string) => {

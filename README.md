@@ -59,7 +59,7 @@ npm run dev
 - [x] Only add LabeledNumberInput change to history after the user stops dragging
 - [x] Add undo/redo to the navbar
 - [x] Always save project before rerouting
-- [-] Create the programming language for Sprout
+- [x] Create the programming language for Sprout
   - [x] Remove the usage of large strings and eval in the SproutEngine
   - [x] Create programming language concepts
     - [x] Variables
@@ -68,7 +68,7 @@ npm run dev
     - [x] Conditions (if, else)
     - [x] Comments
   - [x] Create Lexer (Code -> Tokens)
-  - [-] Create Parser (Tokens -> AST)
+  - [x] Create Parser (Tokens -> AST)
     - [x] Add support for mutable variables
     - [x] Add support for if, while, for and on statements
     - [x] Add support for await expressions
@@ -87,34 +87,34 @@ npm run dev
   - [x] Create error handling (Compilation & Runtime)
   - [x] Show errors in the code editor
   - [x] Fix the syntax highlighting and linting (Only basic syntax highlighting)
+  - [x] (If time allows) Add autocomplete for some objects (e.g. game_objects, sprites)
   - [x] Fix execution of the code
   - [x] Add implemented functions to the language
     - [x] range
     - [x] Expose math functions
-  - [-] Add implemented functions to the engine
-    - [x] move, rotate (Handle delta_time)
-    - [x] rotate_to
-    - [-] collides_with, collides_with_box, collides_with_mouse
-    - [x] sleep
-    - [ ] (If time allows) Add physics engine
-    - [ ] (If time allows) Add support for camera
-      - [ ] stage.camera
-        - [ ] x, y (properties)
-        - [ ] move (handle delta_time)
-    - [ ] (If time allows) Add support for drawing (new entry in the runtime data)
-      - [ ] draw_text
-      - [ ] draw_line
-      - [ ] draw_rectangle
-      - [ ] draw_circle
-    - [ ] (If time allows) Add support cloning and destroying game objects while the game is running
-      - [ ] clone
-      - [ ] destroy
-      - [ ] is_clone (property)
-  - [x] Add console view
-    - [ ] Throw error if the user wants to start the game with syntax errors
-    - [ ] Catch runtime errors and show them in the console
-    - [ ] (If time allows) Add advanced explanations to error messages
-  - [x] (If time allows) Add autocomplete for some objects (e.g. game_objects, sprites)
+- [-] Add implemented functions to the engine
+  - [x] move, rotate (Handle delta_time)
+  - [x] rotate_to
+  - [-] collides_with, collides_with_box, collides_with_mouse
+  - [x] sleep
+  - [ ] (If time allows) Add physics engine
+  - [ ] (If time allows) Add support for camera
+    - [ ] stage.camera
+      - [ ] x, y (properties)
+      - [ ] move (handle delta_time)
+  - [ ] (If time allows) Add support for drawing (new entry in the runtime data)
+    - [ ] draw_text
+    - [ ] draw_line
+    - [ ] draw_rectangle
+    - [ ] draw_circle
+  - [ ] (If time allows) Add support cloning and destroying game objects while the game is running
+    - [ ] clone
+    - [ ] destroy
+    - [ ] is_clone (property)
+- [x] Add console view
+  - [x] Throw error if the user wants to start the game with syntax errors
+  - [x] Catch runtime errors and show them in the console
+  - [ ] (If time allows) Add advanced explanations to error messages
 - [-] Miscellaneous
   - [x] Add a clean way to handle debug information
   - [x] Rework game object scaling (width and factor for height) -> Fix different scaling for different sprites

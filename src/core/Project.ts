@@ -43,7 +43,7 @@ export default class Project {
   private static consoleOutputUnreactive: LogItem[] = []
   static consoleOutput: LogItem[] = []
   private static clearConsoleOutput: () => void
-  private static addConsoleOutput: (message: any, type: LogItemType) => void
+  private static addConsoleOutput: (gameObjectId: string | null, message: string, type?: LogItemType) => void
   
   static registerHooks() {
     // Loading state
@@ -114,8 +114,9 @@ export default class Project {
       this.consoleOutputUnreactive = []
       setConsoleOutputState([...this.consoleOutputUnreactive])
     }
-    this.addConsoleOutput = (message: string, type: LogItemType = LogItemType.INFO) => {
+    this.addConsoleOutput = (gameObjectId: string | null, message: string, type: LogItemType = LogItemType.INFO) => {
       this.consoleOutputUnreactive.push({
+        gameObjectId: gameObjectId,
         message: message,
         type: type
       })
@@ -126,18 +127,12 @@ export default class Project {
 
       setConsoleOutputState([...this.consoleOutputUnreactive])
     }
-  }
 
-  static registerWindowCallbacks(window: Window) {
-    // Console output state
-    window.onerror = (message, _source, _lineno, _colno, _error) => {
-      if (Project.runningInstanceId !== null) this.addConsoleOutput(message.toString(), LogItemType.ERROR)
-    }
-
+    // Add runtimeLog to console object
     ;(console as ExtendedConsole).runtimeLog = (...params: any) => {
       if (Project.runningInstanceId === null) return
 
-      this.addConsoleOutput(params.join(" "), LogItemType.INFO)
+      this.addConsoleOutput(null, params.join(" "))
       console.log(...params)
     }
   }
@@ -180,6 +175,7 @@ export default class Project {
 
   get consoleOutput() { return Project.consoleOutput }
   private clearConsoleOutput = Project.clearConsoleOutput
+  private addConsoleOutput = Project.addConsoleOutput
   //#endregion
 
   //#region Static factory methods
@@ -454,11 +450,6 @@ export default class Project {
 
   async run(canvas?: HTMLCanvasElement | null) {
     if (!canvas) return
-    if (this.isRunning) await this.stop(canvas)
-    
-    // Set running instance id
-    const instanceId = Math.random().toString(36).substring(7)
-    await this.setRunningInstanceId(instanceId)
 
     // Clear console
     this.clearConsoleOutput()
@@ -489,8 +480,28 @@ export default class Project {
       return acc
     }, {} as Record<string, RuntimeGameObjectData>)
 
+    // Check if there are any compilation errors
+    let hasCompilationErrors = false
+    for (const [gameObjectKey, ast] of Object.entries(this.compiledASTs)) {
+      for (const error of ast.errors) {
+        this.addConsoleOutput(`[${this.data.gameObjects[gameObjectKey]?.id}] ${error.message}`, LogItemType.ERROR)
+        hasCompilationErrors = true
+      }
+    }
+    if (hasCompilationErrors) return
+
+    // Stop running instance if running
+    if (this.isRunning) await this.stop(canvas)
+    
+    // Set running instance id
+    const instanceId = Math.random().toString(36).substring(7)
+    await this.setRunningInstanceId(instanceId)
+
     // Execute code
-    EngineRunner.run(newRuntimeProjectData, () => this.runningInstanceId !== instanceId, canvas)
+    EngineRunner.run(newRuntimeProjectData, () => this.runningInstanceId !== instanceId, canvas, (gameObjectId, error) => {
+      if (!error.message) return
+      this.addConsoleOutput(gameObjectId, error.message, LogItemType.ERROR)
+    })
   }
 
   async stop(canvas?: HTMLCanvasElement | null) {

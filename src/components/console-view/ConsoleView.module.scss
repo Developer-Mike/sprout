@@ -22,7 +22,7 @@
   }
 
   #consoleContainer {
-    padding: 10px;
+    padding: 0 10px;
 
     border: var(--primary-dim) solid var(--border-width);
     border-radius: 16px;
@@ -37,9 +37,6 @@
       width: 500px;
       min-height: 100px;
       max-height: 300px;
-
-      border-radius: 6px;
-      border-bottom-right-radius: 0;
 
       overflow: hidden scroll;
       flex-direction: column-reverse;

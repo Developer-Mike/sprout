@@ -5,7 +5,7 @@ import LanguageBuiltins from '../compiler/language-builtins'
 import { AutocompletionItemType } from '../autocompletion-item'
 
 export default class EngineRunner {
-  static run(data: RuntimeProjectData, isStopped: () => boolean, canvas: HTMLCanvasElement) {
+  static run(data: RuntimeProjectData, isStopped: () => boolean, canvas: HTMLCanvasElement, onError: (gameObjectId: string, error: Error) => void) {
     const executionContext = {
       is_stopped: isStopped,
       stage: data.stage,
@@ -31,7 +31,7 @@ export default class EngineRunner {
           ${info.type === AutocompletionItemType.VARIABLE ? `set: (value) => { ${name} = value }` : ""}
         })
         `).join("\n")}
-      `, executionContext)
+      `, executionContext, error => onError(gameObject.id, error))
     }
 
     // Render loop
@@ -58,7 +58,7 @@ export default class EngineRunner {
                 if (unsubscribe !== true) return
                 
                 gameObject.on = gameObject.on.filter(l => l !== listener)
-              })
+              }).catch(error => onError(gameObject.id, error))
             }
           }
         }
