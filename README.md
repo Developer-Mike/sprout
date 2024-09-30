@@ -77,10 +77,10 @@ npm run dev
     - [x] Fix return statements inside for loops not working
     - [x] Fix return statements nested inside if statements not working
       - [x] Change if expressions to statements? -> Added both types!
-    - [ ] Fix return statements inside e.g. if expressions checking next line for return value
+    - [!] Fix return statements inside e.g. if expressions checking next line for return value
     - [x] Add support for && and || operators
-    - [ ] (If time allows) Add support for lambdas
-    - [ ] (If time allows) Add support for objects
+    - [!] (If time allows) Add support for lambdas
+    - [!] (If time allows) Add support for objects
     - [x] (If time allows) Add support for +=, -=, *=, /= operators
     - [x] (If time allows) Add support for unary operators (!bool, -var, +var, ++, --)
   - [x] Create AST compiler function (AST -> JavaScript)
@@ -96,12 +96,20 @@ npm run dev
     - [x] rotate_to
     - [-] collides_with, collides_with_box, collides_with_mouse
     - [x] sleep
-    - [ ] (If time allows) draw_text
-    - [ ] (If time allows) draw_line
-    - [ ] (If time allows) draw_rectangle
-    - [ ] (If time allows) draw_circle
-    - [ ] (If time allows) clone (is_clone)
-    - [ ] (If time allows) destroy
+    - [ ] (If time allows) Add physics engine
+    - [ ] (If time allows) Add support for camera
+      - [ ] stage.camera
+        - [ ] x, y (properties)
+        - [ ] move (handle delta_time)
+    - [ ] (If time allows) Add support for drawing (new entry in the runtime data)
+      - [ ] draw_text
+      - [ ] draw_line
+      - [ ] draw_rectangle
+      - [ ] draw_circle
+    - [ ] (If time allows) Add support cloning and destroying game objects while the game is running
+      - [ ] clone
+      - [ ] destroy
+      - [ ] is_clone (property)
   - [x] Add console view
     - [ ] Throw error if the user wants to start the game with syntax errors
     - [ ] Catch runtime errors and show them in the console
@@ -111,7 +119,7 @@ npm run dev
   - [x] Add a clean way to handle debug information
   - [x] Rework game object scaling (width and factor for height) -> Fix different scaling for different sprites
     - [x] Add width and height info to the sprites in the sprites library
-  - [ ] Solve all TODOs
+  - [-] Solve all TODOs
   - [x] Remove all DEBUGs
   - [x] Fix canvas can be right-clicked
   - [x] Disable the ability to select game objects through the canvas if th game is running
@@ -122,14 +130,14 @@ npm run dev
   - [x] Add absolute identifiers to project paths -> Fix project with same filename not visible in the projects overview
   - [x] Fix rotation of game objects causing other game objects to move
   - [x] Fix deletion of all game objects causing null value of selected object key
+- [ ] (If time allows) Add the ability to duplicate game objects
 - [ ] (If time allows) Add the ability to add plugins (keep in mind: security risk)
-- [ ] (Out of scope) Add the ability to duplicate game objects
-- [ ] (Out of scope) Add the ability to export and import game objects individually
-- [ ] (Out of scope) Add export of the games to standalone websites
-- [ ] (Out of scope) Add the ability to add sounds and music
-- [ ] (Out of scope) Create tool for simple image editing of sprites
-- [ ] (Out of scope) Add tooltips
-  - [ ] Unsaved changes
-  - [ ] Game object properties
-  - [ ] Add game object button
-  - [ ] Vertical tab buttons
+- [!] (Out of scope) Add the ability to export and import game objects individually
+- [!] (Out of scope) Add export of the games to standalone websites
+- [!] (Out of scope) Add the ability to add sounds and music
+- [!] (Out of scope) Create tool for simple image editing of sprites
+- [!] (Out of scope) Add tooltips
+  - [!] Unsaved changes
+  - [!] Game object properties
+  - [!] Add game object button
+  - [!] Vertical tab buttons

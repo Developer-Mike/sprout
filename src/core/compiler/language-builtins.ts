@@ -20,7 +20,6 @@ export default class LanguageBuiltins {
   }
 
   addAutocompletionItems(suggestions: Record<string, AutocompletionItem>) {
-    suggestions["Object"] = { type: AutocompletionItemType.CONSTANT, children: {} }
     suggestions["Math"] = { type: AutocompletionItemType.CONSTANT, children: {} }
     suggestions["log"] = { type: AutocompletionItemType.FUNCTION, children: {} }
     suggestions["range"] = { type: AutocompletionItemType.FUNCTION, children: {} }

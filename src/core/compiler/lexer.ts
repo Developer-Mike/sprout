@@ -205,6 +205,12 @@ export default class Lexer {
         return new Token(TokenType.OPERATOR_ASSIGNMENT, binOp, this.currentLocation, 2)
       }
 
+      // Check for power operator
+      if (binOp === "*" && this.currentChar === "*") {
+        this.consumeChar()
+        return new Token(TokenType.BINARY_OPERATOR, "**", this.currentLocation, 2)
+      }
+
       return new Token(TokenType.BINARY_OPERATOR, binOp, this.currentLocation)
     }
 
