@@ -7,7 +7,7 @@ export default class ExecutionHelper {
     let func = new Function(`with(this) { ${src} }`)
 
     try {
-      func.call(ctx).catch?.(onError)
+      func.call(ctx)?.catch?.(onError)
     } catch (error) {
       onError?.(error as Error)
     }

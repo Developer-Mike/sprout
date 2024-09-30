@@ -114,7 +114,7 @@ npm run dev
 - [x] Add console view
   - [x] Throw error if the user wants to start the game with syntax errors
   - [x] Catch runtime errors and show them in the console
-  - [ ] (If time allows) Add advanced explanations to error messages
+  - [!] (If time allows) Add advanced explanations to error messages
 - [-] Miscellaneous
   - [x] Add a clean way to handle debug information
   - [x] Rework game object scaling (width and factor for height) -> Fix different scaling for different sprites
@@ -123,6 +123,11 @@ npm run dev
   - [x] Remove all DEBUGs
   - [x] Fix canvas can be right-clicked
   - [x] Disable the ability to select game objects through the canvas if th game is running
+  - [ ] When editing a float and deleting the last digit before the decimal point, the dot gets deleted unintentionally
+  - [ ] When editing e.g. 800 and deleting the 8, the 0 gets deleted unintentionally
+  - [ ] Limit max height of game object preview in code editor
+  - [ ] Reset linked scaling when changing the sprite
+  - [!] (Out of scope) Allow simple calculations in the LabeledNumberInput
 - [-] Create some example games
   - [ ] Add the ability to add information text to the documentation sidebar
 - [x] Add warning if not using Chrome

@@ -351,7 +351,7 @@ export default class Project {
           const globalDeclarations = this.compiledASTs[gameObjectKey]?.getGlobalDeclarations() ?? {}
 
           suggestions.game_objects.children[gameObjectId].children = {
-            ...suggestions.game_objects.children[gameObjectId].children,
+            ...suggestions.game_objects.children[gameObjectId].children ?? {},
             ...globalDeclarations
           }
         }

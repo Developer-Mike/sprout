@@ -38,6 +38,7 @@
     height: calc(100% - 1em - 10px);
     max-width: 90%;
 
+    image-rendering: pixelated;
     object-fit: contain;
   }
 

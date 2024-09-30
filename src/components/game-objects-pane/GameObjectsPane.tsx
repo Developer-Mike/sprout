@@ -5,7 +5,7 @@ import namedSpriteListItemStyles from "@/components/named-sprite-list-item/Named
 import React, { useContext, useEffect, useState } from "react"
 import LabeledTextInput from "../labeled-input/LabeledTextInput"
 import Icon from "../Icon"
-import { BLANK_IMAGE, DEFAULT_NEW_GAME_OBJECT, DEFAULT_GAME_OBJECT_SIZE } from "@/constants"
+import { DEFAULT_NEW_GAME_OBJECT } from "@/constants"
 import LabeledBooleanInput from "../labeled-input/LabeledBooleanInput"
 import LabeledNumberInput, { InputType } from "../labeled-input/LabeledNumberInput"
 import { DialogContext } from "../dialog/Dialog"
@@ -183,7 +183,7 @@ export default function GameObjectsPane() {
             }
           )}>
             <NamedSpriteListItem
-              className={project.runtimeProjectData?.gameObjects?.[gameObject.id]?.code?.errors?.length ? namedSpriteListItemStyles.hasError : ""}
+              className={project.compiledASTs?.[gameObjectKey]?.errors?.length ? namedSpriteListItemStyles.hasError : ""}
               label={gameObject.id}
               src={project.getActiveSprite(gameObject).src}
               onClick={() => project.updateData(

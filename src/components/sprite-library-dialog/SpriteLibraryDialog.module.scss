@@ -75,6 +75,8 @@
         height: 40%;
         max-width: 100%;
         aspect-ratio: 1;
+
+        image-rendering: pixelated;
         object-fit: contain;
 
         margin-bottom: 20px;

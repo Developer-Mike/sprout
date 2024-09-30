@@ -61,7 +61,7 @@ export default class Parser {
     this.errors = []
 
     const body: AST[] = []
-    while (this.currentToken !== undefined && this.currentToken.type !== TokenType.EOF) {
+    while (this.currentToken.type !== TokenType.EOF) {
       const node = this.parseStatement()
       if (node !== null) body.push(node)
     }
@@ -76,7 +76,10 @@ export default class Parser {
 
   private logError(message: string, location: SourceLocation) {
     this.errors.push(new CompileError(message, location))
-    this.consumeToken() // consume the token to avoid infinite loop
+
+    // consume the token to avoid infinite loop
+    if (this.currentToken.type !== TokenType.EOF) this.consumeToken()
+    
     return null
   }
 

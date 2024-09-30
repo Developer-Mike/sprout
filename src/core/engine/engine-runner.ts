@@ -52,7 +52,10 @@ export default class EngineRunner {
         // Run game loop
         for (const gameObject of Object.values(executionContext.game_objects) as RuntimeGameObjectData[]) {
           for (const listener of gameObject.on) {
-            if (listener.condition()) {
+            let condition = false
+            try { condition = listener.condition() } catch (error: any) { onError(gameObject.id, error) }
+            
+            if (condition) {
               listener.callback().then(unsubscribe => {
                 if (executionContext.is_stopped()) return
                 if (unsubscribe !== true) return

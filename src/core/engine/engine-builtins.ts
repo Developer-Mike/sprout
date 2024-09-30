@@ -2,6 +2,7 @@ import { RuntimeGameObjectData, RuntimeProjectData } from "@/types/RuntimeProjec
 import SpriteHelper from "@/utils/sprite-helper"
 import AutocompletionItem, { AutocompletionItemType } from "../autocompletion-item"
 import ObjectHelper from "@/utils/object-helper"
+import { GameObjectData } from "@/types/ProjectData"
 
 export default class EngineBuiltins {
   private executionContext: any
@@ -40,7 +41,9 @@ export default class EngineBuiltins {
     get_collision_with: this.get_collision_with.bind(this),
     get_box_collision_with: this.get_box_collision_with.bind(this),
     get_collisions: this.get_collisions.bind(this),
-    get_box_collisions: this.get_box_collisions.bind(this)
+    get_box_collisions: this.get_box_collisions.bind(this),
+    previous_sprite: this.previous_sprite.bind(this),
+    next_sprite: this.next_sprite.bind(this)
   }
 
   constructor(executionContext: any, canvas: HTMLCanvasElement) {
@@ -57,7 +60,7 @@ export default class EngineBuiltins {
       const gameObject = this.executionContext.game_objects[gameObjectId]
       ObjectHelper.deepMerge(gameObject, this.gameObjectsBuiltins, (object, key, value) => {
         Object.defineProperty(object, key, {
-          get: () => (...params: any) => value.call(this, gameObject, ...params)
+          get: () => (...params: any) => value(gameObject, ...params)
         })
       })
     }
@@ -140,6 +143,9 @@ export default class EngineBuiltins {
     gameObjectSuggestions["get_box_collision_with"] = { type: AutocompletionItemType.FUNCTION, children: {} }
     gameObjectSuggestions["get_collisions"] = { type: AutocompletionItemType.FUNCTION, children: {} }
     gameObjectSuggestions["get_box_collisions"] = { type: AutocompletionItemType.FUNCTION, children: {} }
+
+    gameObjectSuggestions["previous_sprite"] = { type: AutocompletionItemType.FUNCTION, children: {} }
+    gameObjectSuggestions["next_sprite"] = { type: AutocompletionItemType.FUNCTION, children: {} }
   }
 
   private setupInputListeners() {
@@ -257,6 +263,14 @@ export default class EngineBuiltins {
     return angle
   }
 
+  previous_sprite(game_object: RuntimeGameObjectData) {
+    game_object.active_sprite = (game_object.active_sprite - 1 + game_object.sprites.length) % game_object.sprites.length
+  }
+
+  next_sprite(game_object: RuntimeGameObjectData) {
+    game_object.active_sprite = (game_object.active_sprite + 1) % game_object.sprites.length
+  }
+
   get_collision_with(game_object: RuntimeGameObjectData, target_game_object_or_x: any, target_y?: number): Collision | null {
     const box_collision = this.get_box_collision_with(game_object, target_game_object_or_x, target_y)
     if (!box_collision) return null // Not even box collision
@@ -352,6 +366,9 @@ export default class EngineBuiltins {
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
+    // Disable image smoothing
+    ctx.imageSmoothingEnabled = false
+
     // Update image cache
     if (clearCache) {
       for (const cachedSprite in this.spritesCache) {
@@ -379,9 +396,11 @@ export default class EngineBuiltins {
     // Clear canvas
     ctx.clearRect(0, 0, data.stage.width, data.stage.height)
 
+    // Order game objects by layer
     const orderedGameObjects = Object.values(data.gameObjects)
       .sort((a, b) => a.layer - b.layer)
 
+    // Draw game objects
     for (const gameObject of orderedGameObjects) {
       if (!gameObject.visible) continue
 

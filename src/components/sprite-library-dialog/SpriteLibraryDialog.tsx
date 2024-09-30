@@ -150,7 +150,9 @@ export default function SpriteLibraryDialog({ isVisible, onSelect, onCancel }: {
 
               const reader = new FileReader()
               reader.onload = async () => {
-                const spriteName = IdHelper.generateId(t("default-sprite-id"), Object.keys(project.data.sprites))
+                let spriteName = IdHelper.makeIdValid(file.name.split(".")[0])
+                if (!spriteName || project.data.sprites[spriteName]) 
+                  spriteName = IdHelper.generateId(t("default-sprite-id"), Object.keys(project.data.sprites))
 
                 const image = await SpriteHelper.loadFromBase64(reader.result as string)
                 const collisionMask = SpriteHelper.getCollisionMask(image)
