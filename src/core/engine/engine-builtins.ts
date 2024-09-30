@@ -144,6 +144,8 @@ export default class EngineBuiltins {
 
   private setupInputListeners() {
     const getKeyName = (key: string) => {
+      if (!key) return "unknown"
+      
       if (key === " ") return "space"
       return key.replace(/(?<!^)[A-Z]/g, letter => `_${letter.toLowerCase()}`).toLowerCase()
     }

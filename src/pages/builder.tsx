@@ -14,6 +14,7 @@ import { DEBUG_BYPASS_SAVE_ALERT } from "@/constants"
 import Project from "@/core/Project"
 import styles from "@/styles/Builder.module.scss"
 import { ExtendedWindow } from "@/types/ExtendedWindow"
+import DBHelper from "@/utils/db-helper"
 import useTranslation from "next-translate/useTranslation"
 import { useRouter } from "next/router"
 import { useContext, useEffect, useRef, useState } from "react"
@@ -30,15 +31,23 @@ export default function Builder() {
 
   const [project, _setProject] = useState<Project | null>(null)
 
-  const showInvalidProjectDialog = (path: string) => {
+  const showInvalidProjectDialog = (projectId: string) => {
     dialog.showDialog({
-      id: "invalid-project-path",
-      title: t("invalid-project-path-dialog.title"),
-      content: t("invalid-project-path-dialog.message", { path: path }),
+      id: "project-not-found-dialog",
+      title: t("project-not-found-dialog.title"),
+      content: t("project-not-found-dialog.message"),
       actions: [
         {
+          element: <button>{t("project-not-found-dialog.remove-from-list")}</button>,
+          onClick: hide => {
+            hide()
+            DBHelper.removeRecentProject(projectId)
+            router.push("/projects-overview")
+          }
+        },
+        {
           default: true,
-          element: <button className="primary">{t("invalid-project-path-dialog.return-to-overview")}</button>,
+          element: <button className="primary">{t("common:close")}</button>,
           onClick: hide => {
             hide()
             router.push("/projects-overview")
@@ -65,15 +74,13 @@ export default function Builder() {
 
       _setProject(project)
     } else if (projectId) {
-      // TODO: Show dialog for user gesture if the project was directly opened by the link without visiting the projects overview page
       // TODO: Show invalid project dialog if the file isn't a valid project
-      // TODO: Redirect back if the project doesn't exist
       const project = await Project.loadFromRecent(projectId)
       
       if (project) _setProject(project)
-      else router.push("/projects-overview") // TODO: showInvalidProjectDialog(projectPath)
+      else showInvalidProjectDialog(projectId)
     }
-  })() }, [router.query])
+  })() }, [router.isReady])
 
   useEffect(() => {
     // Allow access to project from the browser console
@@ -92,6 +99,14 @@ export default function Builder() {
 
     return uninstallAutosave
   }, [project])
+
+  useEffect(() => {
+    if (!project?.fileHandler || !project.projectId) return
+    if (router.query.project) return
+
+    // Update the URL with the project id
+    router.replace(router.pathname, `/builder?project=${project.projectId}`)
+  }, [project, project?.fileHandler, project?.projectId])
 
   return (
     <>
