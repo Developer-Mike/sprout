@@ -3,11 +3,14 @@ import SpriteHelper from "@/utils/sprite-helper"
 import AutocompletionItem, { AutocompletionItemType } from "../autocompletion-item"
 import ObjectHelper from "@/utils/object-helper"
 import { GameObjectData } from "@/types/ProjectData"
+import CollisionEngine, { CollisionInfo } from "./collision-engine"
+import Vector from "./vector"
 
 export default class EngineBuiltins {
   private executionContext: any
   private canvas: HTMLCanvasElement
   private readonly builtins: { [key: string]: any } = {
+    Vector: Vector,
     sleep: this.sleep.bind(this),
     tick: this.tick.bind(this),
     await_frame: this.awaitFrame.bind(this),
@@ -34,6 +37,7 @@ export default class EngineBuiltins {
   } as const
   private readonly gameObjectsBuiltins: { [path: string]: any } = {
     transform: {
+      get_bounds: this.get_bounds.bind(this),
       move: this.move.bind(this),
       rotate: this.rotate.bind(this),
       rotate_to: this.rotate_to.bind(this)
@@ -132,6 +136,16 @@ export default class EngineBuiltins {
       type: AutocompletionItemType.CONSTANT,
       children: {
         ...gameObjectSuggestions["transform"].children,
+
+        "get_bounds": { 
+          type: AutocompletionItemType.FUNCTION, 
+          children: {
+            "max_y": { type: AutocompletionItemType.FUNCTION, children: {} },
+            "min_y": { type: AutocompletionItemType.FUNCTION, children: {} },
+            "max_x": { type: AutocompletionItemType.FUNCTION, children: {} },
+            "min_x": { type: AutocompletionItemType.FUNCTION, children: {} }
+          }
+        },
         
         "move": { type: AutocompletionItemType.FUNCTION, children: {} },
         "rotate": { type: AutocompletionItemType.FUNCTION, children: {} },
@@ -227,6 +241,40 @@ export default class EngineBuiltins {
   //#endregion
 
   //#region Game Object Functions
+  // Get bounds (min_x, max_x, min_y, max_y) for the game object regarding its rotation
+  get_bounds(game_object: RuntimeGameObjectData) {
+    const sprite = this.executionContext.sprites[game_object.sprites[game_object.active_sprite]]
+    const transform = game_object.transform
+
+    const width = transform.width * sprite.width
+    const height = transform.height * sprite.height
+
+    const x = -width / 2
+    const y = -height / 2
+
+    const rotation = transform.rotation * Math.PI / 180
+    const cos = Math.cos(rotation)
+    const sin = Math.sin(rotation)
+
+    const points = [
+      { x, y },
+      { x: x + width, y },
+      { x: x + width, y: y + height },
+      { x, y: y + height }
+    ]
+
+    const bounds = points.map(point => ({
+      x: transform.x + (point.x * cos - point.y * sin),
+      y: transform.y + (point.x * sin + point.y * cos)
+    }))
+    const min_x = Math.min(...bounds.map(point => point.x))
+    const max_x = Math.max(...bounds.map(point => point.x))
+    const min_y = Math.min(...bounds.map(point => point.y))
+    const max_y = Math.max(...bounds.map(point => point.y))
+
+    return { min_x, max_x, min_y, max_y }
+  }
+
   move(game_object: RuntimeGameObjectData, x: number, y: number): null {
     game_object.transform.x += x * this.executionContext.time.delta_time
     game_object.transform.y += y * this.executionContext.time.delta_time
@@ -238,19 +286,6 @@ export default class EngineBuiltins {
     game_object.transform.rotation += angle * this.executionContext.time.delta_time
 
     return null
-  }
-
-  get_bounding_box(game_object: RuntimeGameObjectData): BoundingBox {
-    const sprite = this.executionContext.sprites[game_object.sprites[game_object.active_sprite]]
-    const width = game_object.transform.width * (sprite?.width ?? 0)
-    const height = game_object.transform.height * (sprite?.height ?? 0)
-
-    return {
-      min_x: game_object.transform.x - width / 2,
-      min_y: game_object.transform.y - height / 2,
-      max_x: game_object.transform.x + width / 2,
-      max_y: game_object.transform.y + height / 2
-    }
   }
 
   rotate_to(game_object: RuntimeGameObjectData, target_game_object_or_x: any, target_y?: number): number {
@@ -271,86 +306,61 @@ export default class EngineBuiltins {
     game_object.active_sprite = (game_object.active_sprite + 1) % game_object.sprites.length
   }
 
-  get_collision_with(game_object: RuntimeGameObjectData, target_game_object_or_x: any, target_y?: number): Collision | null {
-    const box_collision = this.get_box_collision_with(game_object, target_game_object_or_x, target_y)
-    if (!box_collision) return null // Not even box collision
+  private collisionEngine = new CollisionEngine()
+  get_collision_with(game_object: RuntimeGameObjectData, target_game_object_or_x: any, target_y?: number): CollisionInfo | null {
+    const collision = target_y !== undefined ?
+      this.collisionEngine.spritePointCollision(
+        this.executionContext.sprites[game_object.sprites[game_object.active_sprite]], game_object.transform, 
+        new Vector(target_game_object_or_x, target_y)
+      ) :
+      this.collisionEngine.spriteCollision(
+        this.executionContext.sprites[game_object.sprites[game_object.active_sprite]], game_object.transform,
+        this.executionContext.sprites[target_game_object_or_x.sprites[target_game_object_or_x.active_sprite]], target_game_object_or_x.transform
+      )
 
-    const game_object_collision_mask = this.executionContext.sprites[game_object.sprites[game_object.active_sprite]].collision_mask
+    if (collision) collision.game_object = target_game_object_or_x
 
-    if (typeof target_game_object_or_x === "object") {
-      const target_game_object = target_game_object_or_x
-
-      const target_collision_mask = this.executionContext.sprites[target_game_object.sprites[target_game_object.active_sprite]].COLLISION_MASK_SIZE
-
-      for (let y = box_collision.bounding_box.min_y; y < box_collision.bounding_box.max_y; y++) {
-        for (let x = box_collision.bounding_box.min_x; x < box_collision.bounding_box.max_x; x++) {
-          const local_x = x - target_game_object.transform.x
-          const local_y = y - target_game_object.transform.y
-
-          if (local_x < 0 || local_x >= target_collision_mask[0].length) continue
-          if (local_y < 0 || local_y >= target_collision_mask.length) continue
-
-          if (target_collision_mask[local_y][local_x] && game_object_collision_mask[y][x])
-            return { game_object: target_game_object, bounding_box: box_collision.bounding_box }
-        }
-      }
-    } else {
-      const local_x = target_game_object_or_x as number - game_object.transform.x
-      const local_y = target_y as number - game_object.transform.y
-
-      if (local_x < 0 || local_x >= game_object_collision_mask[0].length) return null
-      if (local_y < 0 || local_y >= game_object_collision_mask.length) return null
-
-      if (game_object_collision_mask[local_y][local_x])
-        return { game_object: null, bounding_box: box_collision.bounding_box }
-    }
-
-    return null
+    return collision
   }
 
-  get_box_collision_with(game_object: RuntimeGameObjectData, target_game_object_or_x: any, target_y?: number): Collision | null {
-    const game_object_bounding_box = this.get_bounding_box(game_object)
-    const target_bounding_box = target_y === undefined ?
-      this.get_bounding_box(target_game_object_or_x) :
-      { min_x: target_game_object_or_x, min_y: target_y, max_x: target_game_object_or_x, max_y: target_y }
+  get_box_collision_with(game_object: RuntimeGameObjectData, target_game_object_or_x: any, target_y?: number): CollisionInfo | null {
+    const collision = target_y !== undefined ?
+      this.collisionEngine.spriteBoxPointCollision(
+        this.executionContext.sprites[game_object.sprites[game_object.active_sprite]], game_object.transform,
+        new Vector(target_game_object_or_x, target_y)
+      ) :
+      this.collisionEngine.spriteBoxCollision(
+        this.executionContext.sprites[game_object.sprites[game_object.active_sprite]], game_object.transform,
+        this.executionContext.sprites[target_game_object_or_x.sprites[target_game_object_or_x.active_sprite]], target_game_object_or_x.transform
+      )
 
-    if (
-      game_object_bounding_box.min_x <= target_bounding_box.max_x &&
-      game_object_bounding_box.max_x >= target_bounding_box.min_x &&
-      game_object_bounding_box.min_y <= target_bounding_box.max_y &&
-      game_object_bounding_box.max_y >= target_bounding_box.min_y
-    ) {
-      const target_game_object = typeof target_game_object_or_x === "object" ? target_game_object_or_x : null
-      const collision_bounding_box = {
-        min_x: Math.max(game_object_bounding_box.min_x, target_bounding_box.min_x),
-        min_y: Math.max(game_object_bounding_box.min_y, target_bounding_box.min_y),
-        max_x: Math.min(game_object_bounding_box.max_x, target_bounding_box.max_x),
-        max_y: Math.min(game_object_bounding_box.max_y, target_bounding_box.max_y)
-      }
+    if (collision) collision.game_object = target_game_object_or_x
 
-      return { game_object: target_game_object, bounding_box: collision_bounding_box }
-    }
-
-    return null
+    return collision
   }
 
-  get_collisions(game_object: RuntimeGameObjectData): Collision[] {
-    const boxCollisions = this.get_box_collisions(game_object) // Get box collisions first
-    const collisions: Collision[] = []
+  get_collisions(game_object: RuntimeGameObjectData, layers?: number[]): CollisionInfo[] {
+    const boxCollisions = this.get_box_collisions(game_object, layers) // Get box collisions first
+    const collisions: CollisionInfo[] = []
 
     for (const boxCollision of boxCollisions) {
       const collision = this.get_collision_with(game_object, boxCollision.game_object)
-      if (collision) collisions.push(collision)
+
+      if (collision) {
+        collision.game_object = boxCollision.game_object
+        collisions.push(collision)
+      }
     }
 
     return collisions
   }
 
-  get_box_collisions(game_object: RuntimeGameObjectData): Collision[] {
-    const collisions: Collision[] = []
+  get_box_collisions(game_object: RuntimeGameObjectData, layers?: number[]): CollisionInfo[] {
+    const collisions: CollisionInfo[] = []
 
-    for (const other_game_object of Object.values(this.executionContext.game_objects)) {
+    for (const other_game_object of Object.values(this.executionContext.game_objects) as RuntimeGameObjectData[]) {
       if (other_game_object === game_object) continue // Skip self
+      if (layers && !layers.includes(other_game_object.layer)) continue // Skip if not in layer
 
       const collision = this.get_box_collision_with(game_object, other_game_object)
       if (collision) collisions.push(collision)
@@ -452,16 +462,4 @@ export interface KeyState {
   is_down: boolean
   is_pressed: boolean
   is_up: boolean
-}
-
-export interface Collision {
-  game_object: RuntimeGameObjectData | null
-  bounding_box: BoundingBox
-}
-
-export interface BoundingBox {
-  min_x: number
-  min_y: number
-  max_x: number
-  max_y: number
 }

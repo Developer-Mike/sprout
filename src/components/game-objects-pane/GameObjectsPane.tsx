@@ -45,6 +45,7 @@ export default function GameObjectsPane() {
   }
 
   useEffect(() => {
+    setLinkedScalingEnabled(true)
     setAspectRatioCache(project.selectedGameObject.transform.width / Math.max(1, project.selectedGameObject.transform.height))
   }, [project.data.workspace.selectedGameObjectKey])
 

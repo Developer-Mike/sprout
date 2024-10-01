@@ -155,12 +155,10 @@ export default function SpriteLibraryDialog({ isVisible, onSelect, onCancel }: {
                   spriteName = IdHelper.generateId(t("default-sprite-id"), Object.keys(project.data.sprites))
 
                 const image = await SpriteHelper.loadFromBase64(reader.result as string)
-                const collisionMask = SpriteHelper.getCollisionMask(image)
                 
                 project.updateData(null, data => {
                   data.sprites[spriteName] = {
                     src: image.src,
-                    collision_mask: collisionMask,
                     width: image.width,
                     height: image.height
                   }

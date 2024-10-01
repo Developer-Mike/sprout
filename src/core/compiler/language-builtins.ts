@@ -17,6 +17,11 @@ export default class LanguageBuiltins {
     for (const key in this.builtins) {
       this.executionContext[key] = this.builtins[key]
     }
+
+    // Add builtins to prototypes
+    ;(Array.prototype as any).first = function() {
+      return this[0]
+    }
   }
 
   addAutocompletionItems(suggestions: Record<string, AutocompletionItem>) {

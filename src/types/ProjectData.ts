@@ -21,7 +21,6 @@ export interface StageData {
 
 export interface SpriteData {
   src: string
-  collision_mask: boolean[][]
   width: number
   height: number
 }
@@ -29,13 +28,7 @@ export interface SpriteData {
 export interface GameObjectData {
   id: string
 
-  transform: {
-    x: number
-    y: number
-    rotation: number
-    width: number
-    height: number
-  }
+  transform: Transform
 
   visible: boolean
   layer: number
@@ -43,4 +36,12 @@ export interface GameObjectData {
   active_sprite: number
 
   code: string
+}
+
+export interface Transform {
+  x: number
+  y: number
+  rotation: number
+  width: number
+  height: number
 }

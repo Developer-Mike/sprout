@@ -10,7 +10,7 @@ export const MAX_CONSOLE_OUTPUT_LENGTH = 200
 
 export const BLANK_IMAGE = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
 export const MAX_SPRITE_SIZE = 1024 // TODO: Implement this
-export const COLLISION_MASK_SIZE = 128
+export const COLLISION_MASK_SIZE = 256
 export const DEFAULT_STAGE_SIZE = { width: 1920, height: 1080 } as const
 export const DEFAULT_NEW_GAME_OBJECT: GameObjectData = {
   id: "",

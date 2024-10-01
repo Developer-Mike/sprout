@@ -11,27 +11,24 @@ export default class SpriteHelper {
     })
   }
 
-  static getCollisionMask(sprite: HTMLImageElement): boolean[][] {
+  static async getCollisionMask(base64: string): Promise<ImageData> {
+    const sprite = await this.loadFromBase64(base64)
+    const landscape = sprite.width > sprite.height
+
     const canvas = document.createElement("canvas")
-    canvas.width = sprite.width
-    canvas.height = sprite.height
+    canvas.width = landscape ? COLLISION_MASK_SIZE : COLLISION_MASK_SIZE * sprite.width / sprite.height
+    canvas.height = landscape ? COLLISION_MASK_SIZE * sprite.height / sprite.width : COLLISION_MASK_SIZE
 
     const context = canvas.getContext("2d")
-    if (!context) return []
-    context.drawImage(sprite, 0, 0)
+    context!.drawImage(sprite, 0, 0, canvas.width, canvas.height)
 
-    const data = context.getImageData(0, 0, sprite.width, sprite.height).data
-
-    // TODO: Shrink the collision mask to COLLISION_MASK_SIZE
-    const collisionMask: boolean[][] = []
-    for (let y = 0; y < sprite.height; y++) {
-      collisionMask[y] = []
-      for (let x = 0; x < sprite.width; x++) {
-        const alpha = data[(y * sprite.width + x) * 4 + 3]
-        collisionMask[y][x] = alpha > 0
-      }
+    // Make every pixel alpha 128 (except for the transparent ones)
+    const imageData = context!.getImageData(0, 0, canvas.width, canvas.height)
+    for (let i = 3; i < imageData.data.length; i += 4) {
+      if (imageData.data[i] === 0) continue
+      imageData.data[i] = 128
     }
-
-    return collisionMask
+    
+    return imageData
   }
 }

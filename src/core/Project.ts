@@ -5,7 +5,7 @@ import DBHelper from "@/utils/db-helper"
 import PROJECT_TEMPLATES from "./project-templates/project-templates"
 import TransactionInfo, { TransactionCategory, TransactionType } from "@/types/TransactionInfo"
 import EngineBuiltins from "./engine/engine-builtins"
-import { RuntimeGameObjectData, RuntimeProjectData } from "@/types/RuntimeProjectData"
+import { RuntimeGameObjectData, RuntimeProjectData, RuntimeSpriteData } from "@/types/RuntimeProjectData"
 import Compiler from "./compiler/compiler"
 import EngineRunner from "./engine/engine-runner"
 import { BLANK_IMAGE, MAX_CONSOLE_OUTPUT_LENGTH } from "@/constants"
@@ -18,6 +18,8 @@ import MemberExprAST from "./compiler/ast/expr/member-expr-ast"
 import IdentifierExprAST from "./compiler/ast/expr/identifier-expr-ast"
 import LogItem, { LogItemType } from "@/types/LogItem"
 import { ExtendedConsole } from "@/types/ExtendedConsole"
+import SpriteHelper from "@/utils/sprite-helper"
+import utils from "util"
 
 export default class Project {
   //#region Static React States
@@ -132,7 +134,11 @@ export default class Project {
     ;(console as ExtendedConsole).runtimeLog = (...params: any) => {
       if (Project.runningInstanceId === null) return
 
-      this.addConsoleOutput(null, params.join(" "))
+      const stringifiedParams = params.map((param: any) => 
+        typeof param === "object" ? utils.inspect(param) : param
+      )
+
+      this.addConsoleOutput(null, stringifiedParams.join(" "))
       console.log(...params)
     }
   }
@@ -461,10 +467,18 @@ export default class Project {
     newRuntimeProjectData.stage = JSON.parse(JSON.stringify(this.data.stage))
 
     // Optimize sprites
-    newRuntimeProjectData.sprites = JSON.parse(JSON.stringify(Object.fromEntries(
-      Object.entries(this.data.sprites)
-        .filter(([key, _value]) => Object.values(this.data.gameObjects).some(gameObject => gameObject.sprites.includes(key)))
-    )))
+    const spritesCopy = JSON.parse(JSON.stringify(this.data.sprites))
+    for (const spriteKey in spritesCopy) {
+      // Check if sprite is used in any game object
+      if (!Object.values(this.data.gameObjects).some(gameObject => gameObject.sprites.includes(spriteKey))) {
+        delete spritesCopy[spriteKey]
+        continue
+      }
+
+      const sprite = spritesCopy[spriteKey] as RuntimeSpriteData
+      sprite.collision_mask = await SpriteHelper.getCollisionMask(sprite.src)
+    }
+    newRuntimeProjectData.sprites = spritesCopy
 
     // Compile codes
     await this.compileAST()

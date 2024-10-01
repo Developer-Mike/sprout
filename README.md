@@ -125,8 +125,8 @@ npm run dev
   - [x] Disable the ability to select game objects through the canvas if th game is running
   - [ ] When editing a float and deleting the last digit before the decimal point, the dot gets deleted unintentionally
   - [ ] When editing e.g. 800 and deleting the 8, the 0 gets deleted unintentionally
-  - [ ] Limit max height of game object preview in code editor
-  - [ ] Reset linked scaling when changing the sprite
+  - [x] Limit max height of game object preview in code editor
+  - [x] Reset linked scaling when changing the sprite
   - [!] (Out of scope) Allow simple calculations in the LabeledNumberInput
 - [-] Create some example games
   - [ ] Add the ability to add information text to the documentation sidebar

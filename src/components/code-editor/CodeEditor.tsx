@@ -10,8 +10,18 @@ import ConsoleView from "../console-view/ConsoleView"
 export default function CodeEditor() {
   const { project } = useContext(ProjectContext)
   const router = useRouter()
-
   const monaco = useMonaco()
+
+  const setupModel = (model: any) => {
+    validate()
+
+    model.onDidChangeContent(() => {
+      project.updateData(null, data => {
+        data.gameObjects[project.selectedGameObjectKey].code = model.getValue()
+      }).then(() => validate())
+    })
+  }
+
   useEffect(() => {
     if (!monaco) return
 
@@ -21,8 +31,8 @@ export default function CodeEditor() {
     monaco.languages.registerCompletionItemProvider(SPROUT_LANGUAGE_KEY, project.getAutocompletionProvider(monaco))
 
     // Validate the code of the current model and future models created
-    validate()
-    monaco.editor.onDidCreateModel(_model => validate())
+    setupModel(monaco.editor.getModels()[0])
+    monaco.editor.onDidCreateModel(model => setupModel(model))
   }, [monaco])
 
   const validate = async () => {
@@ -95,9 +105,6 @@ export default function CodeEditor() {
         }}
         path={project.selectedGameObjectKey}
         value={project.selectedGameObject.code}
-        onChange={value => project.updateData(null, data => {
-          data.gameObjects[project.selectedGameObjectKey].code = value ?? ""
-        }).then(() => validate())}
       />
 
       <img id={styles.gameObjectPreview} src={project.getActiveSprite(project.selectedGameObject).src} />
