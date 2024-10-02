@@ -318,8 +318,7 @@ export default class EngineBuiltins {
         this.executionContext.sprites[target_game_object_or_x.sprites[target_game_object_or_x.active_sprite]], target_game_object_or_x.transform
       )
 
-    if (collision) collision.game_object = target_game_object_or_x
-
+    if (collision && target_y === undefined) collision.game_object = target_game_object_or_x
     return collision
   }
 

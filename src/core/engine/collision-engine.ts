@@ -7,125 +7,7 @@ export default class CollisionEngine {
 
   constructor() {
     this.collisionCanvas = document.createElement("canvas")
-    this.collisionCanvas.width = 
-
-    // DEBUG
-    this.collisionCanvas.style.zIndex = "1000"
-    this.collisionCanvas.style.position = "fixed"
-    this.collisionCanvas.style.top = "0"
-    this.collisionCanvas.style.left = "0"
-    this.collisionCanvas.style.backgroundColor = "white"
-    this.collisionCanvas.style.border = "1px solid black"
-    document.body.appendChild(this.collisionCanvas)
   }
-
-  /*
-
-  // Check if a box and a point are colliding (regarding the scale and rotation of the box)
-  spriteBoxPointCollision(sprite: RuntimeSpriteData, transform: Transform, point: Vector): CollisionInfo | null {
-    const x = transform.x
-    const y = transform.y
-    const w = transform.width * sprite.width
-    const h = transform.height * sprite.height
-
-    const dx = point.x - x
-    const px = w / 2 - Math.abs(dx)
-    if (px <= 0) return null
-
-    const dy = point.y - y
-    const py = h / 2 - Math.abs(dy)
-    if (py <= 0) return null
-
-    if (px < py) {
-      const sx = Math.sign(dx)
-      return {
-        box: { x: x + sx * w / 2, y, width: px, height: h },
-        point: { x: point.x, y: y },
-        normal: { x: sx, y: 0 }
-      }
-    } else {
-      const sy = Math.sign(dy)
-      return {
-        box: { x, y: y + sy * h / 2, width: w, height: py },
-        point: { x, y: point.y },
-        normal: { x: 0, y: sy }
-      }
-    }
-  }
-
-  // Check if two sprites are colliding (return center collision point and normal)
-  spriteCollision(sprite1: RuntimeSpriteData, transform1: Transform, sprite2: RuntimeSpriteData, transform2: Transform): CollisionInfo | null {
-    // Check if bounding boxes are colliding
-    const boxCollision = this.spriteBoxCollision(sprite1, transform1, sprite2, transform2)
-    if (!boxCollision) return null
-
-    // Get intersection rectangle
-    const x1 = transform1.x
-    const y1 = transform1.y
-    const x2 = transform2.x
-    const y2 = transform2.y
-    const w1 = transform1.width * sprite1.width
-    const h1 = transform1.height * sprite1.height
-    const w2 = transform2.width * sprite2.width
-    const h2 = transform2.height * sprite2.height
-
-    const dx = x2 - x1
-    const dy = y2 - y1
-    const px = (w1 + w2) / 2 - Math.abs(dx)
-    const py = (h1 + h2) / 2 - Math.abs(dy)
-
-    const intersection = {
-      x: x1 + Math.sign(dx) * (w1 + px) / 2,
-      y: y1 + Math.sign(dy) * (h1 + py) / 2,
-      width: px,
-      height: py
-    }
-
-    // Update collision canvas
-    this.collisionCanvas.width = Math.ceil(intersection.width)
-    this.collisionCanvas.height = Math.ceil(intersection.height)
-
-    const ctx = this.collisionCanvas.getContext("2d")!
-    ctx.imageSmoothingEnabled = false
-
-    ctx.clearRect(0, 0, this.collisionCanvas.width, this.collisionCanvas.height)
-
-    // Draw both sprites on the collision canvas
-    ctx.drawImage(sprite1.collision_mask, (x1 - intersection.x) / transform1.width * sprite1.width, (y1 - intersection.y) / transform1.height * sprite1.height, sprite1.width, sprite1.height)
-    ctx.globalCompositeOperation = "source-in"
-    ctx.drawImage(sprite2.collision_mask, (x2 - intersection.x) / transform2.width * sprite2.width, (y2 - intersection.y) / transform2.height * sprite2.height, sprite2.width, sprite2.height)
-
-    return null
-  }
-
-  // Check if a sprite and a point are colliding (return center collision point and normal)
-  spritePointCollision(sprite: RuntimeSpriteData, transform: Transform, point: Vector): CollisionInfo | null {
-    // Check if bounding box and point are colliding
-    const boxCollision = this.spriteBoxPointCollision(sprite, transform, point)
-    if (!boxCollision) return null
-
-    // Update collision canvas
-    this.collisionCanvas.width = Math.ceil(transform.width * sprite.width)
-    this.collisionCanvas.height = Math.ceil(transform.height * sprite.height)
-
-    const ctx = this.collisionCanvas.getContext("2d")!
-    ctx.imageSmoothingEnabled = false
-
-    ctx.clearRect(0, 0, this.collisionCanvas.width, this.collisionCanvas.height)
-
-    // Draw sprite on the collision canvas
-    ctx.drawImage(sprite.collision_mask, 0, 0, sprite.width, sprite.height)
-
-    // Check if the pixel has an alpha value greater than 128 -> collision
-    const imageData = ctx.getImageData((point.x - transform.x) / transform.width * sprite.width, (point.y - transform.y) / transform.height * sprite.height, 1, 1)
-    if (imageData.data[3] > 128) {
-      const normal = { x: point.x - boxCollision.point.x, y: point.y - boxCollision.point.y }
-      const length = Math.sqrt(normal.x * normal.x + normal.y * normal.y)
-      return { point, normal: { x: normal.x / length, y: normal.y / length } }
-    }
-
-    return null
-  }*/
 
   // Rotate a point around an origin by an angle (in radians)
   private rotatePoint(point: Vector, angle: number, origin: Vector): Vector {
@@ -381,9 +263,23 @@ export default class CollisionEngine {
     // Check for any pixel with an alpha value greater than 128 (collision)
     const pixels = ctx.getImageData(0, 0, this.collisionCanvas.width, this.collisionCanvas.height).data
     for (let i = 0; i < pixels.length; i += 4) {
-      if (pixels[i + 3] > 128) {
-        return boxCollision
-      }
+      if (pixels[i + 3] > 128) return boxCollision
+    }
+
+    return null
+  }
+
+  spritePointCollision(sprite: RuntimeSpriteData, transform: Transform, point: Vector): CollisionInfo | null {
+    const boxCollision = this.spriteBoxPointCollision(sprite, transform, point)
+    if (!boxCollision) return null
+
+    // Render sprites on the collision canvas
+    const ctx = this.renderCollisionCanvas(boxCollision.box, [[sprite, transform]])
+
+    // Check for any pixel with an alpha value greater than 128 0 (collision)
+    const pixels = ctx.getImageData(0, 0, this.collisionCanvas.width, this.collisionCanvas.height).data
+    for (let i = 0; i < pixels.length; i += 4) {
+      if (pixels[i + 3] > 0) return boxCollision
     }
 
     return null
