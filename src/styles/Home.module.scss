@@ -48,3 +48,53 @@
     font-weight: bold;
   }
 }
+
+#features {
+  margin: 0 3em;
+
+  .feature {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    margin: 50px 0;
+
+    &:nth-child(2n) {
+      align-items: flex-end;
+
+      & > h3 {
+        transform: rotate(5deg);
+      }
+
+      & > p {
+        text-align: right;
+      }
+    }
+
+    span {
+      font-size: 2rem;
+    }
+
+    & > h3 {
+      width: max-content;
+
+      margin-top: 10px;
+      margin-bottom: 30px;
+      padding: 10px 20px;
+
+      font-size: 2em;
+
+      color: var(--on-primary);
+      background-color: var(--primary);
+      border-radius: 20px;
+
+      transform: rotate(-5deg);
+    }
+
+    & > p {
+      margin: 0;
+      font-size: 1.5em;
+      max-width: 50vw;
+    }
+  }
+}

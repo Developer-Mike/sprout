@@ -4,6 +4,7 @@ import styles from "@/styles/Home.module.scss"
 import { useEffect } from "react"
 import useTranslation from 'next-translate/useTranslation'
 import Link from "next/link"
+import Icon from "@/components/Icon"
 
 export default function Home() {
   const { t } = useTranslation("home")
@@ -44,6 +45,23 @@ export default function Home() {
           <h1 id={styles.sprout}>{t("common:project-name")}</h1>
           <h2 id={styles.slogan}>{t("slogan")}</h2>
           <Link id={styles.cta} href="/builder?template=empty"><button className="primary">{t("start-building")}</button></Link>
+        </section>
+        <section id={styles.features}>
+          <div className={styles.feature}>
+            <Icon iconId={t("feature1.icon")} />
+            <h3>{t("feature1.title")}</h3>
+            <p>{t("feature1.description")}</p>
+          </div>
+          <div className={styles.feature}>
+            <Icon iconId={t("feature2.icon")} />
+            <h3>{t("feature2.title")}</h3>
+            <p>{t("feature2.description")}</p>
+          </div>
+          <div className={styles.feature}>
+            <Icon iconId={t("feature3.icon")} />
+            <h3>{t("feature3.title")}</h3>
+            <p>{t("feature3.description")}</p>
+          </div>
         </section>
       </main>
     </>
