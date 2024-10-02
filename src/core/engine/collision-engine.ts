@@ -268,96 +268,115 @@ export default class CollisionEngine {
     const intersectionPoints: Vector[] = []
     
     // Step 1: Check for intersecting edges between the two shapes
-    const addIntersectionPoints = (verticesA: Vector[], verticesB: Vector[]) => {
-      for (let i = 0; i < verticesA.length; i++) {
-        const next = (i + 1) % verticesA.length
-        const edgeAStart = verticesA[i]
-        const edgeAEnd = verticesA[next]
+    for (let i = 0; i < vertices1.length; i++) {
+      const next = (i + 1) % vertices1.length
+      const edgeAStart = vertices1[i]
+      const edgeAEnd = vertices1[next]
 
-        for (let j = 0; j < verticesB.length; j++) {
-          const nextB = (j + 1) % verticesB.length
-          const edgeBStart = verticesB[j]
-          const edgeBEnd = verticesB[nextB]
+      for (let j = 0; j < vertices2.length; j++) {
+        const nextB = (j + 1) % vertices2.length
+        const edgeBStart = vertices2[j]
+        const edgeBEnd = vertices2[nextB]
 
-          const intersection = this.findEdgeIntersection(edgeAStart, edgeAEnd, edgeBStart, edgeBEnd)
-          if (intersection) {
-            intersectionPoints.push(intersection)
-          }
-        }
+        const intersection = this.findEdgeIntersection(edgeAStart, edgeAEnd, edgeBStart, edgeBEnd)
+        if (intersection) intersectionPoints.push(intersection)
       }
     }
-
-    // Add the intersection points between the two sets of vertices
-    addIntersectionPoints(vertices1, vertices2)
-    addIntersectionPoints(vertices2, vertices1)
 
     // Step 2: Include all vertices inside the other shape
-    const addContainedPoints = (verticesA: Vector[], verticesB: Vector[]) => {
-      for (const vertex of verticesA) {
-        if (this.isPointInPolygon(vertex, verticesB)) {
-          intersectionPoints.push(vertex)
-        }
+    for (const [vertices, polygon] of [[vertices1, vertices2], [vertices2, vertices1]] as [Vector[], Vector[]][]) {
+      for (const vertex of vertices) {
+        if (!this.isPointInPolygon(vertex, polygon)) continue
+
+        intersectionPoints.push(vertex)
       }
     }
 
-    addContainedPoints(vertices1, vertices2)
-    addContainedPoints(vertices2, vertices1)
-
     // Step 3: Calculate the bounding box around the intersection points
-    const collisionMinX = Math.min(...intersectionPoints.map(p => p.x))
-    const collisionMaxX = Math.max(...intersectionPoints.map(p => p.x))
-    const collisionMinY = Math.min(...intersectionPoints.map(p => p.y))
-    const collisionMaxY = Math.max(...intersectionPoints.map(p => p.y))
-
-    const collisionCenter = Vector.of((collisionMinX + collisionMaxX) / 2, (collisionMinY + collisionMaxY) / 2)
+    const minX = Math.min(...intersectionPoints.map(p => p.x))
+    const maxX = Math.max(...intersectionPoints.map(p => p.x))
+    const minY = Math.min(...intersectionPoints.map(p => p.y))
+    const maxY = Math.max(...intersectionPoints.map(p => p.y))
+    const center = Vector.of(minX + maxX, minY + maxY).divide(2)
 
     return {
       box: {
-        x: collisionMinX,
-        y: collisionMinY,
-        width: collisionMaxX - collisionMinX,
-        height: collisionMaxY - collisionMinY,
+        x: minX,
+        y: minY,
+        width: maxX - minX,
+        height: maxY - minY,
       },
-      point: { x: collisionCenter.x, y: collisionCenter.y },
+      point: { x: center.x, y: center.y },
     }
   }
 
   // Check if a point is inside a rotated and scaled box
   spriteBoxPointCollision(sprite: RuntimeSpriteData, transform: Transform, point: Vector): CollisionInfo | null {
-    // TODO: Implement this function
+    // Get the vertices of the rectangle
+    const vertices = this.getVertices(transform, sprite)
+
+    // Check if the point is inside the polygon
+    if (!this.isPointInPolygon(point, vertices)) return null
+
+    return {
+      box: {
+        x: point.x,
+        y: point.y,
+        width: 1,
+        height: 1,
+      },
+      point: { x: point.x, y: point.y },
+    }
+  }
+
+  private renderCollisionCanvas(box: Box, objects: [RuntimeSpriteData, Transform][]): CanvasRenderingContext2D {
+    // Set up collision canvas
+    this.collisionCanvas.width = Math.ceil(box.width)
+    this.collisionCanvas.height = Math.ceil(box.height)
+
+    const ctx = this.collisionCanvas.getContext("2d")!
+    ctx.imageSmoothingEnabled = false
+
+    // Invert the Y-axis and offset the canvas
+    ctx.resetTransform()
+    ctx.translate(-box.x, -box.y)
+    ctx.save()
+
+    // Clear the canvas
+    ctx.clearRect(0, 0, this.collisionCanvas.width, this.collisionCanvas.height)
+
+    // Draw both sprites on the collision canvas
+    for (const [sprite, transform] of objects) {
+      const width = transform.width * sprite.width
+      const height = transform.height * sprite.height
+
+      const x = -width / 2
+      const y = -height / 2
+
+      // Translate and rotate the canvas
+      ctx.translate(transform.x, transform.y)
+      ctx.rotate(transform.rotation * Math.PI / 180)
+
+      if (transform.width < 0) ctx.scale(-1, 1)
+      if (transform.height > 0) ctx.scale(1, -1)
+
+      // Draw sprite
+      ctx.drawImage(sprite.collision_mask, x, y, width, height)
+      
+      // Reset matrix
+      ctx.restore()
+      ctx.save()
+    }
+
+    return ctx
   }
 
   spriteCollision(sprite1: RuntimeSpriteData, transform1: Transform, sprite2: RuntimeSpriteData, transform2: Transform): CollisionInfo | null {
     const boxCollision = this.spriteBoxCollision(sprite1, transform1, sprite2, transform2)
     if (!boxCollision) return null
 
-    // Set up collision canvas
-    this.collisionCanvas.width = Math.ceil(boxCollision.box.width)
-    this.collisionCanvas.height = Math.ceil(boxCollision.box.height)
-
-    const ctx = this.collisionCanvas.getContext("2d")!
-    ctx.clearRect(0, 0, this.collisionCanvas.width, this.collisionCanvas.height)
-    ctx.imageSmoothingEnabled = false
-
-    // Offset the sprites to the collision canvas
-    ctx.translate(-boxCollision.box.x, -boxCollision.box.y)
-
-    // Draw both sprites on the collision canvas
-    for (const [sprite, transform] of [[sprite1, transform1], [sprite2, transform2]] as [RuntimeSpriteData, Transform][]) {
-      ctx.save()
-
-      /*// Translate and rotate the canvas
-      ctx.translate(transform.x, transform.y)
-      ctx.rotate(transform.rotation * Math.PI / 180)
-
-      if (transform.width < 0) ctx.scale(-1, 1)
-      if (transform.height < 0) ctx.scale(1, -1)
-
-      // Draw sprite
-      ctx.drawImage(sprite.collision_mask, 0, 0, sprite.width * transform.width, sprite.height * transform.height)*/
-      
-      ctx.restore()
-    }
+    // Render sprites on the collision canvas
+    const ctx = this.renderCollisionCanvas(boxCollision.box, [[sprite1, transform1], [sprite2, transform2]])
 
     // Check for any pixel with an alpha value greater than 128 (collision)
     const pixels = ctx.getImageData(0, 0, this.collisionCanvas.width, this.collisionCanvas.height).data
@@ -373,6 +392,13 @@ export default class CollisionEngine {
 
 export interface CollisionInfo {
   game_object?: RuntimeGameObjectData
-  box: { x: number, y: number, width: number, height: number }
+  box: Box
   point: { x: number, y: number }
+}
+
+export interface Box {
+  x: number
+  y: number
+  width: number
+  height: number
 }

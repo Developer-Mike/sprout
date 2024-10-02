@@ -334,8 +334,7 @@ export default class EngineBuiltins {
         this.executionContext.sprites[target_game_object_or_x.sprites[target_game_object_or_x.active_sprite]], target_game_object_or_x.transform
       )
 
-    if (collision) collision.game_object = target_game_object_or_x
-
+    if (collision && target_y === undefined) collision.game_object = target_game_object_or_x
     return collision
   }
 
@@ -400,8 +399,8 @@ export default class EngineBuiltins {
 
     // Set matrix
     ctx.resetTransform()
-    ctx.translate(0, canvas.height)
     ctx.scale(canvas.width / data.stage.width, -canvas.height / data.stage.height)
+    ctx.translate(0, -data.stage.height)
     ctx.save()
 
     // Clear canvas
