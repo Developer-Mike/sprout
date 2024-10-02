@@ -3,7 +3,7 @@
     "unsaved-changes-warning": "You have unsaved changes. Are you sure you want to leave this page?",
     "project-not-found-dialog": {
         "title": "Project Not Found",
-        "message": "The project was not found. It may have been deleted or moved.",
+        "message": "No valid project was found. It may have been deleted, moved, or is an invalid file.",
         "remove-from-list": "Close and remove from recent projects list"
     }
 }

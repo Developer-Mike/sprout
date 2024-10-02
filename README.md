@@ -92,10 +92,10 @@ npm run dev
   - [x] Add implemented functions to the language
     - [x] range
     - [x] Expose math functions
-- [-] Add implemented functions to the engine
+- [x] Add implemented functions to the engine
   - [x] move, rotate (Handle delta_time)
   - [x] rotate_to
-  - [-] collides_with, collides_with_box, collides_with_mouse
+  - [x] collides_with, collides_with_box, collides_with_mouse
   - [x] sleep
   - [ ] (If time allows) Add physics engine
   - [ ] (If time allows) Add support for camera
@@ -119,7 +119,7 @@ npm run dev
   - [x] Add a clean way to handle debug information
   - [x] Rework game object scaling (width and factor for height) -> Fix different scaling for different sprites
     - [x] Add width and height info to the sprites in the sprites library
-  - [-] Solve all TODOs
+  - [x] Solve all TODOs
   - [x] Remove all DEBUGs
   - [x] Fix canvas can be right-clicked
   - [x] Disable the ability to select game objects through the canvas if th game is running

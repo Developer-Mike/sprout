@@ -26,10 +26,7 @@ export default function ProjectsOverview() {
 
   const openRecentProject = async (id: string) => {
     const hasPermission = await Project.refreshPermissionOfRecentProject(id)
-    if (!hasPermission) {
-      // TODO: Show a dialog that the user cancelled the permission request
-      return
-    }
+    if (!hasPermission) return
       
     router.push(`/builder?project=${encodeURI(id)}`)
   }

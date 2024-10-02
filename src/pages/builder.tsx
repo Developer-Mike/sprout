@@ -72,7 +72,6 @@ export default function Builder() {
 
       _setProject(project)
     } else if (projectId) {
-      // TODO: Show invalid project dialog if the file isn't a valid project
       const project = await Project.loadFromRecent(projectId)
       
       if (project) _setProject(project)

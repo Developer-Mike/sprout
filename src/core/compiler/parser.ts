@@ -129,7 +129,7 @@ export default class Parser {
     else this.consumeToken() // consume '{'
 
     const body: AST[] = []
-    // @ts-ignore TS doesn't know that this loop changes the current token
+    // @ts-ignore TS doesn't know that consumeToken changes currentToken
     while (this.currentToken.type !== TokenType.CURLY_CLOSE && this.currentToken.type !== TokenType.EOF) {
       const statement = this.parseStatement()
 
@@ -185,13 +185,13 @@ export default class Parser {
     }
 
     // Parse member expressions
-    // @ts-ignore TS doesn't know that the current token changes
+    // @ts-ignore TS doesn't know that consumeToken changes currentToken
     while ([TokenType.OPTIONAL_OPERATOR, TokenType.PUNCTUATOR, TokenType.SQUARE_OPEN].includes(this.currentToken.type)) {
-      // @ts-ignore TS doesn't handle the tokens correctly
+      // @ts-ignore TS doesn't know that consumeToken changes currentToken
       const optional = this.currentToken.type === TokenType.OPTIONAL_OPERATOR
       if (optional) this.consumeToken() // consume '?'
 
-      // @ts-ignore TS doesn't handle the tokens correctly
+      // @ts-ignore TS doesn't know that consumeToken changes currentToken
       const punctuator = this.currentToken.type === TokenType.PUNCTUATOR
 
       if (![TokenType.PUNCTUATOR, TokenType.SQUARE_OPEN].includes(this.currentToken.type))
@@ -209,7 +209,7 @@ export default class Parser {
       } else {
         memberIdentifier = this.parseExpression()
 
-        // @ts-ignore TS doesn't know that consumeToken changes the current token
+        // @ts-ignore TS doesn't know that consumeToken changes currentToken
         if (this.currentToken.type !== TokenType.SQUARE_CLOSE)
           this.logError("Expected ']' after member expression", this.currentToken.location)
         else this.consumeToken() // consume ']'
@@ -220,7 +220,7 @@ export default class Parser {
     }
 
     // If it's an assignment, parse it
-    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    // @ts-ignore TS doesn't know that consumeToken changes currentToken
     if (this.currentToken.type === TokenType.ASSIGNMENT || this.currentToken.type === TokenType.OPERATOR_ASSIGNMENT) {
       const assignmentOperator = this.currentToken.value
       this.consumeToken() // consume assignment token
@@ -235,7 +235,7 @@ export default class Parser {
     }
 
     // If there's a unary operator after the primary expression, parse it
-    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    // @ts-ignore TS doesn't know that consumeToken changes currentToken
     if (this.currentToken.type === TokenType.UNARY_OPERATOR) {
       const endLocation = this.currentToken.location.end
 
@@ -294,14 +294,14 @@ export default class Parser {
       this.logError("Expected keyword 'if'", this.currentToken.location)
     else this.consumeToken() // consume 'if'
 
-    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    // @ts-ignore TS doesn't know that consumeToken changes currentToken
     if (this.currentToken.type !== TokenType.PAREN_OPEN)
       this.logError("Expected '(' after 'if'", this.currentToken.location)
     else this.consumeToken() // consume '('
 
     const condition = this.parseExpression()
 
-    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    // @ts-ignore TS doesn't know that consumeToken changes currentToken
     if (this.currentToken.type !== TokenType.PAREN_CLOSE)
       this.logError("Expected ')' after condition", this.currentToken.location)
     else this.consumeToken() // consume ')'
@@ -309,7 +309,7 @@ export default class Parser {
     const thenBody = this.parseBlockStatement()
 
     let elseBody: BlockStatementAST | null = null
-    // @ts-ignore TS doesn't know that this loop changes the current token
+    // @ts-ignore TS doesn't know that consumeToken changes currentToken
     if (this.currentToken.type === TokenType.KEYWORD_ELSE) {
       this.consumeToken() // consume 'else'
 
@@ -341,10 +341,10 @@ export default class Parser {
     else this.consumeToken() // consume '['
 
     const elements: ExpressionAST[] = []
-    // @ts-ignore TS doesn't know that this loop changes the current token
+    // @ts-ignore TS doesn't know that consumeToken changes currentToken
     if (this.currentToken.type !== TokenType.SQUARE_CLOSE) {
       do {
-        // @ts-ignore TS doesn't know that this loop changes the current token
+        // @ts-ignore TS doesn't know that consumeToken changes currentToken
         if (this.currentToken.type === TokenType.SEPARATOR)
           this.consumeToken() // consume ','
 
@@ -398,26 +398,30 @@ export default class Parser {
     else this.consumeToken() // consume identifier token
 
     // If it's a function call, parse it
-    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    // @ts-ignore TS doesn't know that consumeToken changes currentToken
     if (this.currentToken.type === TokenType.PAREN_OPEN) {
       this.consumeToken() // consume '('
 
       // parse arguments
       const args: ExpressionAST[] = []
 
-      // TODO: change while loop to do-while loop
-      // @ts-ignore TS doesn't know that this loop changes the current token
-      while (this.currentToken.type !== TokenType.PAREN_CLOSE) {
-        const arg = this.parseExpression()
-        args.push(arg)
+      // @ts-ignore TS doesn't know that consumeToken changes currentToken
+      if (this.currentToken.type !== TokenType.PAREN_CLOSE) {
+        do {
+          // @ts-ignore TS doesn't know that consumeToken changes currentToken
+          if (this.currentToken.type === TokenType.SEPARATOR)
+            this.consumeToken() // consume ','
 
-        // @ts-ignore TS doesn't know that this loop changes the current token
-        if (this.currentToken.type === TokenType.SEPARATOR)
-          this.consumeToken() // consume ','
+          const arg = this.parseExpression()
+          args.push(arg)
+        
+          // @ts-ignore TS doesn't know that consumeToken changes currentToken
+        } while (this.currentToken.type === TokenType.SEPARATOR)
       }
 
       const callEndLocation = this.currentToken.location.end
 
+      // @ts-ignore TS doesn't know that consumeToken changes currentToken
       if (this.currentToken.type !== TokenType.PAREN_CLOSE)
         this.logError("Expected ')' after function arguments", this.currentToken.location)
       else this.consumeToken() // consume ')'
@@ -471,7 +475,7 @@ export default class Parser {
       this.logError("Expected variable name", this.currentToken.location)
     else this.consumeToken() // consume variable name
 
-    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    // @ts-ignore TS doesn't know that consumeToken changes currentToken
     if (this.currentToken.type !== TokenType.ASSIGNMENT)
       this.logError("Expected '=' after variable name", this.currentToken.location)
     else this.consumeToken() // consume '='
@@ -488,12 +492,12 @@ export default class Parser {
       this.logError("Expected function name", this.currentToken.location)
     else this.consumeToken() // consume function name
 
-    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    // @ts-ignore TS doesn't know that consumeToken changes currentToken
     if (this.currentToken.type !== TokenType.ASSIGNMENT)
       this.logError("Expected '=' after function name", this.currentToken.location)
     else this.consumeToken() // consume '='
 
-    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    // @ts-ignore TS doesn't know that consumeToken changes currentToken
     if (this.currentToken.type !== TokenType.PAREN_OPEN)
       this.logError("Expected '(' after '='", this.currentToken.location)
     else this.consumeToken() // consume '('
@@ -505,7 +509,7 @@ export default class Parser {
 
       args.push(arg)
 
-      // @ts-ignore TS doesn't know that this loop changes the current token
+      // @ts-ignore TS doesn't know that consumeToken changes currentToken
       if (this.currentToken.type === TokenType.SEPARATOR)
         this.consumeToken() // consume ','
     }
@@ -537,14 +541,14 @@ export default class Parser {
       this.logError("Expected keyword 'while'", this.currentToken.location)
     else this.consumeToken() // consume 'while'
 
-    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    // @ts-ignore TS doesn't know that consumeToken changes currentToken
     if (this.currentToken.type !== TokenType.PAREN_OPEN)
       this.logError("Expected '(' after 'while'", this.currentToken.location)
     else this.consumeToken() // consume '('
 
     const condition = this.parseExpression()
 
-    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    // @ts-ignore TS doesn't know that consumeToken changes currentToken
     if (this.currentToken.type !== TokenType.PAREN_CLOSE)
       this.logError("Expected ')' after condition", this.currentToken.location)
     else this.consumeToken() // consume ')'
@@ -561,7 +565,7 @@ export default class Parser {
       this.logError("Expected keyword 'for'", this.currentToken.location)
     else this.consumeToken() // consume 'for'
 
-    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    // @ts-ignore TS doesn't know that consumeToken changes currentToken
     if (this.currentToken.type !== TokenType.PAREN_OPEN)
       this.logError("Expected '(' after 'for'", this.currentToken.location)
     else this.consumeToken() // consume '('
@@ -572,7 +576,7 @@ export default class Parser {
       this.logError("Expected identifier", this.currentToken.location)
     else this.consumeToken() // consume identifier
 
-    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    // @ts-ignore TS doesn't know that consumeToken changes currentToken
     if (this.currentToken.type !== TokenType.KEYWORD_IN)
       this.logError("Expected keyword 'in'", this.currentToken.location)
     else this.consumeToken() // consume 'in'
@@ -580,7 +584,7 @@ export default class Parser {
     // Parse array
     const array = this.parseExpression()
 
-    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    // @ts-ignore TS doesn't know that consumeToken changes currentToken
     if (this.currentToken.type !== TokenType.PAREN_CLOSE)
       this.logError("Expected ')' after array", this.currentToken.location)
     else this.consumeToken() // consume ')'
@@ -597,14 +601,14 @@ export default class Parser {
       this.logError("Expected keyword 'on'", this.currentToken.location)
     else this.consumeToken() // consume 'on'
 
-    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    // @ts-ignore TS doesn't know that consumeToken changes currentToken
     if (this.currentToken.type !== TokenType.PAREN_OPEN)
       this.logError("Expected '(' after 'on'", this.currentToken.location)
     else this.consumeToken() // consume '('
 
     const condition = this.parseExpression()
 
-    // @ts-ignore TS doesn't know that consumeToken changes the current token
+    // @ts-ignore TS doesn't know that consumeToken changes currentToken
     if (this.currentToken.type !== TokenType.PAREN_CLOSE)
       this.logError("Expected ')' after condition", this.currentToken.location)
     else this.consumeToken() // consume ')'
