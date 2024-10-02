@@ -146,7 +146,7 @@ export default function GameObjectsPane() {
         />
 
         <LabeledNumberInput label={t("layer")} value={project.selectedGameObject.layer} precision={0} onChange={(newLayer, inputType) => project.updateData(
-          inputType === InputType.Dragging ? null : new TransactionInfo(inputType === InputType.Dragged ? TransactionType.Unique : TransactionInfo.getType(project.selectedGameObject.layer, newLayer), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "layer"),
+          [InputType.Typing, InputType.Dragging].includes(inputType) ? null : new TransactionInfo(inputType === InputType.LostFocus ? TransactionType.Unique : TransactionInfo.getType(project.selectedGameObject.layer, newLayer), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "layer"),
           data => { data.gameObjects[project.selectedGameObjectKey].layer = newLayer }
         )} />
 
@@ -156,21 +156,21 @@ export default function GameObjectsPane() {
         )} />
 
         <LabeledNumberInput label={t("x")} value={project.selectedGameObject.transform.x} precision={0} onChange={(newX, inputType) => project.updateData(
-          inputType === InputType.Dragging ? null : new TransactionInfo(inputType === InputType.Dragged ? TransactionType.Unique : TransactionInfo.getType(project.selectedGameObject.transform.x, newX), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "x"),
+          [InputType.Typing, InputType.Dragging].includes(inputType) ? null : new TransactionInfo(inputType === InputType.LostFocus ? TransactionType.Unique : TransactionInfo.getType(project.selectedGameObject.transform.x, newX), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "x"),
           data => { data.gameObjects[project.selectedGameObjectKey].transform.x = newX }
         )} />
 
         <LabeledNumberInput label={t("y")} value={project.selectedGameObject.transform.y} precision={0} onChange={(newY, inputType) => project.updateData(
-          inputType === InputType.Dragging ? null : new TransactionInfo(inputType === InputType.Dragged ? TransactionType.Unique : TransactionInfo.getType(project.selectedGameObject.transform.y, newY), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "y"),
+          [InputType.Typing, InputType.Dragging].includes(inputType) ? null : new TransactionInfo(inputType === InputType.LostFocus ? TransactionType.Unique : TransactionInfo.getType(project.selectedGameObject.transform.y, newY), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "y"),
           data => { data.gameObjects[project.selectedGameObjectKey].transform.y = newY }
         )} />
 
         <LabeledNumberInput label={t("rotation")} value={project.selectedGameObject.transform.rotation} precision={2} onChange={(value, inputType) => {
-          const newRotation = inputType === InputType.Dragging ? (value > 0 ? value : 360 + value) % 360 : value
+          const newRotation = [InputType.Typing, InputType.Dragging].includes(inputType) ? (value > 0 ? value : 360 + value) % 360 : value
 
           project.updateData(
             // Use the raw value to calculate the type to avoid the modulo operation
-            inputType === InputType.Dragging ? null : new TransactionInfo(inputType === InputType.Dragged ? TransactionType.Unique : TransactionInfo.getType(project.selectedGameObject.transform.rotation, value), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "rotation"),
+            [InputType.Typing, InputType.Dragging].includes(inputType) ? null : new TransactionInfo(inputType === InputType.LostFocus ? TransactionType.Unique : TransactionInfo.getType(project.selectedGameObject.transform.rotation, value), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "rotation"),
             data => { data.gameObjects[project.selectedGameObjectKey].transform.rotation = newRotation }
           )
         }} />
@@ -190,7 +190,7 @@ export default function GameObjectsPane() {
           }
 
           project.updateData(
-            inputType === InputType.Dragging ? null : new TransactionInfo(inputType === InputType.Dragged ? TransactionType.Unique : TransactionInfo.getType(oldWidth, newWidth), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "width"),
+            [InputType.Typing, InputType.Dragging].includes(inputType) ? null : new TransactionInfo(inputType === InputType.LostFocus ? TransactionType.Unique : TransactionInfo.getType(oldWidth, newWidth), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "width"),
             data => {
               data.gameObjects[project.selectedGameObjectKey].transform.width = newWidth
               if (linkedScalingEnabled) data.gameObjects[project.selectedGameObjectKey].transform.height = newHeight
@@ -217,7 +217,7 @@ export default function GameObjectsPane() {
           }
 
           project.updateData(
-            inputType === InputType.Dragging ? null : new TransactionInfo(inputType === InputType.Dragged ? TransactionType.Unique : TransactionInfo.getType(oldHeight, newHeight), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "height"),
+            [InputType.Typing, InputType.Dragging].includes(inputType) ? null : new TransactionInfo(inputType === InputType.LostFocus ? TransactionType.Unique : TransactionInfo.getType(oldHeight, newHeight), TransactionCategory.GameObjectProperty, project.selectedGameObjectKey, "height"),
             data => {
               data.gameObjects[project.selectedGameObjectKey].transform.height = newHeight
               if (linkedScalingEnabled) data.gameObjects[project.selectedGameObjectKey].transform.width = newWidth

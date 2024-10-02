@@ -10,19 +10,18 @@ export default function LabeledNumberInput({ label, value, precision, dragSensit
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [stringValue, setStringValue] = useState(value?.toString())
-  useEffect(() => setStringValue(value?.toString()), [value])
+  useEffect(() => {
+    if (inputRef.current === document.activeElement) return
+    setStringValue(value?.toString())
+  }, [value])
 
   const [isBeingDragged, setIsBeingDragged] = useState(false)
 
   const dispatchOnChange = useCallback((input: HTMLInputElement, inputType: InputType) => {
     const numericalValue = parseFloat(parseFloat(input.value).toFixed(precision ?? 20))
 
-    if (((precision ?? 20) > 0 && input.value.endsWith(".")) || isNaN(numericalValue))
-      setStringValue(input.value)
-    else setStringValue(numericalValue.toString())
-
-    if (isNaN(numericalValue)) onChange?.(0, inputType)
-    else onChange?.(numericalValue, inputType)
+    setStringValue(input.value)
+    onChange?.(isNaN(numericalValue) ? 0 : numericalValue, inputType)
   }, [onChange])
 
   useEffect(() => {
@@ -32,7 +31,7 @@ export default function LabeledNumberInput({ label, value, precision, dragSensit
       const input = inputRef.current
       if (!input) return
 
-      const newValue = (parseFloat(input.value) + e.movementX * (dragSensitivity ?? 1)).toFixed(precision ?? 20)
+      const newValue = parseFloat((parseFloat(input.value) + e.movementX * (dragSensitivity ?? 1)).toFixed(precision ?? 20)).toString()
       if (input.value === newValue) return
 
       input.value = newValue
@@ -47,7 +46,7 @@ export default function LabeledNumberInput({ label, value, precision, dragSensit
       if (!input) return
 
       setIsBeingDragged(false)
-      dispatchOnChange(input, InputType.Dragged)
+      dispatchOnChange(input, InputType.LostFocus)
     }
     window.addEventListener("mouseup", onMouseUp)
 
@@ -65,8 +64,10 @@ export default function LabeledNumberInput({ label, value, precision, dragSensit
       <input ref={inputRef} className={style.input} type="text" value={stringValue}
         onKeyDown={e => {
           if (e.key === "Enter") e.currentTarget.blur()
+          if (e.key.length === 1 && !/[0-9.-]/.test(e.key)) e.preventDefault()
         }}
         onInput={e => dispatchOnChange(e.currentTarget, InputType.Typing)}
+        onBlur={e => dispatchOnChange(e.currentTarget, InputType.LostFocus)}
       />
     </label>
   )
@@ -75,5 +76,5 @@ export default function LabeledNumberInput({ label, value, precision, dragSensit
 export enum InputType {
   Typing,
   Dragging,
-  Dragged
+  LostFocus
 }

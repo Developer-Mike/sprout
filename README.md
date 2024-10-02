@@ -107,15 +107,15 @@ npm run dev
     - [ ] draw_line
     - [ ] draw_rectangle
     - [ ] draw_circle
-  - [ ] (If time allows) Add support cloning and destroying game objects while the game is running
-    - [ ] clone
-    - [ ] destroy
-    - [ ] is_clone (property)
+  - [x] (If time allows) Add support cloning and destroying game objects while the game is running
+    - [x] clone
+    - [x] destroy
+    - [x] is_clone (property)
 - [x] Add console view
   - [x] Throw error if the user wants to start the game with syntax errors
   - [x] Catch runtime errors and show them in the console
   - [!] (If time allows) Add advanced explanations to error messages
-- [-] Miscellaneous
+- [x] Miscellaneous
   - [x] Add a clean way to handle debug information
   - [x] Rework game object scaling (width and factor for height) -> Fix different scaling for different sprites
     - [x] Add width and height info to the sprites in the sprites library
@@ -123,8 +123,8 @@ npm run dev
   - [x] Remove all DEBUGs
   - [x] Fix canvas can be right-clicked
   - [x] Disable the ability to select game objects through the canvas if th game is running
-  - [ ] When editing a float and deleting the last digit before the decimal point, the dot gets deleted unintentionally
-  - [ ] When editing e.g. 800 and deleting the 8, the 0 gets deleted unintentionally
+  - [x] When editing a float and deleting the last digit before the decimal point, the dot gets deleted unintentionally
+  - [x] When editing e.g. 800 and deleting the 8, the 0 gets deleted unintentionally
   - [x] Limit max height of game object preview in code editor
   - [x] Reset linked scaling when changing the sprite
   - [!] (Out of scope) Allow simple calculations in the LabeledNumberInput
@@ -135,7 +135,7 @@ npm run dev
   - [x] Add absolute identifiers to project paths -> Fix project with same filename not visible in the projects overview
   - [x] Fix rotation of game objects causing other game objects to move
   - [x] Fix deletion of all game objects causing null value of selected object key
-- [ ] (If time allows) Add the ability to duplicate game objects
+- [x] (If time allows) Add the ability to duplicate game objects
 - [ ] (If time allows) Add the ability to add plugins (keep in mind: security risk)
 - [!] (Out of scope) Add the ability to export and import game objects individually
 - [!] (Out of scope) Add export of the games to standalone websites
