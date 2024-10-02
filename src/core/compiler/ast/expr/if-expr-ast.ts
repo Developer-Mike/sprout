@@ -12,10 +12,10 @@ export default class IfExprAST extends ExpressionAST {
     public elseBody: BlockStatementAST | null,
     public override sourceLocation: SourceLocation
   ) { 
-    super(parser)
+    super()
 
     for (const returnAST of this.getAllASTsOfType(ReturnAST))
-      parser.logLogicalError('Return statements are not allowed inside if expressions', returnAST.sourceLocation)
+      parser.logError('Return statements are not allowed inside if expressions', returnAST.sourceLocation)
   }
 
   toJavaScript(): string {

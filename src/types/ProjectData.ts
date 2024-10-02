@@ -36,6 +36,8 @@ export interface GameObjectData {
   active_sprite: number
 
   code: string
+
+  debug?: DebugConfig
 }
 
 export interface Transform {
@@ -44,4 +46,8 @@ export interface Transform {
   rotation: number
   width: number
   height: number
+}
+
+export interface DebugConfig {
+  show_bounding_box: boolean
 }

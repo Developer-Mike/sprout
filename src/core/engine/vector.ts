@@ -53,6 +53,10 @@ export default class Vector {
     return this.divide(this.magnitude)
   }
 
+  get perpendicular(): Vector {
+    return new Vector(-this.y, this.x)
+  }
+
   dot(other: Vector): number {
     return this.x * other.x + this.y * other.y
   }

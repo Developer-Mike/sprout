@@ -31,7 +31,9 @@ export default function CodeEditor() {
     monaco.languages.registerCompletionItemProvider(SPROUT_LANGUAGE_KEY, project.getAutocompletionProvider(monaco))
 
     // Validate the code of the current model and future models created
-    setupModel(monaco.editor.getModels()[0])
+    const model = monaco.editor.getModels()[0]
+    if (model) setupModel(model)
+    
     monaco.editor.onDidCreateModel(model => setupModel(model))
   }, [monaco])
 

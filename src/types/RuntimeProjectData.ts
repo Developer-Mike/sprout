@@ -8,7 +8,7 @@ export interface RuntimeProjectData {
 }
 
 export interface RuntimeSpriteData extends SpriteData {
-  collision_mask: ImageData
+  collision_mask: CanvasImageSource
 }
 
 export interface RuntimeGameObjectData extends Omit<GameObjectData, "code"> {

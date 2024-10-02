@@ -59,6 +59,7 @@ export default function StagePane({ canvasRef }: {
     highlighter.style.left = `${x}px`
     highlighter.style.width = `${width}px`
     highlighter.style.height = `${height}px`
+    highlighter.style.transform = `rotate(${activeGameObject.transform.rotation}deg)`
 
     highlighter.classList.add(styles.show)
     highlighter.addEventListener("transitionend", () => { highlighter.classList.remove(styles.show) }, { once: true })

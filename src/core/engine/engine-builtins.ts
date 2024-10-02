@@ -1,8 +1,8 @@
-import { RuntimeGameObjectData, RuntimeProjectData } from "@/types/RuntimeProjectData"
+import { RuntimeGameObjectData, RuntimeProjectData, RuntimeSpriteData } from "@/types/RuntimeProjectData"
 import SpriteHelper from "@/utils/sprite-helper"
 import AutocompletionItem, { AutocompletionItemType } from "../autocompletion-item"
 import ObjectHelper from "@/utils/object-helper"
-import { GameObjectData } from "@/types/ProjectData"
+import { GameObjectData, StageData } from "@/types/ProjectData"
 import CollisionEngine, { CollisionInfo } from "./collision-engine"
 import Vector from "./vector"
 
@@ -195,7 +195,7 @@ export default class EngineBuiltins {
       const rect = this.canvas.getBoundingClientRect()
 
       let x = Math.min(Math.max(e.clientX - rect.left, 0), this.canvas.width)
-      let y = Math.min(Math.max(e.clientY - rect.top, 0), this.canvas.height)
+      let y = Math.min(Math.max(this.canvas.height - (e.clientY - rect.top), 0), this.canvas.height)
 
       x = x / this.canvas.width * this.executionContext.stage?.width ?? 0
       y = y / this.canvas.height * this.executionContext.stage?.height ?? 0
@@ -400,7 +400,8 @@ export default class EngineBuiltins {
 
     // Set matrix
     ctx.resetTransform()
-    ctx.scale(canvas.width / data.stage.width, canvas.height / data.stage.height)
+    ctx.translate(0, canvas.height)
+    ctx.scale(canvas.width / data.stage.width, -canvas.height / data.stage.height)
     ctx.save()
 
     // Clear canvas
@@ -425,11 +426,11 @@ export default class EngineBuiltins {
       const y = -height / 2
 
       // Set matrix
-      ctx.translate(gameObject.transform.x, data.stage.height - gameObject.transform.y)
+      ctx.translate(gameObject.transform.x, gameObject.transform.y)
       ctx.rotate(gameObject.transform.rotation * Math.PI / 180)
 
       if (gameObject.transform.width < 0) ctx.scale(-1, 1)
-      if (gameObject.transform.height < 0) ctx.scale(1, -1)
+      if (gameObject.transform.height > 0) ctx.scale(1, -1)
 
       // Draw sprite
       ctx.drawImage(this.spritesCache[sprite.src], x, y, width, height)
@@ -437,6 +438,60 @@ export default class EngineBuiltins {
       // Reset matrix
       ctx.restore()
       ctx.save()
+
+      if (gameObject?.debug?.show_bounding_box)
+        this.renderDebugInfo(data, gameObject, ctx)
+    }
+  }
+
+  renderDebugInfo(data: RuntimeProjectData, gameObject: RuntimeGameObjectData, ctx: CanvasRenderingContext2D) {
+    ctx.strokeStyle = "orange"
+    ctx.lineWidth = 5
+
+    const corners = this.collisionEngine.getVertices(gameObject.transform, data.sprites[gameObject.sprites[gameObject.active_sprite]])
+    for (const corner of corners) {
+      ctx.beginPath()
+      ctx.arc(corner.x, corner.y, 10, 0, 2 * Math.PI)
+      ctx.stroke()
+    }
+
+    // Draw edges
+    for (let i = 0; i < corners.length; i++) {
+      const next = corners[(i + 1) % corners.length]
+
+      ctx.beginPath()
+      ctx.moveTo(corners[i].x, corners[i].y)
+      ctx.lineTo(next.x, next.y)
+      ctx.stroke()
+    }
+
+    // Draw edges
+    if (this.executionContext.sprites !== undefined) {
+      // Draw bounding box
+      ctx.strokeStyle = "blue"
+      ctx.lineWidth = 5
+
+      const bounds = this.get_bounds(gameObject)
+      ctx.strokeRect(bounds.min_x, bounds.min_y, bounds.max_x - bounds.min_x, bounds.max_y - bounds.min_y)
+    }
+
+    // Draw collisions with first game object
+    const firstGameObject = Object.values(data.gameObjects)[0]
+    if (gameObject !== firstGameObject) {
+      ctx.strokeStyle = "green"
+      ctx.lineWidth = 5
+
+      const collision = this.collisionEngine.spriteBoxCollision(
+        data.sprites[gameObject.sprites[gameObject.active_sprite]], gameObject.transform, 
+        data.sprites[firstGameObject.sprites[firstGameObject.active_sprite]], firstGameObject.transform
+      )
+
+      if (collision) {
+        ctx.strokeRect(collision.box.x, collision.box.y, collision.box.width, collision.box.height)
+        ctx.beginPath()
+        ctx.arc(collision.point.x, collision.point.y, 10, 0, 2 * Math.PI)
+        ctx.stroke()
+      }
     }
   }
 
