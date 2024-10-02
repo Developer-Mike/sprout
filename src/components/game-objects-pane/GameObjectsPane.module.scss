@@ -71,4 +71,42 @@
       font-size: 3rem;
     }
   }
+
+  #contextMenu {
+    z-index: 1;
+
+    position: absolute;
+
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    
+    height: initial;
+    width: initial;
+    padding: 5px;
+
+    color: var(--on-container);
+    background: var(--container-high);
+
+    border: var(--border-width) solid var(--border-color);
+    border-radius: 10px;
+
+    & > span {
+      padding: 5px;
+      border-radius: 5px;
+
+      cursor: pointer;
+
+      &:hover {
+        color: var(--on-primary);
+        background: var(--primary);
+
+        transition: background 0.2s;
+
+        &.danger {
+          background: var(--red);
+        }
+      }
+    }
+  }
 }

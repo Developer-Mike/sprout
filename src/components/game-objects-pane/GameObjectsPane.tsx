@@ -13,12 +13,15 @@ import TransactionInfo, { TransactionCategory, TransactionType } from "@/types/T
 import NamedSpriteListItem from "../named-sprite-list-item/NamedSpriteListItem"
 import DraggableLayout from "../DraggableLayout"
 import IdHelper from "@/utils/id-helper"
+import { GameObjectData } from "@/types/ProjectData"
+import ObjectHelper from "@/utils/object-helper"
 
 export default function GameObjectsPane() {
   const { t } = useTranslation("common")
   const { showDialog } = useContext(DialogContext)
   const { project } = useContext(ProjectContext)
 
+  const [contextMenu, setContextMenu] = useState<{ gameObjectKey: string, x: number, y: number } | null>(null)
   const [linkedScalingEnabled, setLinkedScalingEnabled] = useState(true)
   const [aspectRatioCache, setAspectRatioCache] = useState(1)
 
@@ -44,9 +47,81 @@ export default function GameObjectsPane() {
     )
   }
 
+  const cloneGameObject = (gameObjectKey: string) => {
+    project.updateData(
+      new TransactionInfo(
+        TransactionType.Add,
+        TransactionCategory.GameObjectList,
+        gameObjectKey, "clone"
+      ),
+      data => {
+        const newGameObjectKey = project.getNewGameObjectKey()
+
+        const gameObject = ObjectHelper.deepClone(data.gameObjects[gameObjectKey])
+        gameObject.id = IdHelper.generateId(
+          gameObject.id,
+          Object.values(data.gameObjects).map(gameObject => gameObject.id)
+        )
+
+        data.gameObjects[newGameObjectKey] = gameObject
+        data.workspace.selectedGameObjectKey = newGameObjectKey
+      }
+    )
+  }
+
+  const showDeleteGameObjectDialog = (gameObjectKey: string) => {
+    showDialog({
+      id: "delete-game-object-dialog",
+      title: t("delete-game-object-dialog.title"),
+      content: t("delete-game-object-dialog.message", { id: project.data.gameObjects[gameObjectKey].id }),
+      actions: [
+        {
+          default: true,
+          element: <button>{t("cancel")}</button>,
+          onClick: hide => hide()
+        },
+        {
+          element: <button className="danger">{t("delete")}</button>,
+          onClick: async hide => {
+            hide()
+
+            // Ensure there is always at least one game object
+            if (Object.entries(project.data.gameObjects).length === 1) await createNewGameObject()
+
+            project.updateData(
+              new TransactionInfo(
+                TransactionType.Remove,
+                TransactionCategory.GameObjectList,
+                gameObjectKey, "delete"
+              ),
+              data => {
+                const gameObjectKeys = Object.keys(data.gameObjects)
+                const selectionIndex = gameObjectKeys.indexOf(gameObjectKey)
+                gameObjectKeys.splice(selectionIndex, 1)
+
+                delete data.gameObjects[gameObjectKey]
+
+                if (data.workspace.selectedGameObjectKey === gameObjectKey) {
+                  data.workspace.selectedGameObjectKey = gameObjectKeys[selectionIndex] ?? 
+                    gameObjectKeys[selectionIndex - 1] ?? 
+                    gameObjectKeys[0] 
+                    ?? null
+                }
+              }
+            )
+          }
+        }
+      ]
+    })
+  }
+
   useEffect(() => {
     setLinkedScalingEnabled(true)
     setAspectRatioCache(project.selectedGameObject.transform.width / Math.max(1, project.selectedGameObject.transform.height))
+
+    const onClickListener = () => setContextMenu(null)
+    window.addEventListener("click", onClickListener)
+    return () => window.removeEventListener("click", onClickListener)
   }, [project.data.workspace.selectedGameObjectKey])
 
   return (
@@ -191,50 +266,14 @@ export default function GameObjectsPane() {
                 new TransactionInfo(TransactionType.Update, TransactionCategory.GameObjectList, gameObjectKey, "select"),
                 data => { data.workspace.selectedGameObjectKey = gameObjectKey }
               )}
+              onContextMenu={e => {
+                e.preventDefault()
+                e.stopPropagation()
+
+                setContextMenu({ gameObjectKey: gameObjectKey, x: e.clientX, y: e.clientY })
+              }}
               isFocused={project.data.workspace.selectedGameObjectKey === gameObjectKey}
-              onDelete={() => showDialog({
-                id: "delete-game-object-dialog",
-                title: t("delete-game-object-dialog.title"),
-                content: t("delete-game-object-dialog.message", { id: gameObject.id }),
-                actions: [
-                  {
-                    default: true,
-                    element: <button>{t("cancel")}</button>,
-                    onClick: hide => hide()
-                  },
-                  {
-                    element: <button className="danger">{t("delete")}</button>,
-                    onClick: async hide => {
-                      hide()
-
-                      // Ensure there is always at least one game object
-                      if (Object.entries(project.data.gameObjects).length === 1) await createNewGameObject()
-
-                      project.updateData(
-                        new TransactionInfo(
-                          TransactionType.Remove,
-                          TransactionCategory.GameObjectList,
-                          gameObjectKey, "delete"
-                        ),
-                        data => {
-                          const gameObjectKeys = Object.keys(data.gameObjects)
-                          const selectionIndex = gameObjectKeys.indexOf(gameObjectKey)
-                          gameObjectKeys.splice(selectionIndex, 1)
-
-                          delete data.gameObjects[gameObjectKey]
-
-                          if (data.workspace.selectedGameObjectKey === gameObjectKey) {
-                            data.workspace.selectedGameObjectKey = gameObjectKeys[selectionIndex] ?? 
-                              gameObjectKeys[selectionIndex - 1] ?? 
-                              gameObjectKeys[0] 
-                              ?? null
-                          }
-                        }
-                      )
-                    }
-                  }
-                ]
-              })}
+              onDelete={() => showDeleteGameObjectDialog(gameObjectKey)}
             />
           </DraggableLayout.Item>
         )) }
@@ -242,6 +281,11 @@ export default function GameObjectsPane() {
         <div id={styles.addGameObject} className={namedSpriteListItemStyles.listItem} onClick={() => createNewGameObject()}>
           <Icon iconId="add" />
         </div>
+
+        { contextMenu && <div id={styles.contextMenu} style={{ top: contextMenu.y, left: contextMenu.x }}>
+          <span onClick={() => cloneGameObject(contextMenu.gameObjectKey)}>{t("duplicate")}</span>
+          <span className={styles.danger} onClick={() => showDeleteGameObjectDialog(contextMenu.gameObjectKey)}>{t("delete")}</span>
+        </div> }
       </DraggableLayout.Root>
     </>
   )
