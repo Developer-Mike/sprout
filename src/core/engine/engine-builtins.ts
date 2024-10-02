@@ -1,19 +1,21 @@
-import { RuntimeGameObjectData, RuntimeProjectData, RuntimeSpriteData } from "@/types/RuntimeProjectData"
+import { RuntimeGameObjectData, RuntimeProjectData } from "@/types/RuntimeProjectData"
 import SpriteHelper from "@/utils/sprite-helper"
 import AutocompletionItem, { AutocompletionItemType } from "../autocompletion-item"
 import ObjectHelper from "@/utils/object-helper"
-import { GameObjectData, StageData } from "@/types/ProjectData"
 import CollisionEngine, { CollisionInfo } from "./collision-engine"
 import Vector from "./vector"
+import EngineRunner from "./engine-runner"
+import ProgramAST from "../compiler/ast/program-ast"
 
 export default class EngineBuiltins {
   private executionContext: any
   private canvas: HTMLCanvasElement
   private readonly builtins: { [key: string]: any } = {
     Vector: Vector,
-    sleep: this.sleep.bind(this),
+    // sleep and await_frame are the only functions that are async and will be overwritten inside the game_object code for proper execution cancellation
+    _sleep: this.sleep.bind(this),
+    _await_frame: this.awaitFrame.bind(this),
     tick: this.tick.bind(this),
-    await_frame: this.awaitFrame.bind(this),
     frame: false,
     time: {
       delta_time: 1, // Default to 1
@@ -42,6 +44,8 @@ export default class EngineBuiltins {
       rotate: this.rotate.bind(this),
       rotate_to: this.rotate_to.bind(this)
     },
+    clone: this.clone.bind(this),
+    destroy: this.destroy.bind(this),
     get_collision_with: this.get_collision_with.bind(this),
     get_box_collision_with: this.get_box_collision_with.bind(this),
     get_collisions: this.get_collisions.bind(this),
@@ -55,21 +59,22 @@ export default class EngineBuiltins {
     this.canvas = canvas
 
     // Add builtins to the execution context
-    for (const key in this.builtins) {
+    for (const key in this.builtins)
       this.executionContext[key] = this.builtins[key]
-    }
 
     // Add game object builtins
-    for (const gameObjectId in this.executionContext.game_objects) {
-      const gameObject = this.executionContext.game_objects[gameObjectId]
-      ObjectHelper.deepMerge(gameObject, this.gameObjectsBuiltins, (object, key, value) => {
-        Object.defineProperty(object, key, {
-          get: () => (...params: any) => value(gameObject, ...params)
-        })
-      })
-    }
+    for (const gameObjectId in this.executionContext.game_objects)
+      this.addGameObjectBuiltins(this.executionContext.game_objects[gameObjectId])
 
     this.setupInputListeners()
+  }
+
+  addGameObjectBuiltins(gameObject: RuntimeGameObjectData) {
+    ObjectHelper.deepMerge(gameObject, this.gameObjectsBuiltins, (object, key, value) => {
+      Object.defineProperty(object, key, {
+        get: () => (...params: any) => value(gameObject, ...params)
+      })
+    })
   }
 
   addAutocompletionItems(suggestions: Record<string, AutocompletionItem>) {
@@ -153,6 +158,9 @@ export default class EngineBuiltins {
       }
     }
 
+    gameObjectSuggestions["clone"] = { type: AutocompletionItemType.FUNCTION, children: {} }
+    gameObjectSuggestions["destroy"] = { type: AutocompletionItemType.FUNCTION, children: {} }
+
     gameObjectSuggestions["get_collision_with"] = { type: AutocompletionItemType.FUNCTION, children: {} }
     gameObjectSuggestions["get_box_collision_with"] = { type: AutocompletionItemType.FUNCTION, children: {} }
     gameObjectSuggestions["get_collisions"] = { type: AutocompletionItemType.FUNCTION, children: {} }
@@ -215,10 +223,12 @@ export default class EngineBuiltins {
   }
 
   //#region Global Builtins
-  async sleep(ms: number) {
+  async sleep(ms: number, gameObject?: RuntimeGameObjectData) {
     await new Promise((resolve, reject) => {
       setTimeout(() => (
-        this.executionContext.is_stopped() ? reject("Stopped") : resolve(null)
+        this.executionContext.is_stopped() ? reject("Stopped") : (
+          gameObject?.destroyed ? reject("Destroyed") : resolve(null)
+        )
       ), ms)
     })
   }
@@ -231,10 +241,12 @@ export default class EngineBuiltins {
     return (end - start) / 1000
   }
 
-  async awaitFrame() {
+  async awaitFrame(gameObject?: RuntimeGameObjectData) {
     return new Promise((resolve, reject) => {
       requestAnimationFrame(() => (
-        this.executionContext.is_stopped() ? reject("Stopped") : resolve(null)
+        this.executionContext.is_stopped() ? reject("Stopped") : (
+          gameObject?.destroyed ? reject("Destroyed") : resolve(null)
+        )
       ))
     })
   }
@@ -298,12 +310,44 @@ export default class EngineBuiltins {
     return angle
   }
 
-  previous_sprite(game_object: RuntimeGameObjectData) {
+  previous_sprite(game_object: RuntimeGameObjectData): null {
     game_object.active_sprite = (game_object.active_sprite - 1 + game_object.sprites.length) % game_object.sprites.length
+
+    return null
   }
 
-  next_sprite(game_object: RuntimeGameObjectData) {
+  next_sprite(game_object: RuntimeGameObjectData): null {
     game_object.active_sprite = (game_object.active_sprite + 1) % game_object.sprites.length
+
+    return null
+  }
+
+  clone(game_object: RuntimeGameObjectData, clone_id: string): RuntimeGameObjectData {
+    if (clone_id in this.executionContext.game_objects)
+      throw new Error(`Game object with id ${clone_id} already exists`)
+
+    const clone = ObjectHelper.deepClone(game_object, [ProgramAST])
+    clone.id = clone_id
+    clone.is_clone = true
+
+    console.log(game_object == clone)
+
+    this.executionContext.game_objects[clone_id] = clone
+
+    // Add builtins to the clone
+    this.addGameObjectBuiltins(clone)
+
+    // Run clone code
+    EngineRunner.runGameObjectCode(clone, this.executionContext)
+
+    return clone
+  }
+
+  destroy(game_object: RuntimeGameObjectData): null {
+    game_object.destroyed = true
+    delete this.executionContext.game_objects[game_object.id]
+
+    return null
   }
 
   private collisionEngine = new CollisionEngine()

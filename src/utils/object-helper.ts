@@ -1,24 +1,20 @@
 export default class ObjectHelper {
   // Deep copy an object while keeping references to classes
   // Parameter keep is an array of classes to maintain references to
-  static deepClone(object: any, keep: any[] = []): any {    
-    if (object === null || typeof object !== "object" || keep.includes(object.constructor))
+  static deepClone<T>(object: T, keep: any[] = []): T {
+    if (object === null || typeof object !== "object")
       return object
 
+    if (keep.includes(object.constructor))
+      return object
 
-    if (object instanceof Array) {
-      const clone = []
-      for (const value of object) {
-        clone.push(ObjectHelper.deepClone(value, keep))
-      }
+    if (Array.isArray(object))
+      return object.map(item => ObjectHelper.deepClone(item, keep)) as any
 
-      return clone
-    }
+    const clone = Object.create(Object.getPrototypeOf(object))
 
-    const clone: any = {}
-    for (const key in object) {
+    for (const key in object)
       clone[key] = ObjectHelper.deepClone(object[key], keep)
-    }
 
     return clone
   }

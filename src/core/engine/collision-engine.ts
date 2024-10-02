@@ -182,6 +182,7 @@ export default class CollisionEngine {
     const center = Vector.of(minX + maxX, minY + maxY).divide(2)
 
     return {
+      game_object: null,
       box: {
         x: minX,
         y: minY,
@@ -201,6 +202,7 @@ export default class CollisionEngine {
     if (!this.isPointInPolygon(point, vertices)) return null
 
     return {
+      game_object: null,
       box: {
         x: point.x,
         y: point.y,
@@ -216,7 +218,7 @@ export default class CollisionEngine {
     this.collisionCanvas.width = Math.ceil(box.width)
     this.collisionCanvas.height = Math.ceil(box.height)
 
-    const ctx = this.collisionCanvas.getContext("2d")!
+    const ctx = this.collisionCanvas.getContext("2d", { willReadFrequently: true })!
     ctx.imageSmoothingEnabled = false
 
     // Invert the Y-axis and offset the canvas
@@ -287,7 +289,7 @@ export default class CollisionEngine {
 }
 
 export interface CollisionInfo {
-  game_object?: RuntimeGameObjectData
+  game_object: RuntimeGameObjectData | null
   box: Box
   point: { x: number, y: number }
 }

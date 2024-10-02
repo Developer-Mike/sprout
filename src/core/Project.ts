@@ -135,7 +135,11 @@ export default class Project {
       if (Project.runningInstanceId === null) return
 
       const stringifiedParams = params.map((param: any) => 
-        typeof param === "object" ? utils.inspect(param) : param
+        typeof param === "object" ? utils.inspect(param) : (
+          param === null ? "null" : (
+            param === undefined ? "undefined" : param.toString()
+          )
+        )
       )
 
       this.addConsoleOutput(null, stringifiedParams.join(" "))
@@ -489,6 +493,8 @@ export default class Project {
     newRuntimeProjectData.gameObjects = Object.entries(this.data.gameObjects).reduce((acc, [gameObjectKey, gameObject]) => {      
       acc[gameObject.id] = {
         ...JSON.parse(JSON.stringify(gameObject)),
+        is_clone: false,
+        destroyed: false,
         code: this.compiledASTs[gameObjectKey],
         on: []
       }

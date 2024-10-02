@@ -12,6 +12,8 @@ export interface RuntimeSpriteData extends SpriteData {
 }
 
 export interface RuntimeGameObjectData extends Omit<GameObjectData, "code"> {
+  is_clone: boolean
+  destroyed: boolean
   code: ProgramAST
   on: { condition: () => boolean, callback: () => Promise<any> }[]
 }

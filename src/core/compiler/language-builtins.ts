@@ -20,7 +20,7 @@ export default class LanguageBuiltins {
 
     // Add builtins to prototypes
     ;(Array.prototype as any).first = function() {
-      return this[0]
+      return this[0] ?? null
     }
   }
 
@@ -30,8 +30,9 @@ export default class LanguageBuiltins {
     suggestions["range"] = { type: AutocompletionItemType.FUNCTION, children: {} }
   }
 
-  log(...messages: any[]) {
+  log(...messages: any[]): null {
     (console as ExtendedConsole).runtimeLog(...messages)
+    return null
   }
 
   range(start_or_end: number, end?: number, step?: number): number[] {

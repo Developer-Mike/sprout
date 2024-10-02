@@ -66,6 +66,11 @@ export function getGlobalAutocompletionSuggestions(projectData: ProjectData): Re
         [gameObject.id]: {
           type: AutocompletionItemType.CONSTANT,
           children: {
+            "is_clone": {
+              type: AutocompletionItemType.CONSTANT,
+              description: false.toString(),
+              children: {}
+            },
             "id": {
               type: AutocompletionItemType.CONSTANT,
               description: gameObject.id,
