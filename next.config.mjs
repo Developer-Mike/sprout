@@ -1,8 +1,16 @@
-import nextTranslate from 'next-translate-plugin';
+import nextTranslate from 'next-translate-plugin'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-};
+  webpack: (config, { }) => {
+    config.module.rules.push({
+      test: /\.sprout$/,
+      use: ['raw-loader'],
+    })
 
-export default nextTranslate(nextConfig);
+    return config
+  },
+}
+
+export default nextTranslate(nextConfig)
