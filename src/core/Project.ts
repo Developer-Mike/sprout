@@ -385,7 +385,9 @@ export default class Project {
 
         // If no member expression found, check if there is a member expression before a dot
         if (!memberAST) {
-          const previousTokens = this.compiledASTs[this.selectedGameObjectKey]?.tokens.filter(token => token.location.end <= offsetPosition).splice(-2)
+          let previousTokens = this.compiledASTs[this.selectedGameObjectKey]?.tokens.filter(token => token.location.end <= offsetPosition)
+          if (previousTokens[previousTokens.length - 1].type === TokenType.EOF) previousTokens.pop() // Fix if EOF is directly after the cursor
+          previousTokens = previousTokens.splice(-2) // Get last two tokens
 
           if (previousTokens.length === 2 && previousTokens[1].type === TokenType.PUNCTUATOR) {
             const previousASTs = this.compiledASTs[this.selectedGameObjectKey]?.getASTsFromSourceLocation(previousTokens[0].location.end)
