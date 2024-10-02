@@ -49,8 +49,8 @@ export default function StagePane({ canvasRef }: {
     const activeGameObject = project.selectedGameObject
     const sprite = project.getActiveSprite(activeGameObject)
 
-    const width = activeGameObject.transform.width * sprite.width * scale
-    const height = activeGameObject.transform.height * sprite.height * scale
+    const width = Math.abs(activeGameObject.transform.width * sprite.width * scale)
+    const height = Math.abs(activeGameObject.transform.height * sprite.height * scale)
 
     const x = activeGameObject.transform.x * scale - width / 2
     const y = activeGameObject.transform.y * scale - height / 2
@@ -59,7 +59,7 @@ export default function StagePane({ canvasRef }: {
     highlighter.style.left = `${x}px`
     highlighter.style.width = `${width}px`
     highlighter.style.height = `${height}px`
-    highlighter.style.transform = `rotate(${activeGameObject.transform.rotation}deg)`
+    highlighter.style.transform = `rotate(${-activeGameObject.transform.rotation}deg)`
 
     highlighter.classList.add(styles.show)
     highlighter.addEventListener("transitionend", () => { highlighter.classList.remove(styles.show) }, { once: true })

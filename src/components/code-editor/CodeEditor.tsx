@@ -35,6 +35,8 @@ export default function CodeEditor() {
     if (model) setupModel(model)
     
     monaco.editor.onDidCreateModel(model => setupModel(model))
+
+    return () => monaco.editor.getModels().forEach(model => model.dispose())
   }, [monaco])
 
   const validate = async () => {
