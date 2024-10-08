@@ -201,12 +201,25 @@ export default class EngineBuiltins {
 
     window.addEventListener("mousemove", e => {
       const rect = this.canvas.getBoundingClientRect()
+      const isFullscreen = document.fullscreenElement === this.canvas
 
-      let x = Math.min(Math.max(e.clientX - rect.left, 0), this.canvas.width)
-      let y = Math.min(Math.max(this.canvas.height - (e.clientY - rect.top), 0), this.canvas.height)
+      let canvasHeight = this.canvas.height
+      let canvasWidth = this.canvas.width
+      let canvasTop = rect.top
+      let canvasLeft = rect.left
 
-      x = x / this.canvas.width * this.executionContext.stage?.width ?? 0
-      y = y / this.canvas.height * this.executionContext.stage?.height ?? 0
+      if (isFullscreen) {
+        canvasHeight = window.innerHeight
+        canvasWidth = window.innerHeight * (this.executionContext.stage?.width ?? 0) / (this.executionContext.stage?.height ?? 0)
+        canvasTop = 0
+        canvasLeft = (window.innerWidth - canvasWidth) / 2
+      }
+
+      let x = Math.min(Math.max(e.clientX - canvasLeft, 0), canvasWidth)
+      let y = Math.min(Math.max(canvasHeight - (e.clientY - canvasTop), 0), canvasHeight)
+
+      x = x / canvasWidth * (this.executionContext.stage?.width ?? 0)
+      y = y / canvasHeight * (this.executionContext.stage?.height ?? 0)
       
       this.executionContext.input.mouse.x = x
       this.executionContext.input.mouse.y = y
