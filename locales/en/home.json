@@ -1,19 +1,30 @@
 {
     "slogan": "The low-code platform for learning game development.",
     "start-building": "Start Building",
-    "feature1": {
-        "icon": "school",
-        "title": "Learn the basics",
-        "description": "Learn the basics of game development with the easy language SproutScript."
-    },
-    "feature2": {
-        "icon": "bolt",
-        "title": "Create your dream game",
-        "description": "Create your dream game using the inbuilt features."
-    },
-    "feature3": {
-        "icon": "code",
-        "title": "The future looks bright",
-        "description": "SproutScript is a language that is easy to learn as well as similar to other languages. So nothing is stopping you from exploring the world of programming as a whole."
-    }
+    "features": [
+        {
+            "icon": "school",
+            "title": "Learn the basics",
+            "description": "Learn the basics of game development with the easy language SproutScript.",
+            "background": "/home/background-placeholder.svg",
+            "highlight": "/home/highlight-placeholder.svg",
+            "highlightTransform": "scale(0.75) translate(0, 10px)"
+        },
+        {
+            "icon": "bolt",
+            "title": "Create your dream game",
+            "description": "Create your dream game using the inbuilt features.",
+            "background": "/home/background-placeholder.svg",
+            "highlight": "/home/highlight-placeholder.svg",
+            "highlightTransform": "scale(.5)"
+        },
+        {
+            "icon": "code",
+            "title": "The future looks bright",
+            "description": "SproutScript is a language that is easy to learn as well as similar to other languages. So nothing is stopping you from exploring the world of programming as a whole.",
+            "background": "/home/background-placeholder.svg",
+            "highlight": "/home/highlight-placeholder.svg",
+            "highlightTransform": "scale(.5)"
+        }
+    ]
 }

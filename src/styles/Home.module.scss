@@ -1,3 +1,7 @@
+#main {
+  overflow: hidden auto;
+}
+
 #hero {
   display: flex;
   flex-direction: column;
@@ -50,24 +54,45 @@
 }
 
 #features {
-  margin: 0 3em;
+  $title-rotation: 4deg;
+  $image-rotation: 2deg;
+  $image-translation-x: 150px;
+
+  overflow: hidden;
+  padding: 0 3em;
 
   .feature {
     display: flex;
     flex-direction: column;
     justify-content: center;
 
-    margin: 50px 0;
+    margin-top: 200px;
 
     &:nth-child(2n) {
       align-items: flex-end;
 
       & > h3 {
-        transform: rotate(5deg);
+        transform: rotate($title-rotation);
       }
 
       & > p {
         text-align: right;
+      }
+
+      .imageContainer {
+        transform: translateX($image-translation-x);
+
+        .backgroundImage {
+          transform: rotate(-$image-rotation);
+        }
+
+        .highlightContainer {
+          left: 0;
+
+          .highlightImage {
+            transform-origin: top left;
+          }
+        }
       }
     }
 
@@ -88,13 +113,39 @@
       background-color: var(--primary);
       border-radius: 20px;
 
-      transform: rotate(-5deg);
+      transform: rotate(-$title-rotation);
     }
 
     & > p {
       margin: 0;
       font-size: 1.5em;
       max-width: 50vw;
+    }
+
+    .imageContainer {
+      position: relative;
+
+      width: min-content;
+      margin-top: 80px;
+
+      transform: translateX(-$image-translation-x);
+
+      .backgroundImage {
+        width: 80vw;
+
+        border-radius: 60px;
+        transform: rotate($image-rotation);
+      }
+
+      .highlightContainer {
+        position: absolute;
+        top: 0;
+        right: 0;
+
+        .highlightImage {
+          transform-origin: top right;
+        }
+      }
     }
   }
 }

@@ -6,9 +6,13 @@ import useTranslation from 'next-translate/useTranslation'
 import Link from "next/link"
 import Icon from "@/components/Icon"
 
+const HIGHLIGHT_CURSOR_OFFSET_SENSITIVITY = 0.01
+const HIGHLIGHT_MAX_OFFSET = 20
+
 export default function Home() {
   const { t } = useTranslation("home")
   
+  // Glow effect on logo
   useEffect(() => {
     const logo = document.getElementById(styles.logo)
     const logoMask = document.getElementById(styles.logoMask)
@@ -27,6 +31,39 @@ export default function Home() {
     return () => { document.removeEventListener("mousemove", onMouseMove) }
   }, [])
 
+  // Highlight move effect on features
+  useEffect(() => {
+    const highlightContainers = document.getElementsByClassName(styles.highlightContainer)
+    if (!highlightContainers.length) return
+
+    const onMouseMove = (e: MouseEvent) => {
+      Array.prototype.forEach.call(highlightContainers, (highlightContainer: HTMLImageElement, i: number) => {
+        const highlightImage = highlightContainer.querySelector(`.${styles.highlightImage}`) as HTMLImageElement
+        if (!highlightImage) return
+
+        const centerX = highlightImage.offsetLeft + highlightImage.width / 2
+        const centerY = highlightImage.offsetTop + highlightImage.height / 2
+
+        const cursorHighlightOffsetX = (e.clientX - centerX) * HIGHLIGHT_CURSOR_OFFSET_SENSITIVITY
+        const cursorHighlightOffsetY = (e.clientY - centerY) * HIGHLIGHT_CURSOR_OFFSET_SENSITIVITY
+
+        let highlightOffsetX = Math.min(HIGHLIGHT_MAX_OFFSET, Math.max(-HIGHLIGHT_MAX_OFFSET, cursorHighlightOffsetX))
+        let highlightOffsetY = Math.min(HIGHLIGHT_MAX_OFFSET, Math.max(-HIGHLIGHT_MAX_OFFSET, cursorHighlightOffsetY))
+
+        if (i % 2 === 0) {
+          highlightOffsetX *= -1
+          highlightOffsetY *= -1
+        }
+
+        highlightContainer.style.transform = `translate(${highlightOffsetX}px, ${highlightOffsetY}px)`
+      })
+    }
+
+    document.addEventListener("mousemove", onMouseMove)
+
+    return () => { document.removeEventListener("mousemove", onMouseMove) }
+  }, [])
+
   return (
     <>
       <DefaultHead />
@@ -35,7 +72,7 @@ export default function Home() {
           { element: <Link href="/builder">{t("common:builder")}</Link> }
         ]} />
       </header>
-      <main>
+      <main id={styles.main}>
         <section id={styles.hero} className="fullscreen">
           <div id={styles.logo}>
             <img src="/sprout.svg" alt="Sprout logo" />
@@ -47,21 +84,22 @@ export default function Home() {
           <Link id={styles.cta} href="/builder?template=empty"><button className="primary">{t("start-building")}</button></Link>
         </section>
         <section id={styles.features}>
-          <div className={styles.feature}>
-            <Icon iconId={t("feature1.icon")} />
-            <h3>{t("feature1.title")}</h3>
-            <p>{t("feature1.description")}</p>
-          </div>
-          <div className={styles.feature}>
-            <Icon iconId={t("feature2.icon")} />
-            <h3>{t("feature2.title")}</h3>
-            <p>{t("feature2.description")}</p>
-          </div>
-          <div className={styles.feature}>
-            <Icon iconId={t("feature3.icon")} />
-            <h3>{t("feature3.title")}</h3>
-            <p>{t("feature3.description")}</p>
-          </div>
+          { (t("features", {}, { returnObjects: true }) as Array<Record<string, string>>).map((feature, i) => (
+            <div className={styles.feature} key={i}>
+              <Icon iconId={feature.icon} />
+              <h3>{feature.title}</h3>
+              <p>{feature.description}</p>
+
+              <div className={styles.imageContainer}>
+                <img className={styles.backgroundImage} src={feature.background} alt={feature.title} />
+
+                <div className={styles.highlightContainer}>
+                  <img className={styles.highlightImage} style={{ transform: feature.highlightTransform }} 
+                    src={feature.highlight} alt={feature.title} />
+                </div>
+              </div>
+            </div>
+          )) }
         </section>
       </main>
     </>
