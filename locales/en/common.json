@@ -61,7 +61,7 @@
     },
     "compatibility-overlay": {
         "title": "Browser not supported",
-        "message": "Your browser does not support the features required to run this game. Please try using a different browser like Google Chrome.",
+        "message": "Your browser does not support the features required to run this application. Please try using a different browser like Google Chrome.",
         "unsupported-features-list": "The following features aren't supported by your browser:"
     },
     "duplicate": "Duplicate"

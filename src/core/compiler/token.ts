@@ -19,7 +19,7 @@ export default class Token {
   getDebugCategory(): string {
     if ([TokenType.IDENTIFIER].includes(this.type)) return "identifiers"
     if ([TokenType.SEPARATOR, TokenType.OPTIONAL_OPERATOR, TokenType.PUNCTUATOR].includes(this.type)) return "punctuators"
-    if ([TokenType.ASSIGNMENT, TokenType.OPERATOR_ASSIGNMENT, TokenType.BINARY_OPERATOR, TokenType.UNARY_OPERATOR]) return "operators"
+    if ([TokenType.ASSIGNMENT, TokenType.OPERATOR_ASSIGNMENT, TokenType.BINARY_OPERATOR, TokenType.UNARY_OPERATOR].includes(this.type)) return "operators"
     if (Object.values(KEYWORDS_MAP).includes(this.type)) return "keywords"
     if (Object.values(BRACKETS_MAP).includes(this.type)) return "brackets"
     if ([TokenType.LITERAL_NUMBER, TokenType.LITERAL_STRING, TokenType.LITERAL_BOOLEAN, TokenType.LITERAL_NULL].includes(this.type)) return "literals"
