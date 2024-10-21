@@ -8,7 +8,7 @@
             "description": "Learn the basics of game development with the easy language SproutScript.",
             "background": "/home/platformer.png",
             "highlight": "/home/player.svg",
-            "highlightTransform": "scale(0.9) translate(calc(var(--background-width) * 0.7), calc(var(--background-height) * 0.2))"
+            "highlightTransform": "scale(0.9) translate(calc(var(--background-width) * 0.7), calc(var(--background-width) * 0.1))"
         },
         {
             "icon": "bolt",
@@ -22,9 +22,9 @@
             "icon": "code",
             "title": "The future looks bright",
             "description": "SproutScript is a language that is easy to learn as well as similar to other languages. So nothing is stopping you from exploring the world of programming as a whole.",
-            "background": "/home/background-placeholder.svg",
-            "highlight": "/home/highlight-placeholder.svg",
-            "highlightTransform": "scale(.5)"
+            "background": "/home/pong.png",
+            "highlight": "/home/ball.svg",
+            "highlightTransform": "rotate(2deg) scale(0.2) translate(calc(var(--background-width) * 0.5), calc(var(--background-width) * 0.7))"
         }
     ]
 }

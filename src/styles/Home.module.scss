@@ -87,6 +87,7 @@
         }
 
         .highlightContainer {
+          left: unset;
           right: 0;
 
           .highlightImage {
@@ -124,7 +125,6 @@
 
     .imageContainer {
       --background-width: min(80vw, 1250px);
-      --background-height: calc(var(--background-width) * 0.6);
 
       position: relative;
 
