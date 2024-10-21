@@ -367,8 +367,6 @@ export default class EngineBuiltins {
     clone.id = clone_id
     clone.is_clone = true
 
-    console.log(game_object == clone)
-
     this.executionContext.game_objects[clone_id] = clone
 
     // Add builtins to the clone

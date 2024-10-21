@@ -58,8 +58,8 @@
   $image-rotation: 2deg;
   $image-translation-x: 150px;
 
-  overflow: hidden;
   padding: 0 3em;
+  margin-bottom: 5em;
 
   .feature {
     display: flex;
@@ -87,7 +87,7 @@
         }
 
         .highlightContainer {
-          left: 0;
+          right: 0;
 
           .highlightImage {
             transform-origin: top left;
@@ -123,6 +123,9 @@
     }
 
     .imageContainer {
+      --background-width: min(80vw, 1250px);
+      --background-height: calc(var(--background-width) * 0.6);
+
       position: relative;
 
       width: min-content;
@@ -131,7 +134,7 @@
       transform: translateX(-$image-translation-x);
 
       .backgroundImage {
-        width: 80vw;
+        width: var(--background-width);
 
         border-radius: 60px;
         transform: rotate($image-rotation);
@@ -140,7 +143,7 @@
       .highlightContainer {
         position: absolute;
         top: 0;
-        right: 0;
+        left: 0;
 
         .highlightImage {
           transform-origin: top right;

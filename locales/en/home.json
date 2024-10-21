@@ -6,14 +6,14 @@
             "icon": "school",
             "title": "Learn the basics",
             "description": "Learn the basics of game development with the easy language SproutScript.",
-            "background": "/home/background-placeholder.svg",
-            "highlight": "/home/highlight-placeholder.svg",
-            "highlightTransform": "scale(0.75) translate(0, 10px)"
+            "background": "/home/platformer.png",
+            "highlight": "/home/player.svg",
+            "highlightTransform": "scale(0.9) translate(calc(var(--background-width) * 0.7), calc(var(--background-height) * 0.2))"
         },
         {
             "icon": "bolt",
             "title": "Create your dream game",
-            "description": "Create your dream game using the inbuilt features.",
+            "description": "Create your dream game using the countless inbuilt features.",
             "background": "/home/background-placeholder.svg",
             "highlight": "/home/highlight-placeholder.svg",
             "highlightTransform": "scale(.5)"
