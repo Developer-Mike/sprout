@@ -14,9 +14,9 @@
             "icon": "bolt",
             "title": "Create your dream game",
             "description": "Create your dream game using the countless inbuilt features.",
-            "background": "/home/background-placeholder.svg",
-            "highlight": "/home/highlight-placeholder.svg",
-            "highlightTransform": "scale(.5)"
+            "background": "/home/code.png",
+            "highlight": "/home/cursor.svg",
+            "highlightTransform": "rotate(-2deg) scale(0.2) translate(calc(var(--background-width) * 2), calc(var(--background-width) * 2.15))"
         },
         {
             "icon": "code",
