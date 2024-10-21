@@ -20,6 +20,7 @@ import LogItem, { LogItemType } from "@/types/LogItem"
 import { ExtendedConsole } from "@/types/ExtendedConsole"
 import SpriteHelper from "@/utils/sprite-helper"
 import utils from "util"
+import CallExprAST from "./compiler/ast/expr/call-expr-ast"
 
 export default class Project {
   //#region Static React States
@@ -415,15 +416,25 @@ export default class Project {
           previousIdentifiers.pop() // Remove the last identifier (the place where the cursor is)
 
           for (const identifier of previousIdentifiers) {
-            const objectSuggestions = suggestions[identifier.toJavaScript()]
-            const wildcardSuggestions = suggestions["*"]
+            let identifierString = identifier.toJavaScript()
+            const functionCall = identifier instanceof CallExprAST
+            if (functionCall) identifierString = identifierString.substring(0, identifierString.indexOf("("))
+
+            let objectSuggestions: AutocompletionItem | undefined = suggestions[identifierString]
+
+            // If found suggestion for function child but it's not a function call, don't show suggestions
+            if (objectSuggestions?.type === AutocompletionItemType.FUNCTION && !functionCall)
+              objectSuggestions = undefined
 
             suggestions = {
-              ...wildcardSuggestions?.children ?? {},
+              ...suggestions["*"]?.children ?? {}, // Add wildcard suggestions
               ...objectSuggestions?.children ?? {}
             }
           }
         }
+
+        // Remove Wildcard suggestions (else a * would be shown in the autocompletion)
+        delete suggestions["*"]
 
         return { suggestions: Object.entries(suggestions).map(([key, suggestion]) => ({
           label: key,

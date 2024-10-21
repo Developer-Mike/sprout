@@ -28,7 +28,10 @@ export default function CodeEditor() {
     setLanguage(monaco)
     setTheme(monaco)
 
-    monaco.languages.registerCompletionItemProvider(SPROUT_LANGUAGE_KEY, project.getAutocompletionProvider(monaco))
+    const autocompletionProvider = monaco.languages.registerCompletionItemProvider(
+      SPROUT_LANGUAGE_KEY, 
+      project.getAutocompletionProvider(monaco)
+    )
 
     // Validate the code of the current model and future models created
     const model = monaco.editor.getModels()[0]
@@ -36,7 +39,11 @@ export default function CodeEditor() {
     
     monaco.editor.onDidCreateModel(model => setupModel(model))
 
-    return () => monaco.editor.getModels().forEach(model => model.dispose())
+    return () => {
+      monaco.editor.getModels().forEach(model => model.dispose())
+      monaco.editor.getEditors().forEach(editor => editor.dispose())
+      autocompletionProvider.dispose()
+    }
   }, [monaco])
 
   const validate = async () => {

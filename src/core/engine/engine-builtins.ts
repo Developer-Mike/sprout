@@ -145,10 +145,10 @@ export default class EngineBuiltins {
         "get_bounds": { 
           type: AutocompletionItemType.FUNCTION, 
           children: {
-            "max_y": { type: AutocompletionItemType.FUNCTION, children: {} },
-            "min_y": { type: AutocompletionItemType.FUNCTION, children: {} },
-            "max_x": { type: AutocompletionItemType.FUNCTION, children: {} },
-            "min_x": { type: AutocompletionItemType.FUNCTION, children: {} }
+            "max_y": { type: AutocompletionItemType.CONSTANT, children: {} },
+            "min_y": { type: AutocompletionItemType.CONSTANT, children: {} },
+            "max_x": { type: AutocompletionItemType.CONSTANT, children: {} },
+            "min_x": { type: AutocompletionItemType.CONSTANT, children: {} }
           }
         },
         
@@ -161,10 +161,34 @@ export default class EngineBuiltins {
     gameObjectSuggestions["clone"] = { type: AutocompletionItemType.FUNCTION, children: {} }
     gameObjectSuggestions["destroy"] = { type: AutocompletionItemType.FUNCTION, children: {} }
 
-    gameObjectSuggestions["get_collision_with"] = { type: AutocompletionItemType.FUNCTION, children: {} }
-    gameObjectSuggestions["get_box_collision_with"] = { type: AutocompletionItemType.FUNCTION, children: {} }
-    gameObjectSuggestions["get_collisions"] = { type: AutocompletionItemType.FUNCTION, children: {} }
-    gameObjectSuggestions["get_box_collisions"] = { type: AutocompletionItemType.FUNCTION, children: {} }
+    const collisionSuggestionChildren = {
+      "game_object": { type: AutocompletionItemType.CONSTANT, children: {} },
+      "box": {
+        type: AutocompletionItemType.CONSTANT,
+        children: {
+          "x": { type: AutocompletionItemType.CONSTANT, children: {} },
+          "y": { type: AutocompletionItemType.CONSTANT, children: {} },
+          "width": { type: AutocompletionItemType.CONSTANT, children: {} },
+          "height": { type: AutocompletionItemType.CONSTANT, children: {} }
+        }
+      },
+      "point": {
+        type: AutocompletionItemType.CONSTANT,
+        children: {
+          "x": { type: AutocompletionItemType.CONSTANT, children: {} },
+          "y": { type: AutocompletionItemType.CONSTANT, children: {} }
+        }
+      }
+    }
+
+    gameObjectSuggestions["get_collision_with"] = { type: AutocompletionItemType.FUNCTION, children: collisionSuggestionChildren }
+    gameObjectSuggestions["get_box_collision_with"] = { type: AutocompletionItemType.FUNCTION, children: collisionSuggestionChildren }
+    gameObjectSuggestions["get_collisions"] = { type: AutocompletionItemType.FUNCTION, children: {
+      "*": { type: AutocompletionItemType.CONSTANT, children: collisionSuggestionChildren }
+    } }
+    gameObjectSuggestions["get_box_collisions"] = { type: AutocompletionItemType.FUNCTION, children: {
+      "*": { type: AutocompletionItemType.CONSTANT, children: collisionSuggestionChildren }
+    } }
 
     gameObjectSuggestions["previous_sprite"] = { type: AutocompletionItemType.FUNCTION, children: {} }
     gameObjectSuggestions["next_sprite"] = { type: AutocompletionItemType.FUNCTION, children: {} }
