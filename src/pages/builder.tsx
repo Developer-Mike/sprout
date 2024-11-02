@@ -11,7 +11,7 @@ import SpritesTab from "@/components/sprites-tab/SpritesTab"
 import StagePane from "@/components/stage-pane/StagePane"
 import TabView from "@/components/tab-view/TabView"
 import { DEBUG_BYPASS_SAVE_ALERT } from "@/constants"
-import Project from "@/core/Project"
+import Project, { useProjectHooks } from "@/core/Project"
 import styles from "@/styles/Builder.module.scss"
 import { ExtendedWindow } from "@/types/ExtendedWindow"
 import DBHelper from "@/utils/db-helper"
@@ -26,7 +26,8 @@ export default function Builder() {
   const dialog = useContext(DialogContext)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  Project.registerHooks()
+  const projectHooks = useProjectHooks()
+  Project.registerHooks(projectHooks)
   const [project, _setProject] = useState<Project | null>(null)
 
   const showInvalidProjectDialog = (projectId: string) => {
@@ -129,16 +130,16 @@ export default function Builder() {
               {
                 element: <span>{t("common:file")}</span>,
                 nested: [
-                  <span onClick={() => router.push("/builder?template=empty")}>{t("common:new")}</span>,
-                  <span onClick={() => router.push("/projects-overview")}>{t("common:open")}</span>,
-                  <span onClick={() => project.saveToFS(canvasRef.current)}>{t("common:save")}</span>
+                  <span key={0} onClick={() => router.push("/builder?template=empty")}>{t("common:new")}</span>,
+                  <span key={1} onClick={() => router.push("/projects-overview")}>{t("common:open")}</span>,
+                  <span key={2} onClick={() => project.saveToFS(canvasRef.current)}>{t("common:save")}</span>
                 ]
               },
               {
                 element: <span>{t("common:edit")}</span>,
                 nested: [
-                  <span onClick={() => project.undo()}>{t("common:undo")}</span>,
-                  <span onClick={() => project.redo()}>{t("common:redo")}</span>,
+                  <span key={0} onClick={() => project.undo()}>{t("common:undo")}</span>,
+                  <span key={1} onClick={() => project.redo()}>{t("common:redo")}</span>,
                 ]
               },
               {

@@ -1,5 +1,0 @@
-<svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
-    <!-- <rect width="100%" height="100%" rx="50%" fill="#191f19"/> -->
-    <path fill="none" stroke="#b4d8bb" stroke-width="5px" stroke-linecap="round" style="transform-origin: center;" transform="scale(1.25)"
-        d="M 50 79 L 50 61 C 50 42 41 37 20 37 C 20 52 29 58 49 58 M 56 52 C 67 51 76 42 76 28 C 60 28 54 33 50 39" />
-</svg>

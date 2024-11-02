@@ -22,6 +22,111 @@ import SpriteHelper from "@/utils/sprite-helper"
 import utils from "util"
 import CallExprAST from "./compiler/ast/expr/call-expr-ast"
 
+export function useProjectHooks(): Record<string, any> {
+  const hooks = {} as Record<string, any>
+
+  // Loading state
+  ;[hooks.isLoading, hooks.setIsLoading] = useState(true)
+
+  // Saving state
+  ;[hooks.isSaving, hooks.setIsSaving] = useState(false)
+
+  // Unsaved changes state
+  ;[hooks.unsavedChanges, hooks.setUnsavedChanges] = useState(false)
+
+  // Project data state
+  const [projectDataState, setProjectDataState] = useState<ProjectData>(null as any)
+  const projectDataCallbackRef = useRef<(data: ProjectData) => void>()
+
+  useEffect(() => {
+    if (!projectDataCallbackRef.current) return
+    projectDataCallbackRef.current(projectDataState)
+  }, [projectDataState])
+
+  hooks.data = projectDataState
+  hooks.setData = (data: ProjectData) => new Promise(resolve => {
+    projectDataCallbackRef.current = resolve
+    setProjectDataState(data)
+  })
+  hooks.updateData = async (transaction: (data: ProjectData) => void) => {
+    const newData: ProjectData = JSON.parse(JSON.stringify(hooks.data))
+    transaction(newData)
+
+    return hooks.setData(newData)
+  }
+
+  // Runtime data state
+  const [compiledASTsState, setCompiledASTsState] = useState<Record<string, ProgramAST>>({})
+  const compiledASTsCallbackRef = useRef<(data: Record<string, ProgramAST>) => void>()
+
+  useEffect(() => {
+    if (!compiledASTsCallbackRef.current) return
+    compiledASTsCallbackRef.current(compiledASTsState)
+  }, [compiledASTsState])
+
+  hooks.compiledASTs = compiledASTsState
+  hooks.setCompiledASTs = (data: Record<string, ProgramAST>) => new Promise(resolve => {
+    compiledASTsCallbackRef.current = resolve
+    setCompiledASTsState(data)
+  })
+
+  // Running instance
+  const [runningInstanceIdState, setRunningInstanceIdState] = useState<string | null>(null)
+  const runningInstanceIdCallbackRef = useRef<(id: string | null) => void>()
+
+  useEffect(() => {
+    if (!runningInstanceIdCallbackRef.current) return
+    runningInstanceIdCallbackRef.current(runningInstanceIdState)
+  }, [runningInstanceIdState])
+
+  hooks.runningInstanceId = runningInstanceIdState
+  hooks.setRunningInstanceId = async (id: string | null) => new Promise(resolve => {
+    runningInstanceIdCallbackRef.current = resolve
+    setRunningInstanceIdState(id)
+  })
+
+  // Console output state
+  hooks.consoleOutputUnreactive = []
+  const [consoleOutputState, setConsoleOutputState] = useState<LogItem[]>([])
+  hooks.consoleOutput = consoleOutputState
+
+  hooks.clearConsoleOutput = () => {
+    hooks.consoleOutputUnreactive = []
+    setConsoleOutputState([...hooks.consoleOutputUnreactive])
+  }
+  hooks.addConsoleOutput = (gameObjectId: string | null, message: string, type: LogItemType = LogItemType.INFO) => {
+    hooks.consoleOutputUnreactive.push({
+      gameObjectId: gameObjectId,
+      message: message,
+      type: type
+    })
+
+    // Limit console output length
+    if (hooks.consoleOutputUnreactive.length > MAX_CONSOLE_OUTPUT_LENGTH)
+      hooks.consoleOutputUnreactive.shift()
+
+    setConsoleOutputState([...hooks.consoleOutputUnreactive])
+  }
+
+  // Add runtimeLog to console object
+  ;(console as ExtendedConsole).runtimeLog = (...params: any) => {
+    if (Project.runningInstanceId === null) return
+
+    const stringifiedParams = params.map((param: any) => 
+      typeof param === "object" ? utils.inspect(param) : (
+        param === null ? "null" : (
+          param === undefined ? "undefined" : param.toString()
+        )
+      )
+    )
+
+    hooks.addConsoleOutput(null, stringifiedParams.join(" "))
+    console.log(...params)
+  }
+
+  return hooks
+}
+
 export default class Project {
   //#region Static React States
   static isLoading: boolean
@@ -43,109 +148,33 @@ export default class Project {
   static runningInstanceId: string | null
   private static setRunningInstanceId: (id: string | null) => Promise<string | null>
 
-  private static consoleOutputUnreactive: LogItem[] = []
   static consoleOutput: LogItem[] = []
   private static clearConsoleOutput: () => void
   private static addConsoleOutput: (gameObjectId: string | null, message: string, type?: LogItemType) => void
   
-  static registerHooks() {
-    // Loading state
-    ;[this.isLoading, this.setIsLoading] = useState(true)
+  static registerHooks(hooks: Record<string, any>) {
+    this.isLoading = hooks.isLoading
+    this.setIsLoading = hooks.setIsLoading
 
-    // Saving state
-    ;[this.isSaving, this.setIsSaving] = useState(false)
+    this.isSaving = hooks.isSaving
+    this.setIsSaving = hooks.setIsSaving
 
-    // Unsaved changes state
-    ;[this.unsavedChanges, this.setUnsavedChanges] = useState(false)
+    this.unsavedChanges = hooks.unsavedChanges
+    this.setUnsavedChanges = hooks.setUnsavedChanges
 
-    // Project data state
-    const [projectDataState, setProjectDataState] = useState<ProjectData>(null as any)
-    const projectDataCallbackRef = useRef<(data: ProjectData) => void>()
+    this.data = hooks.data
+    this.setData = hooks.setData
+    this.updateData = hooks.updateData
 
-    useEffect(() => {
-      if (!projectDataCallbackRef.current) return
-      projectDataCallbackRef.current(projectDataState)
-    }, [projectDataState])
+    this.compiledASTs = hooks.compiledASTs
+    this.setCompiledASTs = hooks.setCompiledASTs
 
-    this.data = projectDataState
-    this.setData = (data: ProjectData) => new Promise(resolve => {
-      projectDataCallbackRef.current = resolve
-      setProjectDataState(data)
-    })
-    this.updateData = async (transaction: (data: ProjectData) => void) => {
-      const newData: ProjectData = JSON.parse(JSON.stringify(this.data))
-      transaction(newData)
+    this.runningInstanceId = hooks.runningInstanceId
+    this.setRunningInstanceId = hooks.setRunningInstanceId
 
-      return Project.setData(newData)
-    }
-
-    // Runtime data state
-    const [compiledASTsState, setCompiledASTsState] = useState<Record<string, ProgramAST>>({})
-    const compiledASTsCallbackRef = useRef<(data: Record<string, ProgramAST>) => void>()
-
-    useEffect(() => {
-      if (!compiledASTsCallbackRef.current) return
-      compiledASTsCallbackRef.current(compiledASTsState)
-    }, [compiledASTsState])
-
-    this.compiledASTs = compiledASTsState
-    this.setCompiledASTs = (data: Record<string, ProgramAST>) => new Promise(resolve => {
-      compiledASTsCallbackRef.current = resolve
-      setCompiledASTsState(data)
-    })
-
-    // Running instance
-    const [runningInstanceIdState, setRunningInstanceIdState] = useState<string | null>(null)
-    const runningInstanceIdCallbackRef = useRef<(id: string | null) => void>()
-
-    useEffect(() => {
-      if (!runningInstanceIdCallbackRef.current) return
-      runningInstanceIdCallbackRef.current(runningInstanceIdState)
-    }, [runningInstanceIdState])
-
-    this.runningInstanceId = runningInstanceIdState
-    this.setRunningInstanceId = async (id: string | null) => new Promise(resolve => {
-      runningInstanceIdCallbackRef.current = resolve
-      setRunningInstanceIdState(id)
-    })
-
-    // Console output state
-    const [consoleOutputState, setConsoleOutputState] = useState<LogItem[]>([])
-    this.consoleOutput = consoleOutputState
-
-    this.clearConsoleOutput = () => {
-      this.consoleOutputUnreactive = []
-      setConsoleOutputState([...this.consoleOutputUnreactive])
-    }
-    this.addConsoleOutput = (gameObjectId: string | null, message: string, type: LogItemType = LogItemType.INFO) => {
-      this.consoleOutputUnreactive.push({
-        gameObjectId: gameObjectId,
-        message: message,
-        type: type
-      })
-
-      // Limit console output length
-      if (this.consoleOutputUnreactive.length > MAX_CONSOLE_OUTPUT_LENGTH)
-        this.consoleOutputUnreactive.shift()
-
-      setConsoleOutputState([...this.consoleOutputUnreactive])
-    }
-
-    // Add runtimeLog to console object
-    ;(console as ExtendedConsole).runtimeLog = (...params: any) => {
-      if (Project.runningInstanceId === null) return
-
-      const stringifiedParams = params.map((param: any) => 
-        typeof param === "object" ? utils.inspect(param) : (
-          param === null ? "null" : (
-            param === undefined ? "undefined" : param.toString()
-          )
-        )
-      )
-
-      this.addConsoleOutput(null, stringifiedParams.join(" "))
-      console.log(...params)
-    }
+    this.consoleOutput = hooks.consoleOutput
+    this.clearConsoleOutput = hooks.clearConsoleOutput
+    this.addConsoleOutput = hooks.addConsoleOutput
   }
   //#endregion
 
@@ -386,7 +415,7 @@ export default class Project {
 
         // Find last member expression
         let sourceLocationASTs = this.compiledASTs[this.selectedGameObjectKey]?.getASTsFromSourceLocation(offsetPosition)
-        let memberAST: MemberExprAST | IdentifierExprAST | undefined  = sourceLocationASTs.findLast(ast => ast instanceof MemberExprAST)
+        let memberAST: MemberExprAST | IdentifierExprAST | undefined  = sourceLocationASTs.findLast(ast => ast instanceof MemberExprAST) as MemberExprAST | undefined
 
         // If no member expression found, check if there is a member expression before a dot
         if (!memberAST) {
@@ -517,7 +546,7 @@ export default class Project {
     let hasCompilationErrors = false
     for (const [gameObjectKey, ast] of Object.entries(this.compiledASTs)) {
       for (const error of ast.errors) {
-        this.addConsoleOutput(`[${this.data.gameObjects[gameObjectKey]?.id}] ${error.message}`, LogItemType.ERROR)
+        this.addConsoleOutput(this.data.gameObjects[gameObjectKey]?.id, error.message, LogItemType.ERROR)
         hasCompilationErrors = true
       }
     }

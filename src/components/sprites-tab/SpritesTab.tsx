@@ -6,7 +6,7 @@ import NamedSpriteListItem from "../named-sprite-list-item/NamedSpriteListItem"
 import Icon from "../Icon"
 import useTranslation from "next-translate/useTranslation"
 import SpriteLibraryDialog from "../sprite-library-dialog/SpriteLibraryDialog"
-import DraggableLayout from "../DraggableLayout"
+import * as DraggableLayout from "../DraggableLayout"
 import TransactionInfo, { TransactionCategory, TransactionType } from "@/types/TransactionInfo"
 
 export default function SpritesTab() {

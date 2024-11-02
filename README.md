@@ -97,16 +97,16 @@ npm run dev
   - [x] rotate_to
   - [x] collides_with, collides_with_box, collides_with_mouse
   - [x] sleep
-  - [ ] (If time allows) Add physics engine
-  - [ ] (If time allows) Add support for camera
-    - [ ] stage.camera
-      - [ ] x, y (properties)
-      - [ ] move (handle delta_time)
-  - [ ] (If time allows) Add support for drawing (new entry in the runtime data)
-    - [ ] draw_text
-    - [ ] draw_line
-    - [ ] draw_rectangle
-    - [ ] draw_circle
+  - [!] (If time allows) Add physics engine
+  - [!] (If time allows) Add support for camera
+    - [!] stage.camera
+      - [!] x, y (properties)
+      - [!] move (handle delta_time)
+  - [!] (If time allows) Add support for drawing (new entry in the runtime data)
+    - [!] draw_text
+    - [!] draw_line
+    - [!] draw_rectangle
+    - [!] draw_circle
   - [x] (If time allows) Add support cloning and destroying game objects while the game is running
     - [x] clone
     - [x] destroy
@@ -128,15 +128,15 @@ npm run dev
   - [x] Limit max height of game object preview in code editor
   - [x] Reset linked scaling when changing the sprite
   - [!] (Out of scope) Allow simple calculations in the LabeledNumberInput
-- [-] Create some example games
-  - [ ] Add the ability to add information text to the documentation sidebar
+- [x] Create some example games
+  - [!] Add the ability to add information text to the documentation sidebar
 - [x] Add warning if not using Chrome
 - [x] Bugfixes
   - [x] Add absolute identifiers to project paths -> Fix project with same filename not visible in the projects overview
   - [x] Fix rotation of game objects causing other game objects to move
   - [x] Fix deletion of all game objects causing null value of selected object key
 - [x] (If time allows) Add the ability to duplicate game objects
-- [ ] (If time allows) Add the ability to add plugins (keep in mind: security risk)
+- [!] (If time allows) Add the ability to add plugins (keep in mind: security risk)
 - [!] (Out of scope) Add the ability to export and import game objects individually
 - [!] (Out of scope) Add export of the games to standalone websites
 - [!] (Out of scope) Add the ability to add sounds and music

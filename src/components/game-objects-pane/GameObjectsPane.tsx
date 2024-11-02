@@ -11,7 +11,7 @@ import LabeledNumberInput, { InputType } from "../labeled-input/LabeledNumberInp
 import { DialogContext } from "../dialog/Dialog"
 import TransactionInfo, { TransactionCategory, TransactionType } from "@/types/TransactionInfo"
 import NamedSpriteListItem from "../named-sprite-list-item/NamedSpriteListItem"
-import DraggableLayout from "../DraggableLayout"
+import * as DraggableLayout from "../DraggableLayout"
 import IdHelper from "@/utils/id-helper"
 import { GameObjectData } from "@/types/ProjectData"
 import ObjectHelper from "@/utils/object-helper"

@@ -1,6 +1,5 @@
 import styles from "@/components/navbar/Navbar.module.scss"
 import useTranslation from "next-translate/useTranslation"
-import Link from "next/link"
 import { useRouter } from "next/router"
 import React, { MouseEvent, ReactElement, useEffect, useState } from "react"
 

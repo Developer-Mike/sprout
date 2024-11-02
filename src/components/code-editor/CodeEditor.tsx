@@ -75,33 +75,31 @@ export default function CodeEditor() {
     monaco.editor.setModelMarkers(editor, SPROUT_LANGUAGE_KEY, errorMarkers)
   }
 
-  if (router.query["tokens"]) {
-    const [tokenDecorationsIdentifiers, setTokenDecorationsIdentifiers] = useState<string[]>([])
+  const [tokenDecorationsIdentifiers, setTokenDecorationsIdentifiers] = useState<string[]>([])
+  useEffect(() => {
+    if (!router.query["tokens"]) return
+    if (!monaco) return
 
-    useEffect(() => {
-      if (!monaco) return
+    const editor = monaco.editor.getModel(monaco.Uri.parse(project.selectedGameObjectKey))
+    if (!editor) return
 
-      const editor = monaco.editor.getModel(monaco.Uri.parse(project.selectedGameObjectKey))
-      if (!editor) return
+    const tokens = project.compiledASTs[project.selectedGameObjectKey]?.tokens
+    if (!tokens) return
 
-      const tokens = project.compiledASTs[project.selectedGameObjectKey]?.tokens
-      if (!tokens) return
+    // Create new decorations
+    const newTokenDecorations = tokens.map(token => {
+      const startPos = editor.getPositionAt(token.location.start)
+      const endPos = editor.getPositionAt(token.location.end)
 
-      // Create new decorations
-      const newTokenDecorations = tokens.map(token => {
-        const startPos = editor.getPositionAt(token.location.start)
-        const endPos = editor.getPositionAt(token.location.end)
+      return {
+        range: new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column),
+        options: { className: styles[`token-${token.getDebugCategory()}`], hoverMessage: { value: token.toString() } }
+      }
+    })
 
-        return {
-          range: new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column),
-          options: { className: styles[`token-${token.getDebugCategory()}`], hoverMessage: { value: token.toString() } }
-        }
-      })
-
-      // Apply new decorations
-      setTokenDecorationsIdentifiers(editor.deltaDecorations(tokenDecorationsIdentifiers, newTokenDecorations))
-    }, [monaco, project.compiledASTs, project.selectedGameObject.id])
-  }
+    // Apply new decorations
+    setTokenDecorationsIdentifiers(editor.deltaDecorations(tokenDecorationsIdentifiers, newTokenDecorations))
+  }, [monaco, project.compiledASTs, project.selectedGameObject.id])
 
   return (
     <div id={styles.codeEditorContainer}>
