@@ -11,6 +11,20 @@
     <a href="./LICENSE"><img src="https://img.shields.io/static/v1.svg?label=License&message=MPL-2.0&style=for-the-badge&colorA=191f19&colorB=b4d8bb" alt="MPL-2.0 license"/></a>
 </p>
 
+> [!important] 
+> For Sprout to work properly, you must use **Chrome**.
+
+## 🌱 SproutScript
+Sprout uses the custom SproutScript language.
+
+- Variable Definition: `var x = 0`
+- Function Declaration: `fun foo = () { }`
+- While-Loop: `while (condition) { }`
+- For-Loop: `for (i in range(10)) { }`
+- On-Statement (Gets executed every frame if condition is met): `on (condition) { }`
+
+Check out the ["Pong" project](https://sprout.by-mika.dev/builder?template=pong) for a sample project.
+
 ## 🚀 Running the project
 1. Clone the repository
 ```bash
